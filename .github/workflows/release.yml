@@ -5,6 +5,11 @@ on:
     tags: ['v*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      release:
+        description: Publish the package version from main and create its tag
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -41,10 +46,22 @@ jobs:
             dist/SHA256SUMS.txt
             dist/frozen-check.json
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
+        # A pushed v* tag, or a manual run on main with "release" checked.
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release && github.ref == 'refs/heads/main')
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          gh release create '${{ github.ref_name }}' dist/*-setup.exe dist/SHA256SUMS.txt dist/frozen-check.json --verify-tag --title 'Firmware Color Studio ${{ github.ref_name }}' --notes-file 'docs/releases/${{ github.ref_name }}.md'
+          $version = & .\.venv\Scripts\python -c 'from firmware_color_studio import __version__; print(__version__)'
+          $tag = "v$version"
+          if ('${{ github.ref_type }}' -eq 'tag') {
+            if ('${{ github.ref_name }}' -ne $tag) { throw "Tag ${{ github.ref_name }} does not match package version $version" }
+            gh release create $tag dist/*-setup.exe dist/SHA256SUMS.txt dist/frozen-check.json --verify-tag --title "Firmware Color Studio $tag" --notes-file "docs/releases/$tag.md"
+          } else {
+            # The tag must not exist yet: gh creates it at this commit together with the release.
+            git ls-remote --exit-code --tags origin "refs/tags/$tag"
+            if ($LASTEXITCODE -eq 0) { throw "Tag $tag already exists; push the tag or bump the version instead" }
+            gh release create $tag dist/*-setup.exe dist/SHA256SUMS.txt dist/frozen-check.json --target '${{ github.sha }}' --title "Firmware Color Studio $tag" --notes-file "docs/releases/$tag.md"
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Release was not published' }
 
