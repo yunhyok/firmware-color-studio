@@ -33,4 +33,3 @@ The selected policy follows the observed Adobe converter settings and paired Lig
 ## Remaining preview differences
 
 The runtime forms one RGB pixel per 2×2 Bayer tile before area resizing. The Adobe DNG SDK 1.7.1 sample renderer uses bicubic resampling of its Stage 3 demosaiced image at the requested size before camera-to-working-space conversion. Substituting the SDK’s full Stage 3 dump for the app’s Bayer rectangles, with the app’s area resizer and the same DCP, reduced MAE to 0.009341 and the 95th percentile error to 0.028636. Applying white balance after the app’s area resize while retaining the half-resolution Bayer image gave 0.010483 and 0.032228. The remaining difference spans stages outside these controls. [SDK Stage 3 experiment](https://yunhyok.github.io/pentax-k3iii-firmware-analysis/analysis/lightroom-sdk-stage3.html) · [Adobe DNG SDK](https://helpx.adobe.com/camera-raw/desktop/dng-and-file-formats/digital-negative.html)
-
