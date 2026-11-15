@@ -20,4 +20,3 @@ $installer = Join-Path $repoRoot "dist\FirmwareColorStudio-$version-windows-x64-
 $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
 "$hash  $([IO.Path]::GetFileName($installer))" | Set-Content -LiteralPath (Join-Path $repoRoot 'dist\SHA256SUMS.txt') -Encoding ascii
 Write-Output $installer
-

@@ -215,4 +215,3 @@ def test_resize_rgb_weights_fractional_edges_in_linear_space():
     assert raw.resize_rgb(image, 5) is image
     with pytest.raises(ValueError, match="positive integer"):
         raw.resize_rgb(image, 0)
-

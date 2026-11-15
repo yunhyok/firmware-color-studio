@@ -132,6 +132,7 @@ def test_color_space_change_refreshes_default_thumbnails(application, monkeypatc
     try:
         window.space.setCurrentIndex(1)
         assert calls == ["adobergb"]
+        window._set_recipe(default_recipe())
+        assert calls == ["adobergb", "srgb"]
     finally:
         window.close()
-

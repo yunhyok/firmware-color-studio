@@ -1,5 +1,6 @@
 * text=auto eol=lf
-*.json -text
+*.json -text whitespace=cr-at-eol
 *.dcp -text
 *.ico -text
 *.png -text
+/src/firmware_color_studio/resources/licenses/** -whitespace

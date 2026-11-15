@@ -10,7 +10,8 @@
     "distinct_dng_tiff_pixel_hashes": 18,
     "sdk_profile_name_verified_before_and_after_export": true,
     "sdk_camera_profile_digest_available": false,
-    "camera_profile_digest_source": "Exported TIFF XMP"
+    "camera_profile_digest_source": "Exported TIFF XMP",
+    "enhanced_exports_passed": 2
   },
   "evidence_sha256": {
     "preparation_manifest": "2aa95880d4c56a69e7f047cc3249c5a1e8068cae552202178dae807cfd91a4bc",
@@ -211,6 +212,69 @@
       "tiff_xmp_camera_profile_digest": "B94C0F03CE8C86F992132BAA270C4B38",
       "tiff_pixel_data_sha256": "7f897711ae4d76439541fb09c616b3b0c4e2c55f8ad54e3e8d5c4d6e7122ee20",
       "tiff_file_sha256": "cc97c419b60db0d761a3b3a7076175b5ad3b9ba7ffa0a421d98c98dd1ab275d9"
+    }
+  ],
+  "offline_comparison": {
+    "method": "Direct pixel comparison at 1000 pixels long edge using unmodified generated recipes and as-shot white balance",
+    "unit": "Normalized sRGB channel code value (0–1)",
+    "p95_definition": "95th percentile of absolute per-channel differences over all pixel coordinates",
+    "dng_plain": {
+      "case_count": 18,
+      "mean_absolute_error_range": [
+        0.0039032823580113546,
+        0.006963257477462822
+      ],
+      "p95_absolute_error_range": [
+        0.007330927789485645,
+        0.016010044839013353
+      ]
+    },
+    "pef_natural": {
+      "mean_absolute_error": 0.028507989253497578,
+      "p95_absolute_error": 0.046353753676728754
+    },
+    "plain_comparison_sha256": "ecece86dc5b9ddd53205e316a65c2d00466e66c66556bf4353192b2cd305bbd0"
+  },
+  "enhanced_results": [
+    {
+      "raw_format": "DNG",
+      "profile_id": "gold",
+      "profile_name": "K-3 III Firmware Gold (골드)",
+      "sdk_look_uuid": "9875A7D2DD865B508D4C8893CDF17834",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "A49BE1ECB65C86A16B408F7AAD70E365",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2.20-1 b3d627c03278",
+      "base_dcp_sha256": "2fe49607956cef9ca1828057a8addc13592a5bedd3e4e0582b62e0ae023028a3",
+      "enhanced_xmp_sha256": "86ee56f3809783c8159b6dc510e628d9da8b3b5ead030049caf12d823d309a96",
+      "tiff_xmp_camera_profile_digest": "DFEDFAB40DDB858664FD51D43EEF2F83",
+      "tiff_pixel_data_sha256": "c581f69227c8c4a3514b1fee6461ec15495626c89e3c240c64d3b3c74fc9309c",
+      "tiff_file_sha256": "b10823ed95a398751688980122a1b1b657aa50d88648ef25c827a38a764888b1",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005534997366136495,
+        "p95_absolute_error": 0.01627825029325957,
+        "comparison_sha256": "18e5b769b23cb7fc067171a61fd29132a37dbc5832770417c1d33d75b4547a51"
+      },
+      "sdk_evidence_sha256": "75b60c16db94c8214444fbe307401cd4da7daf32b180c5b48dc6e13296762d06",
+      "private_audit_sha256": "9c5aa8446d68d08f8d3fe2f8ca35a7770a1439a1498c3665a16c52cc3e159e52"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "bleach-tone",
+      "profile_name": "K-3 III Firmware Bleach Bypass (블리치 바이패스) (Green)",
+      "sdk_look_uuid": "A2CDF59092A7503E86E590BF59747E63",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "0B216138CAD684C2E91A7ACEB360F669",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2.20-1 b3d627c03278",
+      "base_dcp_sha256": "2fe49607956cef9ca1828057a8addc13592a5bedd3e4e0582b62e0ae023028a3",
+      "enhanced_xmp_sha256": "317db9b2f89498a0688b53a80abfe4f33616a8d658f7174704a91d213be057bf",
+      "tiff_xmp_camera_profile_digest": "DFEDFAB40DDB858664FD51D43EEF2F83",
+      "tiff_pixel_data_sha256": "8d0749fce3f39270f871dbd2692b22f7ad67b58711b2d6f9170783f437a5e8d1",
+      "tiff_file_sha256": "dd7b280017178313c6327af7619baa0ffde834178a561fa1f0d4d9c68ea617b5",
+      "offline_comparison": {
+        "mean_absolute_error": 0.00686263508585415,
+        "p95_absolute_error": 0.016082624416545985,
+        "comparison_sha256": "796ce115864ae70a05a59eb45a96eb5cc09cafc35af87307cd069f1b528ea795"
+      },
+      "sdk_evidence_sha256": "0c366b241f42e216044494ef39716deab28a99820e79f1b90c7a22daaa930234",
+      "private_audit_sha256": "a184bcea8a61b930a6c53866384191c6374aa08776f2ce400321fc4e4f2f591e"
     }
   ]
 }

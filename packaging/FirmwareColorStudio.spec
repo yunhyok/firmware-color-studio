@@ -17,4 +17,3 @@ exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='FirmwareColorStudio',
           console=False, debug=False, strip=False, upx=False,
           icon=str(root / 'src' / 'firmware_color_studio' / 'resources' / 'app.ico'))
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='FirmwareColorStudio')
-

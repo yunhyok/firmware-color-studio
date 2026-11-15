@@ -235,10 +235,12 @@ class MainWindow(QMainWindow):
         self.mode_list.setIconSize(QSize(104, 72))
         self.mode_list.setGridSize(QSize(132, 136))
         self.mode_list.setWordWrap(True)
+        self.mode_list.setUniformItemSizes(True)
         self.mode_list.setTextElideMode(Qt.TextElideMode.ElideNone)
         for mode, info in list_modes().items():
             item = QListWidgetItem(info["label"].replace(" (", "\n("))
             item.setToolTip(info["label"])
+            item.setSizeHint(QSize(126, 130))
             item.setData(Qt.ItemDataRole.UserRole, mode)
             self.mode_list.addItem(item)
         self.mode_list.setCurrentRow(0)
@@ -471,6 +473,7 @@ class MainWindow(QMainWindow):
         self._mode_changed(self.mode_list.currentItem())
 
     def _set_recipe(self, recipe):
+        previous = (self.recipe["color_space"], self.recipe["calibration"])
         self.recipe = validate_recipe(recipe)
         self.mode_list.blockSignals(True)
         for i in range(self.mode_list.count()):
@@ -481,6 +484,9 @@ class MainWindow(QMainWindow):
         self._sync_controls()
         self._sync_format()
         self._request_preview()
+        if previous != (self.recipe["color_space"], self.recipe["calibration"]):
+            self.generation["thumbs"] += 1
+            self._thumbnails()
 
     def _start_job(self, kind, function):
         serial = self.generation[kind]
@@ -690,8 +696,6 @@ class MainWindow(QMainWindow):
                 recipe["calibration"] = read_calibration(path)
                 self.source_paths.add(Path(path))
                 self._set_recipe(recipe)
-                self.generation["thumbs"] += 1
-                self._thumbnails()
             except (OSError, ValueError) as error:
                 QMessageBox.warning(self, self.tr_text("error"), str(error))
 
@@ -762,4 +766,3 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

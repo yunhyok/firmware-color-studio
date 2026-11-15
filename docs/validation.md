@@ -12,7 +12,22 @@ This page distinguishes checks of original firmware code, application behavior a
 
 The test suite covers recipe validation, source hashes, numeric output, DCP parsing/encoding, XMP binary encoding and interpolation, Gold response, RAW black/white levels, WB, CFA, crop, orientation, calibration identity and GUI export safety. Synthetic tests include unsupported/malformed input rejection. Real pre-existing K-3 III DNG and PEF files were decoded read-only and retained their original SHA-256 hashes.
 
-The developer checks also reproduced an installed Adobe XMP table's serialized bytes and MD5 fingerprint. This confirms the stream format; it is separate from Lightroom importing and rendering a generated profile.
+The developer checks also reproduced an installed Adobe XMP table's serialized bytes and MD5 fingerprint.
+
+## Lightroom Classic 16.0
+
+Actual Lightroom exports passed for 21 cases: the 16 default DCPs, two customized DCPs, Gold, green-toned Bleach Bypass, and Natural on a PEF. Each output was a 1000×667, 16-bit RGB TIFF with an sRGB ICC. The 18 plain DNG outputs had distinct profile digests and pixel hashes. The enhanced outputs recorded the generated XMP UUID and RGB-table fingerprint, and their pixels differed from each other and from the plain outputs. Source RAW and isolated catalog preparation hashes were checked. [Machine-readable evidence](lightroom-validation.json)
+
+Direct comparisons of identical pixel coordinates against this app's 1000px output used fixed recipes and As Shot WB, with no registration, fitting or correction. Values below are absolute errors in normalized 0…1 encoded sRGB channels. The DNG and PEF are two existing test photographs, not a camera-wide accuracy survey.
+
+| Comparison | Mean absolute error | 95th percentile |
+|---|---:|---:|
+| DNG, 18 plain profiles | 0.00390–0.00696 | 0.00733–0.01601 |
+| DNG, Gold | 0.00553 | 0.01628 |
+| DNG, green Bleach Bypass | 0.00686 | 0.01608 |
+| PEF, Natural | 0.02851 | 0.04635 |
+
+The PEF difference is larger and its exact cause remains unresolved. Successful Adobe import and these measured comparisons do not establish equality with Lightroom or camera JPEG processing.
 
 ## Fidelity boundary
 

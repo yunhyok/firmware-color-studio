@@ -471,4 +471,3 @@ def read_calibration(path: str | Path) -> list[list[list[float]]]:
             return [matrices[17], matrices[21]]
     except OSError as exc:
         raise ValueError(f"Unable to read DNG calibration {path.name}: {exc}") from exc
-

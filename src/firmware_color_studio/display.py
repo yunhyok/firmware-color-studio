@@ -78,4 +78,3 @@ def rgb_image(rgb: np.ndarray, target: QColorSpace | None = None) -> QImage:
         if not converted.isNull():
             image = converted
     return image.convertToFormat(QImage.Format.Format_RGB32)
-

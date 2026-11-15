@@ -43,4 +43,3 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\FirmwareColorStudio.exe"; Tas
 
 [Run]
 Filename: "{app}\FirmwareColorStudio.exe"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
-
