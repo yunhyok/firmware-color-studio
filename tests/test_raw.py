@@ -108,6 +108,7 @@ def test_dng_crop_cfa_white_balance_and_baseline_are_independent(tmp_path, monke
     expected[0, 1] = (0.2, 0.5 * (0.1 + 0.24), 0.3)
     np.testing.assert_allclose(image.rgb, expected, atol=1e-7)
     assert image.baseline_exposure == -0.75
+    assert image.metadata["baseline_exposure"] == -0.75
     assert image.metadata["baseline_source"] == "DNG BaselineExposure"
     assert image.metadata["crop_origin"] == [1, 1]
     assert image.metadata["white_balance"] == [2, 1, 3, 1]
@@ -141,6 +142,45 @@ def test_pef_uses_both_greens_and_firmware_gain():
     mosaic.raw_image_visible[1:3, 1:3] = [[290, 150], [430, 460]]
     rgb = raw._bayer_rgb(mosaic, (3, 2, 9, 8), (1, 1, 2, 2), black, white, wb, False)
     np.testing.assert_allclose(rgb[0, 0], [0.1, (0.1 + 0.3) / 2, 3 * 30 / 700], atol=1e-7)
+
+
+@pytest.mark.parametrize(("gain", "maker_white", "black_levels", "preview_white"), [
+    (1024, 1100, (100, 200, 300, 400), 1100),
+    (4096, 16378, (128, 128, 128, 128), 16315),
+])
+def test_pef_uses_adobe_preview_policy_and_retains_native_levels(
+    tmp_path, monkeypatch, gain, maker_white, black_levels, preview_white,
+):
+    path = tmp_path / "capture.pef"
+    tags = {
+        256: _long(6304), 257: _long(4224), 258: _short(14), 262: _short(32803),
+        272: _bytes(b"PENTAX K-3 Mark III\0", 2), 277: _short(1), 34665: _long(0),
+    }
+    exif_offset = 8 + len(_ifd(tags))
+    tags[34665] = _long(exif_offset)
+    note = _note({
+        0x009D: _short(gain, order=">"),
+        0x007E: _long(maker_white, order=">"),
+        0x0200: _short(*black_levels, order=">"),
+    })
+    exif = _ifd({37500: _bytes(note, kind=7)}, offset=exif_offset)
+    path.write_bytes(b"II\x2a\0\x08\0\0\0" + _ifd(tags) + exif)
+
+    monkeypatch.setattr(raw.rawpy, "imread", lambda _: nullcontext(_Mosaic()))
+    monkeypatch.setattr(raw, "_ACTIVE_AREA", (3, 2, 9, 8))
+    monkeypatch.setattr(raw, "_PEF_CROP", (1, 1, 4, 4))
+    image = raw.load_raw(path)
+
+    assert image.baseline_exposure == image.metadata["baseline_exposure"] == -0.3
+    assert image.metadata["baseline_source"] == "Adobe DNG Converter 18.7 PEF model BaselineExposure"
+    assert image.metadata["firmware_baseline_source"] == "PEF MakerNote exposure gain and firmware formula"
+    assert image.metadata["firmware_baseline_exposure"] == pytest.approx(
+        np.log2((1448 / gain) * (maker_white - max(black_levels)) / 16383)
+    )
+    assert image.metadata["maker_note_white_level"] == maker_white
+    assert image.metadata["white_level"] == preview_white
+    # First cropped tile is G1 R / B G2. Confirm preview normalization uses the effective white.
+    assert image.rgb[0, 0, 0] == pytest.approx(2 * (380 - black_levels[0]) / (preview_white - black_levels[0]))
 
 
 @pytest.mark.parametrize(("orientation", "expected"), [

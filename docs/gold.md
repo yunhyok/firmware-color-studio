@@ -65,6 +65,25 @@ names `AA00/AC00/AE00/B000` as `GMRFL/GMGFL/GMBFL/GMYBFL` in
 `U_IM_R2Y_CTRL_RDMA_GMFL_TBL_VAL`. Gold always uses physical R/G/B and expands
 the final integer response, including AdobeRGB remapping and delta limits.
 
+## Preserving the zero-input table entry
+
+The physical default RGB table entries at input zero are `[0, 0, 96]` in sRGB
+mode and `[0, 0, 120]` in Adobe RGB mode, on the 0–1023 hardware scale. The
+gamma evaluator must return those entries at zero. Its former multiplication
+by `sign(input)` incorrectly replaced all three with zero and created an
+artificial jump immediately above zero. The correction preserves zero-input
+table values and mirrors only negative inputs used by the extension path.
+Ordinary curves whose first entry is zero retain their existing zero response.
+The [gamma endpoint tests](../tests/test_gold.py) cover zero, positive and
+negative epsilon, both colour spaces, and an ordinary-mode zero control.
+
+A fresh original-ARM Make check confirmed the first entries and all 12,288
+physical RGB response entries per colour space at the nominal state. This is
+the same read-only emulator boundary as the larger verification below, not ISP
+pixel or camera execution. The [LUT fidelity evidence](lut-fidelity.md#two-distinct-corrections)
+records this check and explains why the earlier Gold boundary reference had
+to be corrected before measuring the separate DCP/XMP improvement.
+
 ## Runtime boundary
 
 `runtime_spec()` returns `{}`; a nonempty runtime dictionary is rejected.

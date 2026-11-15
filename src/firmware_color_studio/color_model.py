@@ -140,7 +140,7 @@ class CameraColour:
             out = np.stack([np.interp(x[..., c], grid, self.curves[c]) for c in range(3)], axis=-1)
         else:
             out = np.interp(x, grid, self.curves[channel])
-        return np.sign(linear) * np.minimum(out / self.curve_max, 1.0)
+        return np.where(linear < 0.0, -1.0, 1.0) * np.minimum(out / self.curve_max, 1.0)
 
     def chroma_gain(self, luma):
         """Chroma-suppress gain over luminance (0..1).  1.0 = register value 512; slope unit 1/8 per 10-bit step."""

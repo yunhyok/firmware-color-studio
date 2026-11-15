@@ -12,4 +12,5 @@ __pycache__/
 *.pef
 *.DNG
 *.dng
+!/src/firmware_color_studio/data/demo/color-cube.dng
 

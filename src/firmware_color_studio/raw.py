@@ -20,6 +20,10 @@ _ACTIVE_AREA = (34, 26, 4194, 6250)
 # See upstream analysis/lightroom-model-exports.html and lightroom-pef-neutral.html.
 # shortcut: use the full-frame PEF crop until capture crop-mode metadata is verified.
 _PEF_CROP = (28, 24, 6192, 4128)
+# Adobe DNG Converter 18.7 writes -3/10 for this PEF model across metadata controls.
+# The firmware estimate remains in metadata for camera-render comparisons.
+_PEF_ADOBE_BASELINE_EXPOSURE = -0.3
+_PEF_ADOBE_WHITE_LEVEL_CAP = 16315
 _IMAGE_TONES = (
     "natural", "bright", "portrait", "landscape", "vibrant", "monochrome",
     "muted", "reversal-film", "bleach-bypass", "radiant", "cross-processing",
@@ -38,7 +42,7 @@ _TONING_MODES = {"muted", "bleach-bypass", "harubeni"}
 
 @dataclass
 class RawImage:
-    """Half-resolution, oriented, white-balanced camera RGB and its unapplied EV."""
+    """Half-resolution, oriented, white-balanced camera RGB and its unapplied preview EV."""
 
     rgb: np.ndarray
     baseline_exposure: float
@@ -398,6 +402,19 @@ def load_raw(path: str | Path) -> RawImage:
             metadata, warnings = _capture_info(note, fields)
             raw_values = _dng_fields(reader, first, sensor) if is_dng else _pef_fields(note, fields)
             active, crop, black, white, wb, baseline = raw_values
+            baseline_source = "DNG BaselineExposure"
+            white_source = "DNG WhiteLevel"
+            if not is_dng:
+                metadata.update(
+                    firmware_baseline_exposure=baseline,
+                    firmware_baseline_source="PEF MakerNote exposure gain and firmware formula",
+                    maker_note_white_level=white,
+                )
+                baseline = _PEF_ADOBE_BASELINE_EXPOSURE
+                baseline_source = "Adobe DNG Converter 18.7 PEF model BaselineExposure"
+                white = min(white, _PEF_ADOBE_WHITE_LEVEL_CAP)
+                white_source = "PEF MakerNote WhiteLevel with Adobe DNG Converter 18.7 model cap"
+                _check_levels(black, white)
             with rawpy.imread(str(path)) as unpacked:
                 if unpacked.raw_type != rawpy.RawType.Flat:
                     raise ValueError("Expected a single unpacked Bayer mosaic")
@@ -411,8 +428,8 @@ def load_raw(path: str | Path) -> RawImage:
         width=rgb.shape[1], height=rgb.shape[0], orientation=orientation,
         active_area=list(active), crop_origin=list(crop[:2]), crop_size=list(crop[2:]),
         crop_source="DNG DefaultCrop" if is_dng else "K-3 Mark III full-frame RAW crop",
-        baseline_source="DNG BaselineExposure" if is_dng else "PEF firmware formula (maker-note gain)",
-        white_balance=wb.tolist(), black_level=list(black), white_level=white,
+        baseline_exposure=baseline, baseline_source=baseline_source,
+        white_balance=wb.tolist(), black_level=list(black), white_level=white, white_level_source=white_source,
     )
     return RawImage(rgb, baseline, metadata, warnings)
 

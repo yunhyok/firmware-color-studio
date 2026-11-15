@@ -22,6 +22,16 @@ DIGITS = {char: n for n, char in enumerate(
 )}
 
 
+def normalized(matrix):
+    # SDK dng_color_space::SetMatrixToPCS: scale each XYZ row to D50.
+    return np.diag(np.asarray(dcp.D50) / (matrix @ np.ones(3))) @ matrix
+
+
+def direct_srgb(camera, rgb):
+    to_srgb = np.linalg.inv(normalized(color_model.SRGB_TO_PCS)) @ normalized(camera.to_pcs)
+    return np.clip(color_model.srgb_encode(camera.decode(camera.render(rgb)) @ to_srgb.T), 0, 1)
+
+
 def read_lut(xmp):
     description = ET.fromstring(xmp).find(f".//{RDF}Description")
     fingerprint = description.attrib[CRS + "RGBTable"]
@@ -77,7 +87,7 @@ def test_xmp_stream_and_zip_are_deterministic_and_use_the_quantized_table():
         readme = archive.read("README.txt")
         assert base["ProfileName"].encode("utf-8") in readme
         assert dcp_name.encode() in readme and xmp_name.encode() in readme
-    assert dcp_name == f"pentax-k3iii-base-2.20-1-{base['ProfileName'].split()[-1]}.dcp"
+    assert dcp_name == f"pentax-k3iii-base-v2-2.20-1-{base['ProfileName'].split()[-1]}.dcp"
     assert xmp_name == f"pentax-k3iii-muted-{bundle.report['uuid'][:8].lower()}.xmp"
     other = enhanced.build_enhanced({**recipe, "toning": 2})
     # Unpacked into the same folders, two bundles share the base and keep both looks.
@@ -89,6 +99,13 @@ def test_xmp_stream_and_zip_are_deterministic_and_use_the_quantized_table():
     assert calibrated.report["dcp_filename"] != dcp_name
     assert other.report["uuid"] != bundle.report["uuid"]
     assert other.report["rgb_table_fingerprint"] != bundle.report["rgb_table_fingerprint"]
+    for changed in [{**recipe, "color_space": "adobergb"},
+                    {**recipe, "settings": {**recipe["settings"], "saturation": 4}}]:
+        different_matrix = enhanced.build_enhanced(changed)
+        assert different_matrix.dcp != bundle.dcp
+        assert different_matrix.report["dcp_filename"] != dcp_name
+        assert different_matrix.report["base_profile_name"] != bundle.report["base_profile_name"]
+        assert different_matrix.report["uuid"] != bundle.report["uuid"]
 
 
 @pytest.mark.parametrize("order", list(permutations(range(3))))
@@ -104,55 +121,113 @@ def test_tetrahedral_interpolates_selected_vertices(order):
     np.testing.assert_array_equal(enhanced._tetrahedral(np.ones(3), table), table[-1, -1, -1] / 65535)
 
 
-@pytest.mark.parametrize(("mode", "toning"), [("natural", 0), ("bleach-bypass", 1), ("gold", 0)])
+@pytest.mark.parametrize(("mode", "toning"), [("natural", 0), ("muted", 7), ("bleach-bypass", 1), ("harubeni", 4), ("gold", 0)])
 @pytest.mark.parametrize("space", ["srgb", "adobergb"])
-def test_enhanced_rgb_matches_firmware_formula_over_seeded_working_gamut(mode, toning, space):
+def test_enhanced_rgb_matches_firmware_formula_over_the_full_sensor_cube(mode, toning, space):
     recipe = profiles.default_recipe(mode)
     recipe.update(toning=toning, color_space=space)
     bundle = enhanced.build_enhanced(recipe)
     camera = profiles.camera_for_recipe(recipe)
-    rgb = np.random.default_rng(864).uniform(0.02, 0.6, size=(5000, 3))
-    base = dcp.read_dcp(bundle.dcp)
-    p = rgb @ (color_model.PCS_TO_PROPHOTO @ base["ForwardMatrix1"]).T
-    within_gamut = np.all((p > 0.05) & (p < 0.95), axis=1)
-    rgb = rgb[within_gamut]
-    expected = camera.decode(camera.render(rgb)) @ (color_model.PCS_TO_SRGB @ camera.to_pcs).T
-    expected = color_model.srgb_encode(np.clip(expected, 0.0, 1.0))
+    axis = np.linspace(0, 1, 17)
+    grid = np.stack(np.meshgrid(axis, axis, axis, indexing="ij"), -1).reshape(-1, 3)
+    rgb = np.concatenate([grid, np.random.default_rng(864).uniform(0, 1, size=(5000, 3))])
+    expected = direct_srgb(camera, rgb)
     exported = enhanced.render_enhanced(rgb, bundle, baseline_exposure=-0.5)
     error = np.abs(exported - expected) * 255.0
     assert error.mean() < 0.65
     assert np.percentile(error, 95) < 1.4
+    assert np.percentile(error, 99) < 3.5
+    assert error.max() < 25  # Explicit bound includes gamut faces; not just mean/p95.
 
     neutral = enhanced.render_enhanced(np.full(3, 0.125), bundle, baseline_exposure=-0.5)
-    if toning:
+    if mode == "bleach-bypass":
         assert neutral[1] - neutral[0] > 0.01
     elif mode == "gold":
         assert np.ptp(neutral) > 0.08
         assert bundle.report["camera_notes"]["exposure_gain"] == 8192
-    else:
+    elif not toning:
         assert np.ptp(neutral) < 1e-3
 
 
-def test_enhanced_applies_negative_exposure_to_the_base_before_the_lut():
+@pytest.mark.parametrize("ev", [-2., -1., 0., .5, 1.])
+def test_enhanced_applies_sdk_exposure_after_the_serialized_matrix_before_the_lut(ev):
     bundle = enhanced.build_enhanced(profiles.default_recipe("bright"))
     base = dcp.read_dcp(bundle.dcp)
     raw = np.array([0.125, 0.25, 0.5])
-    after_base = color_model.dng_working_rgb(raw, base["ForwardMatrix1"], -1.0)
-    after_exposure = color_model.dng_tone(after_base, base["curve_x"], base["curve_y"], -1.0)
+    # SDK SetForwardMatrix rounds to 1e-4, then dng_color_spec normalizes rows.
+    units = base["ForwardMatrix1"] * 10000
+    rounded = np.sign(units) * np.floor(abs(units) + .5) / 10000
+    to_working = np.linalg.inv(normalized(color_model.PROPHOTO_TO_PCS)) @ normalized(rounded)
+    after_base = np.clip(raw @ to_working.T, 0, 1)
+    after_exposure = np.clip(after_base * 2 ** max(ev, 0), 0, 1)
+    if ev < 0:
+        after_exposure = color_model.dng_tone(after_exposure, base["curve_x"], base["curve_y"], ev)
     _, samples = read_lut(bundle.xmp)
     code = enhanced._tetrahedral(color_model.srgb_encode(after_exposure), samples)
-    expected = color_model.srgb_encode(np.clip(color_model.srgb_decode(code) @ color_model.PROPHOTO_TO_SRGB.T, 0, 1))
-    np.testing.assert_allclose(enhanced.render_enhanced(raw, bundle, baseline_exposure=-1.5), expected, atol=1e-12)
+    to_srgb = np.linalg.inv(normalized(color_model.SRGB_TO_PCS)) @ normalized(color_model.PROPHOTO_TO_PCS)
+    expected = color_model.srgb_encode(np.clip(color_model.srgb_decode(code) @ to_srgb.T, 0, 1))
+    np.testing.assert_allclose(enhanced.render_enhanced(raw, bundle, baseline_exposure=ev - .5), expected, atol=1e-12)
 
 
-def test_gold_clipping_boundary_limit_is_reproducible():
-    # Track this documented LUT limit; improving the sampler should update the evidence.
+@pytest.mark.parametrize(("space", "rgb", "expected"), [
+    ("adobergb", [0.7850411286188153, 0.7747761263451224, 0.20276238894425247],
+     [0.93472445, 0.94950487, 0.26636081]),
+    ("srgb", [0.20953687713522073, 0.8608416551900554, 0.9950363874156818],
+     [0, 0.99848265625, 0.996859375]),
+])
+def test_gold_clipping_boundary_regressions(space, rgb, expected):
+    # The former Adobe blue=0 reference was wrong: gamma(0) must retain table[0].
     recipe = profiles.default_recipe("gold")
-    recipe["color_space"] = "adobergb"
-    rgb = np.array([0.7850411286188153, 0.7747761263451224, 0.20276238894425247])
+    recipe["color_space"] = space
+    rgb = np.asarray(rgb)
     camera = profiles.camera_for_recipe(recipe)
-    direct = color_model.srgb_encode(np.clip(
-        camera.decode(camera.render(rgb)) @ (color_model.PCS_TO_SRGB @ camera.to_pcs).T, 0, 1))
+    direct = direct_srgb(camera, rgb)
     lut = enhanced.render_enhanced(rgb, enhanced.build_enhanced(recipe), -0.5)
-    np.testing.assert_allclose(direct, [0.9353315653, 0.9510393681, 0], atol=1e-8)
-    np.testing.assert_allclose(lut, [0.9350822111, 0.9495093095, 0.2319131177], atol=1e-8)
+    np.testing.assert_allclose(direct, expected, atol=1e-8)
+    assert np.max(abs(lut - direct)) * 255 < 1.5
+
+
+@pytest.mark.parametrize("mode", ["muted", "bleach-bypass", "harubeni"])
+@pytest.mark.parametrize("space", ["srgb", "adobergb"])
+@pytest.mark.parametrize("tone", range(1, 9))
+def test_every_tint_preserves_bounded_full_cube_accuracy(mode, space, tone):
+    recipe = profiles.default_recipe(mode)
+    recipe.update(color_space=space, toning=tone)
+    camera = profiles.camera_for_recipe(recipe)
+    axis = np.linspace(0, 1, 9)
+    rgb = np.stack(np.meshgrid(axis, axis, axis, indexing="ij"), -1).reshape(-1, 3)
+    actual = enhanced.render_enhanced(rgb, enhanced.build_enhanced(recipe), -.5)
+    error = abs(actual - direct_srgb(camera, rgb)) * 255
+    assert error.mean() < .4
+    assert np.percentile(error, 99) < 3.5
+    assert error.max() < 25
+
+
+def test_remaining_adobe_rgb_tint_boundary_has_an_explicit_error_bound():
+    # Worst input found by the documented 198-recipe synthetic sweep. The
+    # 32-cube still interpolates across the final sRGB clipping boundary.
+    recipe = profiles.default_recipe("muted")
+    recipe.update(color_space="adobergb", toning=1)
+    recipe["settings"]["key"] = -4
+    rgb = np.array([0.27657142871675555, 0.8396712484216707, 0.030468958490673992])
+    camera = profiles.camera_for_recipe(recipe)
+    direct = direct_srgb(camera, rgb)
+    actual = enhanced.render_enhanced(rgb, enhanced.build_enhanced(recipe), -.5)
+    np.testing.assert_allclose(direct, [0, 0.9984821891, 0], atol=1e-8)
+    assert np.max(abs(actual - direct)) * 255 < 30
+
+
+def test_all_cc0_matrices_preserve_white_and_bound_sdk_rounding():
+    engine = profiles._pack(profiles.CAMERA_ID).engine
+    corners = np.array(list(np.ndindex(2, 2, 2)))
+    for mode in profiles.list_modes():
+        for space in [False, True]:
+            for saturation in range(-4, 5):
+                matrix = np.asarray(engine.cc0(mode, saturation=saturation, adobe_rgb=space)).reshape(3, 3) / 256
+                np.testing.assert_array_equal(matrix.sum(axis=1), np.ones(3))
+                # The writer stores 1e-6 SRATIONALs before SDK reading/rounding.
+                forward = np.round(color_model.PROPHOTO_TO_PCS @ matrix, 6)
+                effective = enhanced._working_matrix(forward)
+                assert np.max(abs(corners @ (effective - matrix).T)) < .0005
+                np.testing.assert_allclose(effective.sum(axis=1), np.ones(3), atol=1e-14)
+                assert abs(np.linalg.det(effective)) > 1e-5

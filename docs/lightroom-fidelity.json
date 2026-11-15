@@ -1,0 +1,683 @@
+{
+  "schema_version": 1,
+  "application": "Adobe Lightroom Classic",
+  "version": "16.0",
+  "process_version": "15.4",
+  "camera_model": "PENTAX K-3 Mark III",
+  "enhanced_profile_format_version": 2,
+  "raw_input": {
+    "format": "DNG",
+    "sample": "raw.pixls.us 4678",
+    "sha256": "1e3352ccba0db428fd2a183718fc857fb283b1d43ad704305e5094c19e0a0428",
+    "original_and_copy_hashes_matched_after_export": true
+  },
+  "validation": {
+    "enhanced_exports_passed": 12,
+    "unique_sdk_look_uuids": 12,
+    "unique_rgb_table_fingerprints": 12,
+    "distinct_base_dcp_profile_digests": 4,
+    "sdk_camera_profile_digest_available": false,
+    "profile_loading": "Selected and loaded each Look in Lightroom's Profile Browser before the SDK batch export",
+    "cold_sdk_only_observation": "Some prior SDK-only selections reverted or lacked RGB-table settings",
+    "white_balance": "As Shot",
+    "exposure_slider_ev": 0,
+    "plain_exports_passed": 4,
+    "current_exports_passed": 16,
+    "plain_offline_comparisons": 3,
+    "unique_enhanced_tiff_pixel_hashes": 12
+  },
+  "tiff_export": {
+    "width": 1000,
+    "height": 667,
+    "bits_per_sample": [
+      16,
+      16,
+      16
+    ],
+    "photometric_interpretation": "RGB",
+    "compression": "uncompressed",
+    "color_space": "sRGB",
+    "icc_sha256": "2b3aa1645779a9e634744faf9b01e9102b0c9b88fd6deced7934df86b949af7e"
+  },
+  "source_evidence_sha256": {
+    "preparation_manifest": "a617991e71ea2b41723c3e1bad1cd2906bf2dfad787bd8523b377a220d847476",
+    "sdk_evidence": "e9b575e2993574aef57af1f0c13f2453a06165ed52aa3948b22fbe44078f4be7",
+    "private_audit": "65710c470c3b799571e74a23e62e3e8c2d98f9047c113c470f7ed1e683bdd557",
+    "offline_comparison": "e4794365340da3c1acc29f9b81e45248b6c0e943ee971200ddd5bfd9aa1f7572"
+  },
+  "offline_comparison": {
+    "method": "Direct matching pixel coordinates using the generated recipes, As Shot white balance and the file baseline",
+    "unit": "Normalized encoded sRGB channel value (0–1)",
+    "fitting_used": false,
+    "summary_by_mode": {
+      "gold": {
+        "case_count": 2,
+        "mean_absolute_error_range": [
+          0.005634818735722048,
+          0.005706279116403751
+        ],
+        "p95_absolute_error_range": [
+          0.014908343357243191,
+          0.015165708408954842
+        ]
+      },
+      "bleach-bypass": {
+        "case_count": 1,
+        "mean_absolute_error_range": [
+          0.006878507825350175,
+          0.006878507825350175
+        ],
+        "p95_absolute_error_range": [
+          0.015974705635025125,
+          0.015974705635025125
+        ]
+      },
+      "harubeni": {
+        "case_count": 9,
+        "mean_absolute_error_range": [
+          0.005429617836712755,
+          0.005434988851338839
+        ],
+        "p95_absolute_error_range": [
+          0.011639522456677523,
+          0.011645025050642105
+        ]
+      }
+    }
+  },
+  "results": [
+    {
+      "profile_id": "gold-srgb-tone0",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "gold",
+        "name": "Fidelity v2 gold srgb tone0",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 0,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": 0
+        },
+        "toning": 0
+      },
+      "recipe_sha256": "a5ed918eca2b1fe8b7810d332eb094ece18042b689bd48871d49705947bea4da",
+      "profile_name": "Gold (골드) · Fidelity v2 gold srgb tone0",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 7de5b8abbe0e",
+      "dcp_sha256": "9645264bd0a7e5f81aadede14d82dd4ccf7d7eac63ffa944156fb2614cc71f22",
+      "xmp_sha256": "920deb78b5e3d4f8217030c2eb0e0c1fc8ef8ae38942a77f4f8576ca049c8523",
+      "sdk_look_uuid": "5BDD27E23C3E55A68F231475289719E1",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "58F987A859C8859A9AF04F14BF2F8FCE",
+      "tiff_xmp_camera_profile_digest": "BEB6E8621F774497AB5E01303A2CECD5",
+      "tiff_pixel_data_sha256": "d92f1595de3d44180fceb7ea772fa0222006984f5bca4d2aa3c09d9327a57d19",
+      "tiff_file_sha256": "394d85b3be4654bef3b44b967172179ec79f8101ced016425d69f2aa6c21fb53",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005706279116403751,
+        "p95_absolute_error": 0.015165708408954842
+      }
+    },
+    {
+      "profile_id": "gold-adobergb-tone0",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "adobergb",
+        "mode": "gold",
+        "name": "Fidelity v2 gold adobergb tone0",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 0,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": 0
+        },
+        "toning": 0
+      },
+      "recipe_sha256": "ecfe7de2542556dc73a3b6314f2f6734c282168843d9892399485fa9597eade1",
+      "profile_name": "Gold (골드) · Fidelity v2 gold adobergb tone0",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 b2836365640c",
+      "dcp_sha256": "dd5009ceb4a550cfa1b88e02964713dd1385d12af1934e2a306d2e935606d65e",
+      "xmp_sha256": "0a3d8cda184acab44699f7f7ace275924445b9dddf9e10a2380d57a623dbb548",
+      "sdk_look_uuid": "122D17A3DE665BE687589084D25CF0B5",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "3957B64C91758166D60068BCBAC9B4AF",
+      "tiff_xmp_camera_profile_digest": "295D4D8C281265BB7AD4052F69B565B0",
+      "tiff_pixel_data_sha256": "5aa8b713e743e59870700b91108073740a86f0f2b0dbb5085af7f5abe767e94f",
+      "tiff_file_sha256": "563d37dc93f488810af8d195fc6247083550b14d1cb2259f26162ff3fcb79e28",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005634818735722048,
+        "p95_absolute_error": 0.014908343357243191
+      }
+    },
+    {
+      "profile_id": "bleach-bypass-srgb-tone1",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "bleach-bypass",
+        "name": "Fidelity v2 bleach-bypass srgb tone1",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 4,
+          "highlight": 0,
+          "hue": 0,
+          "key": -4,
+          "saturation": 0,
+          "shadow": 0
+        },
+        "toning": 1
+      },
+      "recipe_sha256": "365a15133ab3c446ae99d98c5e7712872e562618107dc31c6f905ce01ea7d930",
+      "profile_name": "Bleach Bypass (블리치 바이패스) · Fidelity v2 bleach-bypass srgb tone1",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 4f36bd7be6db",
+      "dcp_sha256": "5e65489819fb6acf6131be747b0f1aa53e337bea9566ed62c4bdae68e9be7d42",
+      "xmp_sha256": "9fc91e59a4c1b4a8b5cc40e575ac037281f4e927cce4a7bce5bacd7075c5b64e",
+      "sdk_look_uuid": "2E720A12E25459EB8EBE3B40DC19D8BC",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "EA94D647C51B107299806E3C770E455C",
+      "tiff_xmp_camera_profile_digest": "500E6781EDD7900BDAD4443981DD0431",
+      "tiff_pixel_data_sha256": "376fbfb2c2f98f66e756439722443da4e44e445be1d7baf9a4c795833c7c50b9",
+      "tiff_file_sha256": "c9a5ea3eeb52c215bc6ae657ceddf19f2160b2391cf8114a4804234cc24a694c",
+      "offline_comparison": {
+        "mean_absolute_error": 0.006878507825350175,
+        "p95_absolute_error": 0.015974705635025125
+      }
+    },
+    {
+      "profile_id": "harubeni-srgb-tone0",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "harubeni",
+        "name": "Fidelity v2 harubeni srgb tone0",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 2,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": -2
+        },
+        "toning": 0
+      },
+      "recipe_sha256": "1211e43e9136030182eb47939c7be0fc055b5efbfae4d3e77b432ab9c6c7a38b",
+      "profile_name": "HARUBENI (하루베니) · Fidelity v2 harubeni srgb tone0",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 fb9953bf0942",
+      "dcp_sha256": "f4a8eaeff2c2ff9c4931e51e1415d814354dfe0d1a0db30aa232a4e41f411db5",
+      "xmp_sha256": "47d4f4e8bd32ff5a13df9c221045c1ebf46a04a9cecdcb922a489b40d9eccaa9",
+      "sdk_look_uuid": "6329FC8ACDCB50F88A7CABAFE250A2DE",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "C44BE5B4C486C42488ACB63A225A93CB",
+      "tiff_xmp_camera_profile_digest": "7E0F330D8AE8C8E2B81C0F838BB450E9",
+      "tiff_pixel_data_sha256": "68182cd7de4e2d35e0d11425944a3dd84941e81d94c1d275a0116181a670cd30",
+      "tiff_file_sha256": "7ff70912bd3192a0fdabbfd64d939e825a7f941552a9925f98b22cd57e21cb09",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005434988851338839,
+        "p95_absolute_error": 0.011640997616949268
+      }
+    },
+    {
+      "profile_id": "harubeni-srgb-tone1",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "harubeni",
+        "name": "Fidelity v2 harubeni srgb tone1",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 2,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": -2
+        },
+        "toning": 1
+      },
+      "recipe_sha256": "f140b37a272a3f7aebe7587fb79f41083b169c933bfd5d9ef94fdf4dccea33dd",
+      "profile_name": "HARUBENI (하루베니) · Fidelity v2 harubeni srgb tone1",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 fb9953bf0942",
+      "dcp_sha256": "f4a8eaeff2c2ff9c4931e51e1415d814354dfe0d1a0db30aa232a4e41f411db5",
+      "xmp_sha256": "c67aadec98f1f84c9875f113468df16c54986436bd6599371f3d631633d290d5",
+      "sdk_look_uuid": "4E6D970D5DED586881DD49ACCE22B92C",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "66D979A3DC4622FE37C42B7BE21436BC",
+      "tiff_xmp_camera_profile_digest": "7E0F330D8AE8C8E2B81C0F838BB450E9",
+      "tiff_pixel_data_sha256": "e2e864129ecec8353a85401db74e44d2f540fa98608aacc0ae17970c6d52d3cc",
+      "tiff_file_sha256": "26fd389426ebc7699d77a3b970faa404cbbb6ffbb938f3c9578b9a1e9d5b3f7f",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005430717879972945,
+        "p95_absolute_error": 0.011644535825474598
+      }
+    },
+    {
+      "profile_id": "harubeni-srgb-tone2",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "harubeni",
+        "name": "Fidelity v2 harubeni srgb tone2",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 2,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": -2
+        },
+        "toning": 2
+      },
+      "recipe_sha256": "088c1801655e40db48a409cca5671a0756c83b84e372233c01215d68bc8c6554",
+      "profile_name": "HARUBENI (하루베니) · Fidelity v2 harubeni srgb tone2",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 fb9953bf0942",
+      "dcp_sha256": "f4a8eaeff2c2ff9c4931e51e1415d814354dfe0d1a0db30aa232a4e41f411db5",
+      "xmp_sha256": "40f41c2907595c205c555f860e786a68a05f91f28433d44c024735b0cc928f35",
+      "sdk_look_uuid": "BB6716F89A0052089B7D74BD28474A49",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "E5AA100F941EAED6AECAA67DFC2B5FF9",
+      "tiff_xmp_camera_profile_digest": "7E0F330D8AE8C8E2B81C0F838BB450E9",
+      "tiff_pixel_data_sha256": "8044c20568d8bc9a6c5c4cea8c5fdcc633935a0b7bdb445bac2a84a76a037421",
+      "tiff_file_sha256": "a24003d97ce391f64331abf9a03678c356bcaada8733155625fe153d03ee44c3",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005432579247668117,
+        "p95_absolute_error": 0.011641354279197052
+      }
+    },
+    {
+      "profile_id": "harubeni-srgb-tone3",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "harubeni",
+        "name": "Fidelity v2 harubeni srgb tone3",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 2,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": -2
+        },
+        "toning": 3
+      },
+      "recipe_sha256": "52d9abed87a6b67bdc8d08cca2f2ca01fb7143cb1ebc0666f29b5d7cb61e18a6",
+      "profile_name": "HARUBENI (하루베니) · Fidelity v2 harubeni srgb tone3",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 fb9953bf0942",
+      "dcp_sha256": "f4a8eaeff2c2ff9c4931e51e1415d814354dfe0d1a0db30aa232a4e41f411db5",
+      "xmp_sha256": "7da49cb7b720f4f121b0f5b0b76bca275a17b4f9d262522a84f735fbdd3a82d8",
+      "sdk_look_uuid": "47ABE891B77F5C688BCCC019BEDB6F54",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "9C6CAE580B2E582D45FBCBD7DFD33E1A",
+      "tiff_xmp_camera_profile_digest": "7E0F330D8AE8C8E2B81C0F838BB450E9",
+      "tiff_pixel_data_sha256": "b7a6b79e09c79dc26daaccb2ceb7e1583a50e4a55829f046edd973d7f75075c7",
+      "tiff_file_sha256": "377f2a24c4735aa79fdadd524399418f0a0059150aa3a31a2d754a8e719f4677",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005429617836712755,
+        "p95_absolute_error": 0.01164221227778753
+      }
+    },
+    {
+      "profile_id": "harubeni-srgb-tone4",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "harubeni",
+        "name": "Fidelity v2 harubeni srgb tone4",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 2,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": -2
+        },
+        "toning": 4
+      },
+      "recipe_sha256": "dd7aa5fbd3ec6ee049a69cb0ec304c8de4bf2da536f75babe0b2f79bedb96862",
+      "profile_name": "HARUBENI (하루베니) · Fidelity v2 harubeni srgb tone4",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 fb9953bf0942",
+      "dcp_sha256": "f4a8eaeff2c2ff9c4931e51e1415d814354dfe0d1a0db30aa232a4e41f411db5",
+      "xmp_sha256": "0de25c3995ee979b0cbeb6a473ef18eb5c02834134954025dc32db9a02635aa8",
+      "sdk_look_uuid": "A39AB071E20658FFBA0C64F95B2827E1",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "36D96347917EBFAE8A48D492978D85C7",
+      "tiff_xmp_camera_profile_digest": "7E0F330D8AE8C8E2B81C0F838BB450E9",
+      "tiff_pixel_data_sha256": "b0298c68509cbf1d1000ee1c22d6ee01537e0e8a8857766570c79f8ca68b68fd",
+      "tiff_file_sha256": "b0440817502e4c5b067eff202e10dffe5f7b3924f3437aeb2396cce28d953bb0",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005429985395218426,
+        "p95_absolute_error": 0.011639522456677523
+      }
+    },
+    {
+      "profile_id": "harubeni-srgb-tone5",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "harubeni",
+        "name": "Fidelity v2 harubeni srgb tone5",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 2,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": -2
+        },
+        "toning": 5
+      },
+      "recipe_sha256": "29dcda7fba8f8cbcbc39ea079e809d7a920d081a0ebfa0a47adca220f5ab23f6",
+      "profile_name": "HARUBENI (하루베니) · Fidelity v2 harubeni srgb tone5",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 fb9953bf0942",
+      "dcp_sha256": "f4a8eaeff2c2ff9c4931e51e1415d814354dfe0d1a0db30aa232a4e41f411db5",
+      "xmp_sha256": "84047cd712535a7943b479c478f2ca679ec65d815a5e6b1bdf3936a464cecc76",
+      "sdk_look_uuid": "96E594CEA30352C0AACD54AD4722ED6F",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "46ED1F99367DB2D6243F46440F4C1102",
+      "tiff_xmp_camera_profile_digest": "7E0F330D8AE8C8E2B81C0F838BB450E9",
+      "tiff_pixel_data_sha256": "3ac218e14f048fb6f04822c3839af7e1673e1fb265a4d9d19e53492cbadd34ae",
+      "tiff_file_sha256": "f6c655abbd601d85878b22e48434e4c20f3863f4e77551751466a25d4b363746",
+      "offline_comparison": {
+        "mean_absolute_error": 0.0054323065656613385,
+        "p95_absolute_error": 0.011642950991057891
+      }
+    },
+    {
+      "profile_id": "harubeni-srgb-tone6",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "harubeni",
+        "name": "Fidelity v2 harubeni srgb tone6",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 2,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": -2
+        },
+        "toning": 6
+      },
+      "recipe_sha256": "fa7de75afc129a2c398fe64548431e7e9ae203041c74a7140627084ed1090248",
+      "profile_name": "HARUBENI (하루베니) · Fidelity v2 harubeni srgb tone6",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 fb9953bf0942",
+      "dcp_sha256": "f4a8eaeff2c2ff9c4931e51e1415d814354dfe0d1a0db30aa232a4e41f411db5",
+      "xmp_sha256": "d3090a2e8ce9be2905d723e8fd5b3de664c3456f4652b146cfa273a0822c4fb3",
+      "sdk_look_uuid": "6F1E17F2FDDC5BCDADE7702F1AE8B795",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "C1BF25FD57794FB28AA26A813080CFAE",
+      "tiff_xmp_camera_profile_digest": "7E0F330D8AE8C8E2B81C0F838BB450E9",
+      "tiff_pixel_data_sha256": "05aaa9be3c281943555bd69f80f18182eee950a846807188c4e446c5c4820d1e",
+      "tiff_file_sha256": "6689b852c182c43fbf6c350a51fd9cea4faa2dd6d610ba95e46c388f8a2a6da8",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005432119126725676,
+        "p95_absolute_error": 0.011642423930969674
+      }
+    },
+    {
+      "profile_id": "harubeni-srgb-tone7",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "harubeni",
+        "name": "Fidelity v2 harubeni srgb tone7",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 2,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": -2
+        },
+        "toning": 7
+      },
+      "recipe_sha256": "f86c4fe2916187c805c41b0f3b78cb662e7c3d1371996b8f0af850712d84bb93",
+      "profile_name": "HARUBENI (하루베니) · Fidelity v2 harubeni srgb tone7",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 fb9953bf0942",
+      "dcp_sha256": "f4a8eaeff2c2ff9c4931e51e1415d814354dfe0d1a0db30aa232a4e41f411db5",
+      "xmp_sha256": "30c3b8512db2ed62229d962cf0f290e18f4e4b4a8af6251ff20794ec1943c657",
+      "sdk_look_uuid": "ED5FFAB7B34E52E2A461B42260E74753",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "EBB25A5136096F3BAFFCF8B63F9FAADA",
+      "tiff_xmp_camera_profile_digest": "7E0F330D8AE8C8E2B81C0F838BB450E9",
+      "tiff_pixel_data_sha256": "256adb0f15744f88b80022d643f5b70ee03091b613b47dd8e8d3dd6025e1ee23",
+      "tiff_file_sha256": "20f840f40f780e5f12377715a945781ba879297d67abbb6c2107ef9643e893b6",
+      "offline_comparison": {
+        "mean_absolute_error": 0.00543468572236289,
+        "p95_absolute_error": 0.011643506453134143
+      }
+    },
+    {
+      "profile_id": "harubeni-srgb-tone8",
+      "recipe": {
+        "calibration": null,
+        "camera_id": "pentax-k3iii",
+        "color_space": "srgb",
+        "mode": "harubeni",
+        "name": "Fidelity v2 harubeni srgb tone8",
+        "pack_version": "2.20-1",
+        "runtime": {},
+        "schema_version": 1,
+        "settings": {
+          "contrast": 2,
+          "highlight": 0,
+          "hue": 0,
+          "key": 0,
+          "saturation": 0,
+          "shadow": -2
+        },
+        "toning": 8
+      },
+      "recipe_sha256": "78f7ffc2b7c848fad3f51bc5d05ada247b848c4b22ac4e3602b1aed120cfb25a",
+      "profile_name": "HARUBENI (하루베니) · Fidelity v2 harubeni srgb tone8",
+      "base_dcp_profile_name": "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 fb9953bf0942",
+      "dcp_sha256": "f4a8eaeff2c2ff9c4931e51e1415d814354dfe0d1a0db30aa232a4e41f411db5",
+      "xmp_sha256": "a84d56aa415e9980c6ab9c233836a1c1c8715e1fa7fe2c4ef88c4d4a64bfa8d4",
+      "sdk_look_uuid": "0676A9D01F4456BFA3C1DBFA43BCA1B1",
+      "sdk_and_tiff_xmp_rgb_table_fingerprint": "A1ED16A1A7125DE524B0F1FF43827985",
+      "tiff_xmp_camera_profile_digest": "7E0F330D8AE8C8E2B81C0F838BB450E9",
+      "tiff_pixel_data_sha256": "b7ceb3c47d2a309b3bb739db2574c4c6c144f993185e66f14336a3122f2c46e5",
+      "tiff_file_sha256": "d056501e8b7435b5c5563a45462b0517bf83e2c491d7c7d43fbf90272e453e0f",
+      "offline_comparison": {
+        "mean_absolute_error": 0.005433825267913292,
+        "p95_absolute_error": 0.011645025050642105
+      }
+    }
+  ],
+  "related_validation": {
+    "native_pef_and_converted_dng": "pef-fidelity-evidence.json"
+  },
+  "plain_validation": {
+    "profile_loading": "Lightroom Develop module refreshed, profiles loaded in the UI and rendering allowed to settle before SDK export",
+    "earlier_sdk_run_observation": "The native DNG reverted to Adobe Standard in earlier runs",
+    "source_evidence_sha256": {
+      "preparation_manifest": "a617991e71ea2b41723c3e1bad1cd2906bf2dfad787bd8523b377a220d847476",
+      "sdk_evidence": "3892a5996416678224f9d72307367a6de3a47b2812ec608d0e08aca59a460338",
+      "private_audit": "d56e8197fea652c20c4f634a0b95286a7993b1a940e77263e31b1e257bf214f8",
+      "offline_comparison": "5342f9062b48329ca6195f52fe4a97f9a28be46173ba867afc1f20b64282c06e"
+    },
+    "raw_inputs": {
+      "camera_dng": {
+        "sha256": "1e3352ccba0db428fd2a183718fc857fb283b1d43ad704305e5094c19e0a0428",
+        "original_and_copy_hashes_matched_after_export": true
+      },
+      "camera_pef": {
+        "sha256": "28b0a4a0fae9b3c60d4950d8d4baeaa5a056a7fb130dfba0c2c212119ed29543",
+        "original_and_copy_hashes_matched_after_export": true
+      },
+      "lossless_converted_dng": {
+        "sha256": "4639584e7c807b46747ab4fac90b90b8459943c8e0f680ea68dfec6cdc580b07",
+        "original_and_copy_hashes_matched_after_export": true
+      }
+    },
+    "comparison_scope": "The three native cases were compared to the app preview. The converted DNG was used only for the paired Lightroom export.",
+    "paired_lightroom_pef_and_converted_dng_pixel_hashes_match": true,
+    "camera_dng_natural_profile_tags_equal_except_profile_name": true,
+    "camera_dng_natural_profile_variants_pixel_hashes_match": true,
+    "results": [
+      {
+        "case_id": "dng-natural",
+        "raw_role": "camera_dng",
+        "profile_id": "natural",
+        "recipe": {
+          "schema_version": 1,
+          "camera_id": "pentax-k3iii",
+          "pack_version": "2.20-1",
+          "mode": "natural",
+          "settings": {
+            "saturation": 0,
+            "hue": 0,
+            "key": 0,
+            "contrast": 0,
+            "highlight": 0,
+            "shadow": 0
+          },
+          "color_space": "srgb",
+          "toning": 0,
+          "name": "FCS Fidelity Natural 012",
+          "calibration": null,
+          "runtime": {}
+        },
+        "profile_name": "Natural (자연스럽게) · FCS Fidelity Natural 012",
+        "dcp_sha256": "e019a0f3ba0a82967ee7ff68274afd17a077c8af84e20ae79c1d488fb76d4680",
+        "tiff_xmp_camera_profile_digest": "37158C10E58F59069BA767DA109E1634",
+        "tiff_pixel_data_sha256": "a5281ec7863a798553846323026e32f04140ff5678046a856f74234c69adcd84",
+        "tiff_file_sha256": "5515d1383cf6a5e31bb0bc045013580a59842331472d0e5ea5aaeafd953f92e4",
+        "offline_comparison": {
+          "mean_absolute_error": 0.005890489731556682,
+          "p95_absolute_error": 0.011034905069029962
+        }
+      },
+      {
+        "case_id": "dng-original-natural",
+        "raw_role": "camera_dng",
+        "profile_id": "original-natural",
+        "recipe": {
+          "schema_version": 1,
+          "camera_id": "pentax-k3iii",
+          "pack_version": "2.20-1",
+          "mode": "natural",
+          "settings": {
+            "saturation": 0,
+            "hue": 0,
+            "key": 0,
+            "contrast": 0,
+            "highlight": 0,
+            "shadow": 0
+          },
+          "color_space": "srgb",
+          "toning": 0,
+          "name": "",
+          "calibration": null,
+          "runtime": {}
+        },
+        "profile_name": "K-3 III Firmware Natural (자연스럽게)",
+        "dcp_sha256": "08f54133192467110c23059042a5c0ca6141166e986a230bec7825ed6c09519d",
+        "tiff_xmp_camera_profile_digest": "B94C0F03CE8C86F992132BAA270C4B38",
+        "tiff_pixel_data_sha256": "a5281ec7863a798553846323026e32f04140ff5678046a856f74234c69adcd84",
+        "tiff_file_sha256": "2b21f15e4cd70dbf8d3f87d5904313cc91b55d39648cc235c4c37edb4a397d5a",
+        "offline_comparison": {
+          "mean_absolute_error": 0.005890489731556682,
+          "p95_absolute_error": 0.011034905069029962
+        }
+      },
+      {
+        "case_id": "pef-natural",
+        "raw_role": "camera_pef",
+        "profile_id": "natural",
+        "recipe": {
+          "schema_version": 1,
+          "camera_id": "pentax-k3iii",
+          "pack_version": "2.20-1",
+          "mode": "natural",
+          "settings": {
+            "saturation": 0,
+            "hue": 0,
+            "key": 0,
+            "contrast": 0,
+            "highlight": 0,
+            "shadow": 0
+          },
+          "color_space": "srgb",
+          "toning": 0,
+          "name": "FCS Fidelity Natural 012",
+          "calibration": null,
+          "runtime": {}
+        },
+        "profile_name": "Natural (자연스럽게) · FCS Fidelity Natural 012",
+        "dcp_sha256": "e019a0f3ba0a82967ee7ff68274afd17a077c8af84e20ae79c1d488fb76d4680",
+        "tiff_xmp_camera_profile_digest": "37158C10E58F59069BA767DA109E1634",
+        "tiff_pixel_data_sha256": "7f897711ae4d76439541fb09c616b3b0c4e2c55f8ad54e3e8d5c4d6e7122ee20",
+        "tiff_file_sha256": "f427a2aa0c12da827ebb759727f64c5d5a2f62245490bac54cf4b17090e7c3aa",
+        "offline_comparison": {
+          "mean_absolute_error": 0.01047287274133187,
+          "p95_absolute_error": 0.03221188764518369
+        }
+      },
+      {
+        "case_id": "converted-natural",
+        "raw_role": "lossless_converted_dng",
+        "profile_id": "natural",
+        "recipe": {
+          "schema_version": 1,
+          "camera_id": "pentax-k3iii",
+          "pack_version": "2.20-1",
+          "mode": "natural",
+          "settings": {
+            "saturation": 0,
+            "hue": 0,
+            "key": 0,
+            "contrast": 0,
+            "highlight": 0,
+            "shadow": 0
+          },
+          "color_space": "srgb",
+          "toning": 0,
+          "name": "FCS Fidelity Natural 012",
+          "calibration": null,
+          "runtime": {}
+        },
+        "profile_name": "Natural (자연스럽게) · FCS Fidelity Natural 012",
+        "dcp_sha256": "e019a0f3ba0a82967ee7ff68274afd17a077c8af84e20ae79c1d488fb76d4680",
+        "tiff_xmp_camera_profile_digest": "37158C10E58F59069BA767DA109E1634",
+        "tiff_pixel_data_sha256": "7f897711ae4d76439541fb09c616b3b0c4e2c55f8ad54e3e8d5c4d6e7122ee20",
+        "tiff_file_sha256": "998423a9ca2a36eb8185f674daa6b2969f398a30cf8812d75271f46499879e95"
+      }
+    ]
+  }
+}
