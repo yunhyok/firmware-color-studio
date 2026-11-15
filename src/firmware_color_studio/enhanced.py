@@ -31,7 +31,7 @@ class EnhancedBundle:
     _samples: np.ndarray = field(repr=False, compare=False)
 
 
-def _base_dcp(pack, recipe: dict) -> tuple[bytes, str]:
+def _base_dcp(pack, recipe: dict) -> tuple[bytes, str, str]:
     matrices = recipe["calibration"]
     if matrices is None:
         matrices = [matrix.tolist() for matrix in pack.engine.dng_color_matrices()]
@@ -46,7 +46,7 @@ def _base_dcp(pack, recipe: dict) -> tuple[bytes, str]:
         "ProfileLookTableEncoding": 0,
         "ProfileLookTableData": [[0.0, 1.0, 1.0]] * 4,
     })
-    return data, name
+    return data, name, f'{recipe["camera_id"]}-base-{recipe["pack_version"]}-{calibration_digest}.dcp'
 
 
 def _lut(camera: color_model.CameraColour, base_forward: np.ndarray) -> np.ndarray:
@@ -126,7 +126,7 @@ def build_enhanced(recipe: dict) -> EnhancedBundle:
     recipe = profiles.validate_recipe(recipe)
     pack = profiles._pack(recipe["camera_id"])
     camera = profiles.camera_for_recipe(recipe)
-    base, base_name = _base_dcp(pack, recipe)
+    base, base_name, base_filename = _base_dcp(pack, recipe)
     samples = _lut(camera, dcp.read_dcp(base)["ForwardMatrix1"])
     samples.setflags(write=False)
     stream = _table_stream(samples)
@@ -148,6 +148,10 @@ def build_enhanced(recipe: dict) -> EnhancedBundle:
         "toning": recipe["toning"],
         "profile_name": name,
         "base_profile_name": base_name,
+        # Installed side by side, bundles must not replace each other's files: the XMP name
+        # follows its UUID, the base DCP name its content (camera pack and calibration).
+        "dcp_filename": base_filename,
+        "xmp_filename": f'{recipe["camera_id"]}-{recipe["mode"]}-{identifier[:8].lower()}.xmp',
         "baseline_exposure_offset": profiles.BASELINE_EXPOSURE_OFFSET,
         "lut_grid": [GRID_SIZE] * 3,
         "lut_domain": "ProPhoto RGB primaries, sRGB transfer",
@@ -208,16 +212,17 @@ def bundle_zip(bundle: EnhancedBundle) -> bytes:
         f'Profile: {bundle.report["profile_name"]}\n'
         f'Required base profile: {bundle.report["base_profile_name"]}\n\n'
         "Import the archive through Adobe's Import Profiles and Presets dialog. "
-        "If installing files individually, put base.dcp in CameraRaw/CameraProfiles "
-        "and profile.xmp in CameraRaw/Settings. Use distinct filenames when installing multiple bundles. "
+        f'If installing files individually, put {bundle.report["dcp_filename"]} in CameraRaw/CameraProfiles '
+        f'and {bundle.report["xmp_filename"]} in CameraRaw/Settings. '
+        "Bundles made with the same calibration share one base profile file. "
         "The enhanced profile matches its base by the name recorded inside the DCP.\n\n"
         "The offline preview uses the exported quantized LUT over the neutral DCP. "
         "Adobe's render also depends on the process version, raw processing, and edit settings.\n"
     ).encode("utf-8")
     files = {
-        "base.dcp": bundle.dcp,
-        "profile.xmp": bundle.xmp,
-        "recipe.json": _recipe_json(bundle.recipe).encode("utf-8"),
+        bundle.report["dcp_filename"]: bundle.dcp,
+        bundle.report["xmp_filename"]: bundle.xmp,
+        bundle.report["xmp_filename"][:-4] + ".json": _recipe_json(bundle.recipe).encode("utf-8"),
         "README.txt": readme,
     }
     with ZipFile(output, "w") as archive:

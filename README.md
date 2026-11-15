@@ -9,8 +9,8 @@
 1. Releases의 `FirmwareColorStudio-…-windows-x64-setup.exe`를 실행합니다. Python이나 카메라 펌웨어 파일을 따로 설치할 필요가 없습니다.
 2. K-3 III의 PEF/DNG를 열거나 끌어 놓습니다. 왼쪽 프로파일을 선택하면 비교 기준과 현재 설정을 나란히 표시합니다. RAW 없이도 프로파일을 만들 수 있습니다.
 3. 채도, 색상, 밝기(Key), 대비, 하이라이트/섀도 대비를 −4…+4에서 조정합니다. **촬영 설정 가져오기**는 RAW의 지원되는 Custom Image 설정을 가져옵니다. **출고값으로 복원**은 선택 모드의 기본값으로 돌아갑니다.
-4. 일반 모드는 DCP를 내보냅니다. Gold 또는 조색을 선택하면 **DCP + XMP (ZIP)**으로 전환됩니다. 레시피 JSON은 나중에 열어 수정할 수 있습니다.
-5. Lightroom의 현상 모듈에서 프로파일 탐색기의 **프로파일 가져오기**로 DCP 또는 ZIP을 가져옵니다. 수동 설치 시 DCP는 `%APPDATA%\Adobe\CameraRaw\CameraProfiles`, XMP는 `%APPDATA%\Adobe\CameraRaw\Settings`에 넣고 Lightroom을 다시 실행합니다. XMP에는 짝이 되는 base DCP가 필요합니다. [Adobe 안내](https://helpx.adobe.com/lightroom-classic/help/develop-module-options.html)
+4. 일반 모드는 DCP를 내보냅니다. Gold 또는 조색을 선택하면 **DCP + XMP (ZIP)**으로 전환되고, 일반 모드로 돌아오면 DCP로 복귀합니다. 직접 고른 ZIP 형식은 유지됩니다. 레시피 JSON은 나중에 열어 수정할 수 있습니다.
+5. Lightroom의 현상 모듈에서 프로파일 탐색기의 **프로파일 가져오기**로 DCP 또는 ZIP을 가져옵니다. 수동 설치 시 DCP는 `%APPDATA%\Adobe\CameraRaw\CameraProfiles`, XMP는 `%APPDATA%\Adobe\CameraRaw\Settings`에 넣고 Lightroom을 다시 실행합니다. XMP에는 짝이 되는 base DCP가 필요합니다. ZIP 안의 파일 이름은 프로파일마다 달라 여러 묶음을 같은 폴더에 풀어도 서로 덮어쓰지 않습니다. [Adobe 안내](https://helpx.adobe.com/lightroom-classic/help/develop-module-options.html)
 
 앱 언어와 관계없이 프로파일의 영문·한글 이름을 함께 표시합니다. 내보낸 DCP/XMP 이름도 같습니다. 일반 모드의 한글 표기는 [K-3 III 한국어 설명서](https://www.saeki.co.kr/cs/reference/detail?bbsClCd=CS112004&bbspstId=893)를 따르며, 후속 특별 모드는 음역을 사용합니다.
 

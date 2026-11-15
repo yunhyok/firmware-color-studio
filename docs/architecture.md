@@ -20,6 +20,6 @@ DCP saturation-zero entries cannot introduce tint to neutral pixels, and a share
 
 ## Data safety and reproducibility
 
-RAW files are opened read-only. GUI saves require the correct output suffix, reject input aliases, write to a temporary file and replace the destination only after the save dialog. Only one export runs at a time. CLI exports use exclusive creation. Stale background completions cannot replace the latest RAW or preview. A recipe and its hash accompany enhanced exports so the settings are recoverable.
+RAW files are opened read-only. GUI saves require the correct output suffix, reject input aliases, write to a temporary file and replace the destination only after the save dialog. Only one export runs at a time. CLI exports use exclusive creation. Stale background completions cannot replace the latest RAW or preview. The displayed RAW stays in use until a newly opened file has loaded, so a rejected file leaves the current preview working. A recipe and its hash accompany enhanced exports so the settings are recoverable.
 
 Installer builds run the offline tests first. CI uses Windows and independently checks the frozen application against every registered default mode. Firmware-emulator verification is optional development work and remains outside the installer. [Gold reproduction instructions](gold.md#verification-and-reproduction)

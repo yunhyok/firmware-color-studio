@@ -68,13 +68,25 @@ def test_xmp_stream_and_zip_are_deterministic_and_use_the_quantized_table():
     repeated = enhanced.build_enhanced(recipe)
     assert zipped == enhanced.bundle_zip(repeated)
     with ZipFile(BytesIO(zipped)) as archive:
-        assert archive.namelist() == ["base.dcp", "profile.xmp", "recipe.json", "README.txt"]
-        assert archive.read("base.dcp") == bundle.dcp
-        assert archive.read("profile.xmp") == bundle.xmp
-        assert json.loads(archive.read("recipe.json")) == recipe
-        assert base["ProfileName"].encode("utf-8") in archive.read("README.txt")
+        dcp_name, xmp_name = bundle.report["dcp_filename"], bundle.report["xmp_filename"]
+        recipe_name = xmp_name[:-4] + ".json"
+        assert archive.namelist() == [dcp_name, xmp_name, recipe_name, "README.txt"]
+        assert archive.read(dcp_name) == bundle.dcp
+        assert archive.read(xmp_name) == bundle.xmp
+        assert json.loads(archive.read(recipe_name)) == recipe
+        readme = archive.read("README.txt")
+        assert base["ProfileName"].encode("utf-8") in readme
+        assert dcp_name.encode() in readme and xmp_name.encode() in readme
+    assert dcp_name == f"pentax-k3iii-base-2.20-1-{base['ProfileName'].split()[-1]}.dcp"
+    assert xmp_name == f"pentax-k3iii-muted-{bundle.report['uuid'][:8].lower()}.xmp"
     other = enhanced.build_enhanced({**recipe, "toning": 2})
+    # Unpacked into the same folders, two bundles share the base and keep both looks.
     assert other.dcp == bundle.dcp
+    assert other.report["dcp_filename"] == dcp_name
+    assert other.report["xmp_filename"] != xmp_name
+    calibrated = enhanced.build_enhanced({**recipe, "calibration": [np.eye(3).tolist(), (np.eye(3) * 1.1).tolist()]})
+    assert calibrated.dcp != bundle.dcp
+    assert calibrated.report["dcp_filename"] != dcp_name
     assert other.report["uuid"] != bundle.report["uuid"]
     assert other.report["rgb_table_fingerprint"] != bundle.report["rgb_table_fingerprint"]
 

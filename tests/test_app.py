@@ -1,5 +1,6 @@
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -58,6 +59,33 @@ def test_srgb_display_preserves_black_neutral_and_white(application):
     assert image.pixelColor(2, 0).red() == 255
 
 
+def test_failed_raw_load_keeps_the_displayed_image(application, monkeypatch):
+    from PySide6.QtWidgets import QMessageBox
+    monkeypatch.setattr(QMessageBox, "warning", lambda *args: None)
+    window = MainWindow()
+    monkeypatch.setattr(window, "_start_job", lambda *args: None)
+    try:
+        shown = SimpleNamespace(rgb=np.zeros((2, 2, 3), np.float32), warnings=[], metadata={})
+        window.raw = shown
+        window.preview_cache = {480: shown.rgb}
+        window.load_raw_path("unsupported.dng")
+        assert window.raw is shown
+        window._job_done("raw", window.generation["raw"], None, ("Unsupported camera model", ""))
+        assert window.raw is shown
+        assert window.preview_cache
+        loaded = SimpleNamespace(rgb=shown.rgb, warnings=["note"], metadata={
+            "path": "next.dng", "model": "PENTAX K-3 Mark III", "width": 2, "height": 2})
+        previews, thumbs = window.generation["preview"], window.generation["thumbs"]
+        window.load_raw_path("next.dng")
+        window._job_done("raw", window.generation["raw"], loaded, None)
+        assert window.raw is loaded
+        assert window.preview_cache == {}
+        assert window.generation["preview"] > previews and window.generation["thumbs"] > thumbs
+    finally:
+        window.raw = None
+        window.close()
+
+
 @pytest.mark.parametrize("method", ["save_current_recipe", "export_profile"])
 def test_gui_refuses_raw_as_save_target(application, tmp_path, monkeypatch, method):
     from PySide6.QtWidgets import QFileDialog, QMessageBox
@@ -97,6 +125,17 @@ def test_gold_and_toning_select_enhanced(application):
         assert window.output_format.currentData() == "xmp"
         window._set_recipe(default_recipe())
         assert window.output_format.model().item(0).isEnabled()
+        # Only the selection that Gold or toning forced is undone.
+        assert window.output_format.currentData() == "dcp"
+        window.output_format.setCurrentIndex(1)
+        window._set_recipe(default_recipe("gold"))
+        window._set_recipe(default_recipe())
+        assert window.output_format.currentData() == "xmp"
+        window.language.setCurrentIndex(1)
+        assert window.rendition.text().startswith("DCP + XMP")
+        window.output_format.setCurrentIndex(0)
+        window.language.setCurrentIndex(0)
+        assert window.rendition.text().startswith("DCP 미리보기")
     finally:
         window.close()
 
