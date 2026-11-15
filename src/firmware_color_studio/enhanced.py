@@ -19,7 +19,25 @@ GRID_SIZE = 32
 _ALPHABET = b"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?`'|()[]{}@%$#"
 _CRS = "http://ns.adobe.com/camera-raw-settings/1.0/"
 _RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-_FORMAT_VERSION = 1
+_FORMAT_VERSION = 2
+
+
+def _normalized_matrix(matrix: np.ndarray) -> np.ndarray:
+    # dng_color_space::SetMatrixToPCS and NormalizeForwardMatrix both map white
+    # to exact D50, rather than retaining the rounded published row sums.
+    return matrix * (np.asarray(dcp.D50) / matrix.sum(axis=1))[:, None]
+
+
+_PROPHOTO_TO_PCS = _normalized_matrix(color_model.PROPHOTO_TO_PCS)
+_PCS_TO_PROPHOTO = np.linalg.inv(_PROPHOTO_TO_PCS)
+_PROPHOTO_TO_SRGB = np.linalg.inv(_normalized_matrix(color_model.SRGB_TO_PCS)) @ _PROPHOTO_TO_PCS
+
+
+def _working_matrix(forward: np.ndarray) -> np.ndarray:
+    """SDK camera-to-ProPhoto transform after reading the serialized DCP."""
+    scaled = np.rint(forward.ravel() * dcp.MATRIX_DENOMINATOR).astype(np.int64)
+    rounded = np.asarray(dcp.sdk_read_matrix(scaled, "ForwardMatrix1")).reshape(3, 3)
+    return _PCS_TO_PROPHOTO @ _normalized_matrix(rounded)
 
 
 @dataclass(frozen=True)
@@ -31,34 +49,37 @@ class EnhancedBundle:
     _samples: np.ndarray = field(repr=False, compare=False)
 
 
-def _base_dcp(pack, recipe: dict) -> tuple[bytes, str, str]:
+def _base_dcp(pack, recipe: dict, camera: color_model.CameraColour) -> tuple[bytes, str, str]:
     matrices = recipe["calibration"]
     if matrices is None:
         matrices = [matrix.tolist() for matrix in pack.engine.dng_color_matrices()]
-    calibration_digest = sha256(np.asarray(matrices, dtype="<f8").tobytes()).hexdigest()[:12]
+    # Adobe's intermediate RGB coordinates carry CC0 output here. Its [0,1]
+    # clip then matches the firmware's pre-gamma clip; the paired XMP restores
+    # their colour-space meaning. This base must never be reused across CC0s.
+    forward = color_model.PROPHOTO_TO_PCS @ camera.matrix
+    base_digest = sha256(np.asarray([*matrices, forward], dtype="<f8").tobytes()).hexdigest()[:12]
     prefix = pack.manifest["profile_name_prefix"]
-    name = f'{prefix} {pack.manifest.get("base_profile_label", "Base")} {recipe["pack_version"]} {calibration_digest}'
-    forward = (color_model.SRGB_TO_PCS @ pack.engine.common_matrix()).tolist()
+    name = f'{prefix} {pack.manifest.get("base_profile_label", "Base")} 2 {recipe["pack_version"]} {base_digest}'
     data = dcp.build_dcp({
-        **profiles._profile_tags(pack, forward, matrices, name),
+        **profiles._profile_tags(pack, forward.tolist(), matrices, name),
         "ProfileToneCurve": [[0.0, 0.0], [1.0, 1.0]],
         "ProfileLookTableDims": [1, 2, 2],
         "ProfileLookTableEncoding": 0,
         "ProfileLookTableData": [[0.0, 1.0, 1.0]] * 4,
     })
-    return data, name, f'{recipe["camera_id"]}-base-{recipe["pack_version"]}-{calibration_digest}.dcp'
+    return data, name, f'{recipe["camera_id"]}-base-v2-{recipe["pack_version"]}-{base_digest}.dcp'
 
 
 def _lut(camera: color_model.CameraColour, base_forward: np.ndarray) -> np.ndarray:
     grid = np.linspace(0.0, 1.0, GRID_SIZE)
     lut_input = np.stack(np.meshgrid(grid, grid, grid, indexing="ij"), axis=-1)
-    prophoto = color_model.srgb_decode(lut_input)
-    # Invert the serialized base transform. Grid points beyond the sensor gamut
-    # extend by clamping negative sensor values, as in the upstream DCP builder.
-    to_sensor = np.linalg.inv(color_model.PCS_TO_PROPHOTO @ base_forward)
-    sensor = np.maximum(prophoto @ to_sensor.T, 0.0)
-    encoded = camera.encode(sensor @ camera.matrix.T)
-    output = camera.decode(encoded) @ (color_model.PCS_TO_PROPHOTO @ camera.to_pcs).T
+    # Compensate the small SDK matrix-rounding error inside the LUT. Values
+    # already lost to the base's clip cannot be recovered by this correction.
+    correction = camera.matrix @ np.linalg.inv(_working_matrix(base_forward))
+    matrix_output = color_model.srgb_decode(lut_input) @ correction.T
+    encoded = camera.encode(matrix_output)
+    to_prophoto = _PCS_TO_PROPHOTO @ _normalized_matrix(camera.to_pcs)
+    output = camera.decode(encoded) @ to_prophoto.T
     nonlinear = color_model.srgb_encode(np.clip(output, 0.0, 1.0))
     return np.floor(nonlinear * 65535.0 + 0.5).astype("<u2")
 
@@ -122,11 +143,11 @@ def _recipe_json(recipe: dict) -> str:
 
 
 def build_enhanced(recipe: dict) -> EnhancedBundle:
-    """Return a neutral base DCP and an XMP containing the full firmware look."""
+    """Return a CC0 base DCP and the paired XMP for the remaining colour stages."""
     recipe = profiles.validate_recipe(recipe)
     pack = profiles._pack(recipe["camera_id"])
     camera = profiles.camera_for_recipe(recipe)
-    base, base_name, base_filename = _base_dcp(pack, recipe)
+    base, base_name, base_filename = _base_dcp(pack, recipe, camera)
     samples = _lut(camera, dcp.read_dcp(base)["ForwardMatrix1"])
     samples.setflags(write=False)
     stream = _table_stream(samples)
@@ -149,12 +170,14 @@ def build_enhanced(recipe: dict) -> EnhancedBundle:
         "profile_name": name,
         "base_profile_name": base_name,
         # Installed side by side, bundles must not replace each other's files: the XMP name
-        # follows its UUID, the base DCP name its content (camera pack and calibration).
+        # follows its UUID, the base DCP name its CC0 matrix and calibration.
         "dcp_filename": base_filename,
         "xmp_filename": f'{recipe["camera_id"]}-{recipe["mode"]}-{identifier[:8].lower()}.xmp',
         "baseline_exposure_offset": profiles.BASELINE_EXPOSURE_OFFSET,
         "lut_grid": [GRID_SIZE] * 3,
         "lut_domain": "ProPhoto RGB primaries, sRGB transfer",
+        "base_transform": "firmware CC0 in intermediate ProPhoto coordinates; paired XMP required",
+        "format_version": _FORMAT_VERSION,
         "lut_bits": 16,
         "lut_interpolation": "tetrahedral",
         "rgb_table_fingerprint": fingerprint,
@@ -192,15 +215,18 @@ def _tetrahedral(rgb: np.ndarray, samples: np.ndarray) -> np.ndarray:
 
 
 def render_enhanced(camera_rgb, bundle: EnhancedBundle, baseline_exposure=0.0) -> np.ndarray:
-    """Render the neutral DCP then the quantized XMP LUT, to encoded sRGB."""
+    """Render the serialized DCP through SDK normalization and the quantized XMP."""
     rgb, exposure = profiles._render_inputs(camera_rgb, baseline_exposure)
     base = profiles._render_profile(bundle.dcp)
     ev = exposure + base["BaselineExposureOffset"]
-    working = color_model.dng_working_rgb(rgb, base["ForwardMatrix1"], ev)
+    working = np.clip(rgb, 0.0, 1.0) @ _working_matrix(base["ForwardMatrix1"]).T
+    # SDK RefBaselineABCtoRGB clips before its positive exposure ramp. The two
+    # clips commute when the ramp gain is >=1; negative EV uses the tone stage.
+    working = np.clip(working * (2.0 ** max(ev, 0.0)), 0.0, 1.0)
     if ev < 0.0:
         working = color_model.dng_tone(working, base["curve_x"], base["curve_y"], ev)
     code = _tetrahedral(color_model.srgb_encode(working), bundle._samples)
-    linear = color_model.srgb_decode(code) @ color_model.PROPHOTO_TO_SRGB.T
+    linear = color_model.srgb_decode(code) @ _PROPHOTO_TO_SRGB.T
     return np.clip(color_model.srgb_encode(linear), 0.0, 1.0)
 
 
@@ -214,9 +240,9 @@ def bundle_zip(bundle: EnhancedBundle) -> bytes:
         "Import the archive through Adobe's Import Profiles and Presets dialog. "
         f'If installing files individually, put {bundle.report["dcp_filename"]} in CameraRaw/CameraProfiles '
         f'and {bundle.report["xmp_filename"]} in CameraRaw/Settings. '
-        "Bundles made with the same calibration share one base profile file. "
+        "Bundles with the same colour matrix and calibration share one base profile file. "
         "The enhanced profile matches its base by the name recorded inside the DCP.\n\n"
-        "The offline preview uses the exported quantized LUT over the neutral DCP. "
+        "Use the paired DCP and XMP together. The offline preview uses their exported quantized data. "
         "Adobe's render also depends on the process version, raw processing, and edit settings.\n"
     ).encode("utf-8")
     files = {

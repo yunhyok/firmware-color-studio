@@ -13,28 +13,50 @@ from . import __version__
 from .profiles import build_profile, default_recipe, list_modes, load_recipe, render_dcp
 
 
+DEMO_RAW = Path(__file__).parent / "data" / "demo" / "color-cube.dng"
+DEMO_RAW_SHA256 = "1e3352ccba0db428fd2a183718fc857fb283b1d43ad704305e5094c19e0a0428"
+
+
 def verify() -> dict:
+    from .raw import load_raw, resize_rgb
+
+    with DEMO_RAW.open("rb") as stream:
+        demo_digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    if demo_digest != DEMO_RAW_SHA256:
+        raise ValueError("bundled color cube RAW does not match the published source checksum")
+    frame = load_raw(DEMO_RAW)
+    rgb = resize_rgb(frame.rgb, 64)
     modes = {}
-    rgb = np.random.default_rng(220).uniform(0.01, 0.8, (16, 16, 3))
+    comparison = {}
     for mode in list_modes():
         if mode == "gold":
             from .enhanced import build_enhanced, render_enhanced
             bundle = build_enhanced(default_recipe(mode))
-            preview = render_enhanced(rgb, bundle, -0.5)
+            preview = render_enhanced(rgb, bundle, frame.baseline_exposure)
             data = bundle.xmp
         else:
             data, _ = build_profile(default_recipe(mode))
-            preview = render_dcp(rgb, data, -0.5)
+            preview = render_dcp(rgb, data, frame.baseline_exposure)
         if preview.shape != rgb.shape or not np.isfinite(preview).all() or preview.min() < 0 or preview.max() > 1:
             raise ValueError(f"invalid {mode} rendering")
         modes[mode] = {"sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data), "render_ok": True}
-    return {"version": __version__, "status": "passed", "modes": modes, "firmware_required": False}
+        if mode in ("natural", "bright"):
+            comparison[mode] = preview
+    maximum_difference = float(np.max(np.abs(comparison["natural"] - comparison["bright"])))
+    if maximum_difference <= 1 / 255:
+        raise ValueError("bundled color cube renderings do not distinguish Natural and Bright")
+    demo = {
+        "file": DEMO_RAW.name, "sha256": demo_digest, "model": frame.metadata["model"],
+        "width": frame.metadata["width"], "height": frame.metadata["height"],
+        "baseline_exposure": frame.baseline_exposure, "natural_bright_max_difference": maximum_difference,
+    }
+    return {"version": __version__, "status": "passed", "modes": modes, "demo": demo, "firmware_required": False}
 
 
 def main():
     parser = argparse.ArgumentParser(description="Firmware-derived color profiles; no photographic fitting.")
     commands = parser.add_subparsers(dest="command", required=True)
-    check = commands.add_parser("verify", help="verify packaged defaults and a synthetic rendering")
+    check = commands.add_parser("verify", help="verify packaged defaults and render the bundled demo RAW")
     check.add_argument("--report", type=Path, required=True)
     export = commands.add_parser("export", help="export a saved recipe")
     export.add_argument("recipe", type=Path)

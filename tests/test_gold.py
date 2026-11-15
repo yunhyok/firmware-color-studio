@@ -59,6 +59,20 @@ def test_physical_rgb_channel_mapping(engine):
     assert np.isfinite(camera.render(np.array([[0,0,0],[0.18,0.18,0.18],[1,1,1]]))).all()
 
 
+@pytest.mark.parametrize('space', ['srgb', 'adobergb'])
+def test_gamma_zero_preserves_the_first_hardware_entry(engine, space):
+    camera = gold_camera(engine, {}, space)
+    first = camera.curves[:, 0] / 1023.0
+    assert first[2] > 0  # Independently verified physical B table, including input zero.
+    np.testing.assert_array_equal(camera.gamma(np.zeros(3)), first)
+    epsilon = 1e-12
+    positive = camera.gamma(np.full(3, epsilon))
+    np.testing.assert_allclose(positive, first, rtol=0, atol=1e-10)
+    np.testing.assert_array_equal(camera.gamma(np.full(3, -epsilon)), -positive)
+    assert camera.gamma(0.0, channel=2) == first[2]
+    np.testing.assert_array_equal(engine.camera('natural', color_space=space).gamma(np.zeros(3)), np.zeros(3))
+
+
 @pytest.mark.parametrize('settings', [{'key':5},{'hue':-5},{'key':True},{'key':0.5},{'unknown':0},[],None])
 def test_invalid_settings_rejected(engine, settings):
     with pytest.raises(ValueError):

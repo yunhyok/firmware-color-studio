@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from . import __version__
+from .cli import DEMO_RAW
 from .display import monitor_space, rgb_image
 from .profiles import (build_profile, default_recipe, list_modes, load_recipe,
                        render_dcp, save_recipe, validate_recipe)
@@ -765,6 +766,8 @@ def main():
     window.show()
     if len(sys.argv) == 2 and Path(sys.argv[1]).suffix.lower() in (".pef", ".dng"):
         window.load_raw_path(sys.argv[1])
+    elif len(sys.argv) == 1:
+        window.load_raw_path(DEMO_RAW)
     return application.exec()
 
 
