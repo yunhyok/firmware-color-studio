@@ -1,0 +1,15 @@
+.venv/
+.research/
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.spec.bak
+*.bin
+*.PEF
+*.pef
+*.DNG
+*.dng
+

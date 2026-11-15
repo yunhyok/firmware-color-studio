@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "application": "Adobe Lightroom Classic",
+  "version": "16.0",
+  "camera_model": "PENTAX K-3 Mark III",
+  "profile_pack_version": "2.20-1",
+  "validation": {
+    "plain_dcp_exports_passed": 19,
+    "distinct_dng_tiff_xmp_profile_digests": 18,
+    "distinct_dng_tiff_pixel_hashes": 18,
+    "sdk_profile_name_verified_before_and_after_export": true,
+    "sdk_camera_profile_digest_available": false,
+    "camera_profile_digest_source": "Exported TIFF XMP"
+  },
+  "evidence_sha256": {
+    "preparation_manifest": "2aa95880d4c56a69e7f047cc3249c5a1e8068cae552202178dae807cfd91a4bc",
+    "sdk_evidence": "f4448688c0dcd23ceeb566bce460784747360d9c71a0dafdf3dee1f2b90f9309",
+    "private_audit": "e4201322ebdfc6b87f3a4536544a1640236e70d94a40fcfc13e83fb478bbdaba"
+  },
+  "raw_inputs": {
+    "DNG": {
+      "sha256": "1e3352ccba0db428fd2a183718fc857fb283b1d43ad704305e5094c19e0a0428",
+      "original_and_copy_hashes_matched_after_export": true
+    },
+    "PEF": {
+      "sha256": "28b0a4a0fae9b3c60d4950d8d4baeaa5a056a7fb130dfba0c2c212119ed29543",
+      "original_and_copy_hashes_matched_after_export": true
+    }
+  },
+  "tiff_export": {
+    "width": 1000,
+    "height": 667,
+    "bits_per_sample": [
+      16,
+      16,
+      16
+    ],
+    "photometric_interpretation": "RGB",
+    "compression": "uncompressed",
+    "color_space": "sRGB",
+    "icc_sha256": "2b3aa1645779a9e634744faf9b01e9102b0c9b88fd6deced7934df86b949af7e"
+  },
+  "results": [
+    {
+      "raw_format": "DNG",
+      "profile_id": "natural",
+      "profile_name": "K-3 III Firmware Natural (자연스럽게)",
+      "dcp_sha256": "08f54133192467110c23059042a5c0ca6141166e986a230bec7825ed6c09519d",
+      "tiff_xmp_camera_profile_digest": "B94C0F03CE8C86F992132BAA270C4B38",
+      "tiff_pixel_data_sha256": "a5281ec7863a798553846323026e32f04140ff5678046a856f74234c69adcd84",
+      "tiff_file_sha256": "09f4bf343b8cffbad82cd707a8936b451ac0fcd0e0df39f07d4b388ab61cbaa7"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "bright",
+      "profile_name": "K-3 III Firmware Bright (선명하게)",
+      "dcp_sha256": "b6489577e20762abf2e552e59ba8273da3cf17d7fb51a3f042d86b345b3eed50",
+      "tiff_xmp_camera_profile_digest": "B52FBBB5297D2376F5493102263030B1",
+      "tiff_pixel_data_sha256": "fe49553c6c74a7118a76817bced8376b0f38c2984efa6e27de52f5b1a281271b",
+      "tiff_file_sha256": "dfaa3e1b4f8def0c5d955b41331307d8e45e63ad8bc6664478d8437763179fd2"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "portrait",
+      "profile_name": "K-3 III Firmware Portrait (인물)",
+      "dcp_sha256": "ec837f659eb9953bfa968cf70c22ef002e4351593127d11eb6d227936b0ac1e8",
+      "tiff_xmp_camera_profile_digest": "BE9273DAD20EBAE9E1EC1597C7661FEC",
+      "tiff_pixel_data_sha256": "100241580eb6694f5f502f2be7f2fb953560028e7a29a30d818a166396fa64fb",
+      "tiff_file_sha256": "ff853ca181eaa4e02648aaf123e2b5fd5750e3035764b26255de1d2309f260dc"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "landscape",
+      "profile_name": "K-3 III Firmware Landscape (풍경)",
+      "dcp_sha256": "d95325866f428f1cd6d90a940811c2827e9c18ce339a6203536595b0314f6e58",
+      "tiff_xmp_camera_profile_digest": "40E45B5A3F545137890F8ED41C6B33BF",
+      "tiff_pixel_data_sha256": "0441f1998d9e30f73458a3a9d6221556bf09e785deb4703694bf84837e83b1f4",
+      "tiff_file_sha256": "733cb538e1c4db03a753904253dad51ed16cbe70744f6a5df3154099c5d8fe08"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "vibrant",
+      "profile_name": "K-3 III Firmware Vibrant (강렬 색감)",
+      "dcp_sha256": "4ec867dfb37cfed5ad8bc1210bcafe7e92d19126046ddee05effbb90c256a2d5",
+      "tiff_xmp_camera_profile_digest": "4704FB3188CC4B9C349CE2ED21BDD4EF",
+      "tiff_pixel_data_sha256": "8aa8a8db36c149e42d67370813479691fe22d2020bcfba58c01daac0f99d4305",
+      "tiff_file_sha256": "e2759b7f64708c29f0c3a98b94f83b99f65728714ed9f7a5485a579ec9623553"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "radiant",
+      "profile_name": "K-3 III Firmware Radiant (팝튠)",
+      "dcp_sha256": "5e31d73cf39847b5174df225a7c37926a2d0a5bf7e39575bb8444c276b1e91e6",
+      "tiff_xmp_camera_profile_digest": "D9F60CE008D55022F670C77CBF8D67E3",
+      "tiff_pixel_data_sha256": "694c6591ea7afa2286db15d4a5f3cb58a48afb6704c08c9e924be96c91dc4d48",
+      "tiff_file_sha256": "b54ae4e95afc68bf1f4605fbae594591210e38837d000cb63eaae3a8791a5eb6"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "muted",
+      "profile_name": "K-3 III Firmware Muted (은은하게)",
+      "dcp_sha256": "8a7d6ded1bf6d465b39f210f01cc051bed6a4465b44d0c60e9b042ace70c5c56",
+      "tiff_xmp_camera_profile_digest": "AD80945B8E3C5204D4B3C7936CA983F2",
+      "tiff_pixel_data_sha256": "ec9c096fc37247367fb600f4476c16bc57457c51b878e8a0991c08e5e3cb6afc",
+      "tiff_file_sha256": "88cf0cfc6033919854af9598619a4b7654e1ab3bd056e085ddbbebc492b153c9"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "flat",
+      "profile_name": "K-3 III Firmware Flat (플랫)",
+      "dcp_sha256": "502c72c0e177de06ca1ce289dd8cc5f2d338c2185d14986e91b00515fafe378e",
+      "tiff_xmp_camera_profile_digest": "231A7E86E61F17FBC8857FEA318436B7",
+      "tiff_pixel_data_sha256": "14af02ca0f6e47c3224ca8c786293b03c01ece1ef8d8ecec24369e46882468e7",
+      "tiff_file_sha256": "437d5fa1d561edec2915e42072373631e2f900a7ccd46b5abfa2b6612405234e"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "bleach-bypass",
+      "profile_name": "K-3 III Firmware Bleach Bypass (블리치 바이패스)",
+      "dcp_sha256": "a36d853eac2123221fbfab18f6e61aa93e849d888aaca2039e8871b54b4618ac",
+      "tiff_xmp_camera_profile_digest": "6D4354A6195FDD30924EAFD3D38BB4D3",
+      "tiff_pixel_data_sha256": "a948c69cfbdbb385052de2d8752e41cc5c50961a187e4c0744cc93a90242df66",
+      "tiff_file_sha256": "e6bcd53fe708351bb4fbd9bb93503ea69b66a48f5f1041fb5a8057d80308c777"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "reversal-film",
+      "profile_name": "K-3 III Firmware Reversal Film (리버설 필름)",
+      "dcp_sha256": "b741e8b289116434097734966fd78b12b9b08421d15aef2e42306f89dad28820",
+      "tiff_xmp_camera_profile_digest": "5F2FE81251073897DF37FAC9423486C4",
+      "tiff_pixel_data_sha256": "a2e56c86f1f0b819ef7b5abf42c586d54c2ac077df65cfdea103e88fcadae087",
+      "tiff_file_sha256": "227b309101ff512d81c949242834c1acc16cbd6815addce06d89e11f722de479"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "monochrome",
+      "profile_name": "K-3 III Firmware Monochrome (모노톤)",
+      "dcp_sha256": "a6e18bced2fa2d7b354bfd36df5028cda6ed144be98de168b4e5603cf39499ac",
+      "tiff_xmp_camera_profile_digest": "2D5EC1290EBC63113D8B38C274375E4B",
+      "tiff_pixel_data_sha256": "b2083a120c76d8d3d564d30beb03d9a480f29ca78978fbc82b3607179bbe2eeb",
+      "tiff_file_sha256": "3a06a4ce1f1e2f38cd8b804282ca3ac6cdc7b9cbb8357c3c7521bd90fcf8f4c0"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "satobi",
+      "profile_name": "K-3 III Firmware SATOBI (사토비)",
+      "dcp_sha256": "ae9a76b7a53804f609a2afe0fa08c857ea34a3e303fcb9deba4fdf13280e5182",
+      "tiff_xmp_camera_profile_digest": "9538A06DF4E8BCCCF9FF396C0CB3B3EA",
+      "tiff_pixel_data_sha256": "6c3550060c765260cf7f5d1e0ab54ee61e40b13e14eb64264f55b146e910b11b",
+      "tiff_file_sha256": "63bf7a5ef1c489a2d29b6de364b1fe8bd0b75947e5f6d41e62042f0ec260da92"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "harubeni",
+      "profile_name": "K-3 III Firmware HARUBENI (하루베니)",
+      "dcp_sha256": "f9ca482eaeb4b4f1723db44ec3ac66d1de3225ae2076478a70ec606af36d1abd",
+      "tiff_xmp_camera_profile_digest": "B6391975E2D5219C725D7C481778D7D8",
+      "tiff_pixel_data_sha256": "4805d2602fdf7567b2690f85dc0bdfba2cd03c6a48cb53ecbe4fec0fa68a61fa",
+      "tiff_file_sha256": "722c53108784c8690a0dfcd823407e9291f4fd66e0101f678775c4c4c492ee59"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "katen",
+      "profile_name": "K-3 III Firmware KATEN (카텐)",
+      "dcp_sha256": "7157604a645cab0a097dd57af318193d6b3e7374888e665ee73f4f2fc22ddb08",
+      "tiff_xmp_camera_profile_digest": "860EF63ABB0FC250C7896D167492566B",
+      "tiff_pixel_data_sha256": "17876ddee8684ed25514024a5b4db4c080fc07dc0f7ea8c3da8c4cc711ae939f",
+      "tiff_file_sha256": "d6bc703ba575999432ca9ae5c93adf2798d214cf3b78d076ecb7cfa93a5253b5"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "kyushu",
+      "profile_name": "K-3 III Firmware KYUSHU (큐슈)",
+      "dcp_sha256": "6ae65873c11108b947c0f512ecd6d00eae4d865e1cb10db72836b024c1e6b664",
+      "tiff_xmp_camera_profile_digest": "BD17B5F2D4A7A73105651D639BCE02CE",
+      "tiff_pixel_data_sha256": "3ce1d71c33478bf1f45f0ab541d386e18a3702eb028a46040b615dac3f4401f9",
+      "tiff_file_sha256": "ac5f7a3c5a7102d976331f93bde809c22ba395234ca5f333eb3ca3e6a04908fc"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "fuyuno",
+      "profile_name": "K-3 III Firmware FUYUNO (후유노)",
+      "dcp_sha256": "ede2db48a9de76906de6372dffc1da962ca2fb61fc2475f448c4a68c3480b21a",
+      "tiff_xmp_camera_profile_digest": "1BEDCAA9A1A25177D64CDE1890799D01",
+      "tiff_pixel_data_sha256": "8c2076f327a3b61957083a0b9b9ffd646335eff8d198eeeb46aa759087c6dfdc",
+      "tiff_file_sha256": "e0c5ae437cd525097ec05ca8d9320aa2984e12a7c0e87bf57a75e658a5ffd017"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "natural-custom-a",
+      "profile_name": "Natural (자연스럽게) · FCS Validation Custom A",
+      "dcp_sha256": "fb67c66983e1e1e5c7811a0e0002fc7d0f7f43045e3dde6239285fdb08467dd8",
+      "tiff_xmp_camera_profile_digest": "617A052851B80E66791DBEC842910653",
+      "tiff_pixel_data_sha256": "f0e284357b18b96f5a730f323084f10c5f277026abe473f7dfc0c872e2020edb",
+      "tiff_file_sha256": "6b868a98e0fd46723866fe999ce5893e621140f1246b5a3d6ad9dfdfdd89edef"
+    },
+    {
+      "raw_format": "DNG",
+      "profile_id": "bright-custom-b",
+      "profile_name": "Bright (선명하게) · FCS Validation Custom B",
+      "dcp_sha256": "16f2af37fdaebebfab085545b36d74b879f5e1c4714beeac7955493240470086",
+      "tiff_xmp_camera_profile_digest": "1F3B67EA9C03C5AF83175C8823D751BA",
+      "tiff_pixel_data_sha256": "d85f49b01dc7c1ffa791037fdeb62d4147b9ce229f3e8249be5ad823428cda3a",
+      "tiff_file_sha256": "89a822d34ab264a5a6984d322c2f596da2f85bc3738a29e0765f1539429f13a2"
+    },
+    {
+      "raw_format": "PEF",
+      "profile_id": "natural",
+      "profile_name": "K-3 III Firmware Natural (자연스럽게)",
+      "dcp_sha256": "08f54133192467110c23059042a5c0ca6141166e986a230bec7825ed6c09519d",
+      "tiff_xmp_camera_profile_digest": "B94C0F03CE8C86F992132BAA270C4B38",
+      "tiff_pixel_data_sha256": "7f897711ae4d76439541fb09c616b3b0c4e2c55f8ad54e3e8d5c4d6e7122ee20",
+      "tiff_file_sha256": "cc97c419b60db0d761a3b3a7076175b5ad3b9ba7ffa0a421d98c98dd1ab275d9"
+    }
+  ]
+}

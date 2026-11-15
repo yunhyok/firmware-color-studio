@@ -1,0 +1,50 @@
+name: Windows build and release
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          python -m venv .venv
+          .\.venv\Scripts\python -m pip install -e '.[dev]'
+      - name: Test and build installer
+        shell: pwsh
+        run: ./tools/build_windows.ps1
+      - name: Check bundled application
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath './dist/FirmwareColorStudio/FirmwareColorStudio.exe' -ArgumentList 'verify --report dist/frozen-check.json' -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw 'Frozen application failed' }
+          $result = Get-Content dist/frozen-check.json | ConvertFrom-Json
+          if ($result.status -ne 'passed') { throw 'Invalid frozen report' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            dist/*-setup.exe
+            dist/SHA256SUMS.txt
+            dist/frozen-check.json
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh release create '${{ github.ref_name }}' dist/*-setup.exe dist/SHA256SUMS.txt dist/frozen-check.json --verify-tag --title 'Firmware Color Studio ${{ github.ref_name }}' --notes-file 'docs/releases/${{ github.ref_name }}.md'
+

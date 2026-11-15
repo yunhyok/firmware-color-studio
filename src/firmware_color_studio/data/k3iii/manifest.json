@@ -1,0 +1,149 @@
+{
+  "base_profile_label": "Base (기본 프로파일)",
+  "camera_id": "pentax-k3iii",
+  "camera_model": "PENTAX K-3 Mark III",
+  "default_profiles": {
+    "bleach-bypass": "profiles/k3iii-firmware-bleach-bypass.dcp",
+    "bright": "profiles/k3iii-firmware-bright.dcp",
+    "flat": "profiles/k3iii-firmware-flat.dcp",
+    "fuyuno": "profiles/k3iii-firmware-fuyuno.dcp",
+    "harubeni": "profiles/k3iii-firmware-harubeni.dcp",
+    "katen": "profiles/k3iii-firmware-katen.dcp",
+    "kyushu": "profiles/k3iii-firmware-kyushu.dcp",
+    "landscape": "profiles/k3iii-firmware-landscape.dcp",
+    "monochrome": "profiles/k3iii-firmware-monochrome.dcp",
+    "muted": "profiles/k3iii-firmware-muted.dcp",
+    "natural": "profiles/k3iii-firmware-natural.dcp",
+    "portrait": "profiles/k3iii-firmware-portrait.dcp",
+    "radiant": "profiles/k3iii-firmware-radiant.dcp",
+    "reversal-film": "profiles/k3iii-firmware-reversal-film.dcp",
+    "satobi": "profiles/k3iii-firmware-satobi.dcp",
+    "vibrant": "profiles/k3iii-firmware-vibrant.dcp"
+  },
+  "files": {
+    "k3iii-color-tables.json": {
+      "bytes": 55812,
+      "sha256": "aa78a9f39bf95cce94b55b14159633b13749a858c46404c49df36894c43dbca7",
+      "source": "analysis/k3iii-color-tables.json"
+    },
+    "profiles/k3iii-firmware-bleach-bypass.dcp": {
+      "bytes": 974716,
+      "sha256": "34868fcfdfeb6a453088de3a7f55e6382960cb45f9b57de3d26daa8d5628f091",
+      "source": "profiles/k3iii/k3iii-firmware-bleach-bypass.dcp"
+    },
+    "profiles/k3iii-firmware-bright.dcp": {
+      "bytes": 974708,
+      "sha256": "bfb6852a47c7bb3946ed987f3fe440a16e100ab9cae952449e194ba6c47ba8ce",
+      "source": "profiles/k3iii/k3iii-firmware-bright.dcp"
+    },
+    "profiles/k3iii-firmware-flat.dcp": {
+      "bytes": 974706,
+      "sha256": "e19fc86a799a1181ef43c72f6d9818bd7bbf53645c923e369861d5dd8dbd5168",
+      "source": "profiles/k3iii/k3iii-firmware-flat.dcp"
+    },
+    "profiles/k3iii-firmware-fuyuno.dcp": {
+      "bytes": 974708,
+      "sha256": "f310fca124487934ce29e23a38b38067cad63ed15bbc38d1beed0d19cca8b3f1",
+      "source": "profiles/k3iii/k3iii-firmware-fuyuno.dcp"
+    },
+    "profiles/k3iii-firmware-harubeni.dcp": {
+      "bytes": 974710,
+      "sha256": "a11b1804982308d6ab4a2aa90c35e85f0be1edbbc46c45d603d9bbea843ea185",
+      "source": "profiles/k3iii/k3iii-firmware-harubeni.dcp"
+    },
+    "profiles/k3iii-firmware-katen.dcp": {
+      "bytes": 974708,
+      "sha256": "8930c26fe9cd28ba1cdc8a2c2574d2ac0a1e99c0c80ad8a848ea17a7a8540281",
+      "source": "profiles/k3iii/k3iii-firmware-katen.dcp"
+    },
+    "profiles/k3iii-firmware-kyushu.dcp": {
+      "bytes": 974708,
+      "sha256": "7385d61c5e106bf62c15f0af63022069c22a880e27546207454ddbb4c8fb7679",
+      "source": "profiles/k3iii/k3iii-firmware-kyushu.dcp"
+    },
+    "profiles/k3iii-firmware-landscape.dcp": {
+      "bytes": 974712,
+      "sha256": "1b215fee2e40e570cfddba6d74c40b97e5eed2f0f3a03e7bd2af1a3d3d85485c",
+      "source": "profiles/k3iii/k3iii-firmware-landscape.dcp"
+    },
+    "profiles/k3iii-firmware-monochrome.dcp": {
+      "bytes": 974712,
+      "sha256": "c38f12f4268198dffe7c966a5f88a645ff291fae98b10cc6323212d8b5ff4d3d",
+      "source": "profiles/k3iii/k3iii-firmware-monochrome.dcp"
+    },
+    "profiles/k3iii-firmware-muted.dcp": {
+      "bytes": 974708,
+      "sha256": "0e40dd0572fb247510efe92561a5435fcec25ab8234614ce60ec6457fc2da45b",
+      "source": "profiles/k3iii/k3iii-firmware-muted.dcp"
+    },
+    "profiles/k3iii-firmware-natural.dcp": {
+      "bytes": 974710,
+      "sha256": "c3f2bfec637027b00bdc6f428ed351c9410557187982cee43ac79c86d9fb4b9e",
+      "source": "profiles/k3iii/k3iii-firmware-natural.dcp"
+    },
+    "profiles/k3iii-firmware-portrait.dcp": {
+      "bytes": 974710,
+      "sha256": "1dd524ecf7bd2074c26eed84481b7a7f5c8ea6405e0ae876826cbb5b18551824",
+      "source": "profiles/k3iii/k3iii-firmware-portrait.dcp"
+    },
+    "profiles/k3iii-firmware-radiant.dcp": {
+      "bytes": 974710,
+      "sha256": "7ca5774958199fa5a87a81afbe7995b153fbba2a1ddab20c8f9b2173f34df986",
+      "source": "profiles/k3iii/k3iii-firmware-radiant.dcp"
+    },
+    "profiles/k3iii-firmware-reversal-film.dcp": {
+      "bytes": 974716,
+      "sha256": "2c5a5788beca17defc80ab8d1739dc442bb4f5624c02a30308356da05757b83e",
+      "source": "profiles/k3iii/k3iii-firmware-reversal-film.dcp"
+    },
+    "profiles/k3iii-firmware-satobi.dcp": {
+      "bytes": 974708,
+      "sha256": "78cbd9ed1d4a23eec56ccbd9686c4a892386766654673fdcb5302d45a7ec738b",
+      "source": "profiles/k3iii/k3iii-firmware-satobi.dcp"
+    },
+    "profiles/k3iii-firmware-vibrant.dcp": {
+      "bytes": 974710,
+      "sha256": "def882cf687e75e16a6b8aad64cb753788ffa597f379fa8c098ced19f657017d",
+      "source": "profiles/k3iii/k3iii-firmware-vibrant.dcp"
+    }
+  },
+  "firmware_rtos_sha256": "342d2f35405e8daf1797dfe431d2e4aa70f4b52a2c242a29df48206672f1dfb4",
+  "firmware_version": "2.20",
+  "mode_label_sources": {
+    "expanded_modes_korean": "Korean transliterations of SATOBI, HARUBENI, KATEN, KYUSHU, FUYUNO and Gold",
+    "standard_english": {
+      "printed_page": 78,
+      "title": "PENTAX K-3 Mark III Operating Manual",
+      "url": "https://www.ricoh-imaging.co.jp/english/support/man-pdf/k-3-3.pdf"
+    },
+    "standard_korean": {
+      "printed_page": 78,
+      "title": "K-3 Mark III 사용자 매뉴얼 [한글]",
+      "url": "https://www.saeki.co.kr/cs/reference/detail?bbsClCd=CS112004&bbspstId=893"
+    }
+  },
+  "mode_labels_ko": {
+    "bleach-bypass": "블리치 바이패스",
+    "bright": "선명하게",
+    "flat": "플랫",
+    "fuyuno": "후유노",
+    "gold": "골드",
+    "harubeni": "하루베니",
+    "katen": "카텐",
+    "kyushu": "큐슈",
+    "landscape": "풍경",
+    "monochrome": "모노톤",
+    "muted": "은은하게",
+    "natural": "자연스럽게",
+    "portrait": "인물",
+    "radiant": "팝튠",
+    "reversal-film": "리버설 필름",
+    "satobi": "사토비",
+    "vibrant": "강렬 색감"
+  },
+  "pack_version": "2.20-1",
+  "profile_copyright": "Derived from PENTAX K-3 Mark III firmware 2.20 colour tables (pentax-k3iii-firmware-analysis)",
+  "profile_name_prefix": "K-3 III Firmware",
+  "source_repository": "https://github.com/yunhyok/pentax-k3iii-firmware-analysis",
+  "source_revision": "aa885bcdaee874d9b9bb18663dd62ed10263eda2"
+}

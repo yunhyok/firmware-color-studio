@@ -1,0 +1,5 @@
+* text=auto eol=lf
+*.json -text
+*.dcp -text
+*.ico -text
+*.png -text
