@@ -43,6 +43,7 @@ TEXT = {
     "body_calibration": ("사용자 DNG의 기기 보정", "Body calibration from your DNG"),
     "limits": ("색 비교용 ½ 해상도 · 샤프니스/노이즈 감소 제외", "½-resolution color preview · no sharpening or denoise"),
     "dcp_note": ("DCP 미리보기 · 카메라 JPEG와 동일한 현상을 보장하지 않습니다", "DCP reference preview · not a camera JPEG rendering"),
+    "xmp_note": ("DCP + XMP · 고채도/클리핑 경계에서 LUT 근사 오차 가능", "DCP + XMP · LUT approximation can diverge at saturated/clipped colors"),
     "tone_note": ("DCP는 조색을 담을 수 없습니다. XMP 묶음을 선택하세요.", "DCP cannot encode this tint. Select the XMP bundle."),
     "overwrite": ("같은 이름의 파일을 바꾸시겠습니까?", "Replace the existing file?"),
 }
@@ -108,8 +109,12 @@ class ImageView(QLabel):
 
     def _fit(self):
         if self._pixmap is not None:
-            self.setPixmap(self._pixmap.scaled(self.size() - QSize(12, 12), Qt.AspectRatioMode.KeepAspectRatio,
-                                             Qt.TransformationMode.SmoothTransformation))
+            # Fit in device pixels; a pixmap sized in logical pixels is enlarged again on a scaled display.
+            ratio = self.devicePixelRatioF()
+            pixmap = self._pixmap.scaled((self.size() - QSize(12, 12)) * ratio, Qt.AspectRatioMode.KeepAspectRatio,
+                                         Qt.TransformationMode.SmoothTransformation)
+            pixmap.setDevicePixelRatio(ratio)
+            self.setPixmap(pixmap)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -165,6 +170,7 @@ class MainWindow(QMainWindow):
         self.preview_cache = {}
         self.preview_size = 480
         self.export_running = False
+        self.format_forced = False
         self.last_report = {}
         self.last_error = ""
         self.generation = {"raw": 0, "preview": 0, "thumbs": 0, "export": 0}
@@ -408,9 +414,9 @@ class MainWindow(QMainWindow):
         if self.raw is None:
             self.before.setText(self.tr_text("empty"))
             self.after.setText(self.tr_text("empty"))
-        self.rendition.setText(self.tr_text("dcp_note"))
         self._update_calibration_label()
         self._sync_format()
+        self.rendition.setText(self.tr_text("dcp_note" if self.output_format.currentData() == "dcp" else "xmp_note"))
 
     def _language_changed(self, value):
         self.lang = value
@@ -442,8 +448,13 @@ class MainWindow(QMainWindow):
     def _sync_format(self):
         requires_xmp = self.recipe["mode"] == "gold" or bool(self.recipe.get("toning"))
         self.output_format.model().item(0).setEnabled(not requires_xmp)
-        if requires_xmp:
+        if requires_xmp and self.output_format.currentData() == "dcp":
+            self.format_forced = True
             self.output_format.setCurrentIndex(1)
+        elif not requires_xmp and self.format_forced:
+            # Gold or toning selected XMP; the user's own choice of XMP is kept.
+            self.format_forced = False
+            self.output_format.setCurrentIndex(0)
         self.current_label.setText(list_modes()[self.recipe["mode"]]["label"])
 
     def _settings_changed(self, *_):
@@ -572,6 +583,8 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, self.tr_text("error"), error[0])
         elif kind == "raw":
             self.raw = result
+            self.preview_cache = {}
+            self.generation["thumbs"] += 1
             self.file_label.setText(f"{Path(result.metadata['path']).name}  ·  {result.metadata['model']}  ·  {result.metadata['width']} × {result.metadata['height']}")
             self.recorded_button.setEnabled(bool(result.metadata.get("settings")))
             self.warning_label.setText("\n".join(result.warnings))
@@ -581,10 +594,7 @@ class MainWindow(QMainWindow):
             before, after, self.last_report, size = result
             self.before.set_image(rgb_image(before, self.display_space))
             self.after.set_image(rgb_image(after, self.display_space))
-            note = self.tr_text("dcp_note") if self.output_format.currentData() == "dcp" else (
-                "DCP + XMP · 고채도/클리핑 경계에서 LUT 근사 오차 가능" if self.lang == 0 else
-                "DCP + XMP · LUT approximation can diverge at saturated/clipped colors")
-            self.rendition.setText(note)
+            self.rendition.setText(self.tr_text("dcp_note" if self.output_format.currentData() == "dcp" else "xmp_note"))
             warnings = list(self.raw.warnings)
             if self.recipe["mode"] in ("bleach-bypass", "harubeni") and self.recipe.get("toning", 0) == 0:
                 warnings.append("조색 끔 · Toning off")
@@ -613,13 +623,9 @@ class MainWindow(QMainWindow):
             self.load_raw_path(path)
 
     def load_raw_path(self, path):
+        # The displayed RAW stays in use until this one has loaded; a failed load keeps it.
         self.source_paths.add(Path(path))
-        self.raw = None
-        self.preview_cache = {}
-        self.refine_timer.stop()
         self.generation["raw"] += 1
-        self.generation["preview"] += 1
-        self.generation["thumbs"] += 1
         self.statusBar().showMessage(self.tr_text("loading"))
         self._start_job("raw", lambda: load_raw(path))
 
@@ -636,8 +642,6 @@ class MainWindow(QMainWindow):
                       toning=info.get("toning") or 0, calibration=self.recipe.get("calibration"))
         try:
             self._set_recipe(recipe)
-            if recipe["toning"] and self.output_format.count() > 1:
-                self.output_format.setCurrentIndex(1)
         except ValueError as error:
             QMessageBox.warning(self, self.tr_text("error"), str(error))
 
