@@ -1,3 +1,3 @@
-"""Firmware Color Studio: offline, firmware-derived camera profiles."""
+"""Firmware Color Studio: offline camera profiles and chart-based look estimation."""
 
-__version__ = "0.1.4"
+__version__ = "0.2.0"

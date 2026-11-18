@@ -1,6 +1,6 @@
 # Data and processing
 
-The application follows the published K-3 III firmware formulas and numeric tables at research commit `aa885bcdaee874d9b9bb18663dd62ed10263eda2`. It has no photo-pair fitting, training or network dependency at runtime. The [manifest](../src/firmware_color_studio/data/k3iii/manifest.json) records the source URL, version and per-file hashes.
+The firmware modes follow the K-3 III formulas and numeric tables at research commit `aa885bcdaee874d9b9bb18663dd62ed10263eda2`. A separate Studio tool fits a JPEG look using ColorChecker Classic measurements and writes a standalone DCP through the shared serializer. Both workflows run locally. [Camera pack manifest](../src/firmware_color_studio/data/k3iii/manifest.json) · [JPEG chart profiles](chart-profiles.md)
 
 `engine.py` implements the original integer setting calculations. `color_model.py` applies matrix, gamma, YC and chroma operations. `gold.py` adds verified physical R/G/B integer tables. `profiles.py` validates versioned recipes, selects a camera pack, builds DCPs and renders them. `enhanced.py` adds a neutral DCP and an Adobe RGB-table XMP where DCP HSV tables cannot represent the effect. `raw.py` reads the original sensor mosaic through LibRaw and prepares white-balanced half-resolution camera RGB. `display.py` converts the result from sRGB to the current window's monitor ICC. The Qt UI runs decoding, rendering and exports off the GUI thread.
 

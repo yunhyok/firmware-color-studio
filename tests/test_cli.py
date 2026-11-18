@@ -30,3 +30,26 @@ def test_verify_reports_missing_demo(monkeypatch, tmp_path):
     report = json.loads(report_file.read_text(encoding="utf-8"))
     assert report["status"] == "failed"
     assert missing.name in report["error"]
+
+
+def test_chart_fit_from_jpeg_exports_standalone_named_dcp_and_protects_output(monkeypatch, tmp_path):
+    import numpy as np
+    from PySide6.QtGui import QImage
+    from firmware_color_studio.chart_fit import reference_srgb
+    from firmware_color_studio.dcp import read_dcp
+
+    patches = np.rint(reference_srgb("pre2014").reshape(4, 6, 3) * 255).astype(np.uint8)
+    pixels = patches.repeat(30, axis=0).repeat(30, axis=1)
+    jpeg = tmp_path / "Reference.jpg"
+    image = QImage(pixels.data, 180, 120, pixels.strides[0], QImage.Format.Format_RGB888)
+    assert image.save(str(jpeg), "JPEG", 95)
+    output = tmp_path / "chart.dcp"
+    argv = ["fcs", "chart-fit", str(jpeg), str(output), "--edition", "pre2014",
+            "--corners", "15", "15", "165", "15", "165", "105", "15", "105"]
+    monkeypatch.setattr(sys, "argv", argv)
+    assert cli.main() == 0
+    original = output.read_bytes()
+    assert read_dcp(original)["ProfileName"] == "Reference"
+    monkeypatch.setattr(sys, "argv", [*argv, "--name", "Override"])
+    assert cli.main() == 1
+    assert output.read_bytes() == original

@@ -1,10 +1,14 @@
 # Firmware Color Studio
 
-펌웨어에서 확인한 수식과 표로 카메라 컬러 프로파일을 만들고 RAW에 적용해 비교하는 Windows 앱입니다. 첫 지원 기종은 **PENTAX K-3 Mark III, 펌웨어 2.20**입니다. 사진 쌍을 이용한 fitting은 사용하지 않습니다.
+**PENTAX K-3 Mark III**용 Lightroom 프로파일을 만들고 RAW에 적용해 비교하는 Windows 앱입니다. 카메라 모드는 펌웨어 2.20에서 확인한 수식과 표로 재현합니다. **차트 JPEG → DCP**에서는 다른 카메라로 촬영한 ColorChecker Classic 사진 한 장을 이용해 색감을 추정합니다.
 
 [Windows 설치 파일](https://github.com/yunhyok/firmware-color-studio/releases/latest) · [계산 근거](docs/architecture.md) · [Gold 분석](docs/gold.md) · [XMP 방식과 한계](docs/enhanced.md)
 
 ## 사용 방법
+
+**다른 카메라의 JPEG 색감을 가져오려면** 상단의 **차트 JPEG → DCP**를 누르거나 JPEG를 창에 끌어 놓으세요. 24패치 차트에서 1번 짙은 피부색 → 6번 청록 → 24번 검정 → 19번 흰색 패치의 **가운데**를 차례로 클릭합니다. 24개 번호의 위치를 확인하고 **색감 추정**을 누르면 JPEG와 추정 색상, 현재 Pentax RAW 미리보기를 확인할 수 있습니다. 원하는 이름으로 DCP를 저장하고 Lightroom Classic 현상 모듈의 프로파일 브라우저에서 가져오세요. [차트 종류·촬영 조건·실제 검증 결과](docs/chart-profiles.md)
+
+**펌웨어 카메라 모드와 RAW 비교**
 
 1. Releases의 `FirmwareColorStudio-…-windows-x64-setup.exe`를 실행합니다. Python이나 카메라 펌웨어 파일을 따로 설치할 필요가 없습니다.
 2. 파일을 지정하지 않고 시작하면 CC0 컬러 큐브 DNG를 자동으로 엽니다. 다른 K-3 III PEF/DNG를 열거나 끌어 놓을 수 있습니다. 왼쪽에서 프로파일을 선택하면 비교 기준과 현재 설정을 나란히 표시합니다.
@@ -44,6 +48,8 @@ python -m venv .venv
 
 CLI는 `fcs verify --report result.json`, `fcs export recipe.json output.dcp`, `fcs export recipe.json output.zip --enhanced`, `fcs preview input.DNG output.png --mode natural`을 제공합니다. CLI 출력 파일은 기존 파일을 덮어쓰지 않습니다.
 
+차트 사진에는 `fcs chart-fit`을 사용합니다. [좌표와 이름을 지정하는 예제](docs/chart-profiles.md#cli)
+
 ## 출처와 라이선스
 
 이 앱은 [pentax-k3iii-firmware-analysis](https://github.com/yunhyok/pentax-k3iii-firmware-analysis)의 `aa885bcdaee874d9b9bb18663dd62ed10263eda2` 연구를 기준으로 구현했습니다. 배포 패키지는 Terry Duell의 컬러 큐브 원본 DNG 한 장을 CC0 1.0으로 포함합니다. 데모의 출처와 해시는 별도 기록에서 확인할 수 있습니다. 패키지에 펌웨어, Adobe SDK 또는 제조사 코드의 디컴파일 결과를 포함하지 않습니다. [데모 출처와 라이선스](src/firmware_color_studio/data/demo/README.md) · [카메라 데이터 출처와 SHA-256](src/firmware_color_studio/data/k3iii/manifest.json)
@@ -52,4 +58,4 @@ CLI는 `fcs verify --report result.json`, `fcs export recipe.json output.dcp`, `
 
 ---
 
-**English:** An offline Windows editor for firmware-derived camera color profiles. Export 16 standard K-3 III DCPs, adjust the camera's six color controls, preview original PEF/DNG files, and export enhanced XMP bundles for tinting and Gold. A bundled CC0 color cube DNG opens at startup when no file is given. English and Korean profile names appear together. The camera-pack registry separates data and processing so future cameras can supply their own verified parameters and RAW adapters. See the linked technical documents for evidence and fidelity limits.
+**English:** An offline Windows editor for K-3 III camera profiles. Create a Lightroom DCP from another camera’s ColorChecker Classic JPEG using **Chart JPEG → DCP**. The separate firmware tools export 16 standard DCPs and enhanced XMP bundles for tinting and Gold. The app previews PEF/DNG files and opens a bundled CC0 color cube DNG at startup.

@@ -17,6 +17,10 @@ No original firmware image or decompiled manufacturer code is distributed.
 The original calibration row scales are from the metadata of a reference
 camera, not a RAW/JPEG fit. Users can import their own K-3 III DNG calibration.
 
+## ColorChecker reference measurements
+
+The JPEG chart feature uses the D50/2° numerical reference measurements published by X-Rite for the ColorChecker Classic before November 2014 and from November 2014 onward. ColorChecker is a trademark of its owner. The app includes the reference numbers in patch order. X-Rite chart artwork and example JPEGs are not bundled. [Manufacturer’s edition notes](https://www.xrite.com/en/service-support/new_color_specifications_for_colorchecker_sg_and_classic_charts) · [X-Rite reference data archive](https://doi.org/10.5281/zenodo.3245895)
+
 ## Runtime dependencies
 
 - NumPy 1.26.4 uses BSD-3-Clause. The wheel's license also lists its bundled
