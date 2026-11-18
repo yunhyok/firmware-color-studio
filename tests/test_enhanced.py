@@ -247,9 +247,21 @@ def test_v4_bake_preserves_analytic_wireframe_neutral_diagonal_and_published_v2_
     bundle = enhanced.build_enhanced(recipe)
     assert bundle.report["format_version"] == 4
     assert bundle.report["base_format_version"] == 2
-    assert bundle.report["dcp_sha256"] == "9645264bd0a7e5f81aadede14d82dd4ccf7d7eac63ffa944156fb2614cc71f22"
     camera = profiles.camera_for_recipe(recipe)
-    forward = dcp.read_dcp(bundle.dcp)["ForwardMatrix1"]
+    calibration = profiles._pack(recipe["camera_id"]).engine.dng_color_matrices()
+    raw_forward = color_model.PROPHOTO_TO_PCS @ camera.matrix
+    matrix_digest = sha256(np.asarray([*calibration, raw_forward], dtype="<f8").tobytes()).hexdigest()[:12]
+    base = dcp.read_dcp(bundle.dcp)
+    published_digest = "7de5b8abbe0e"
+    name_prefix = "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 "
+    assert base["ProfileName"] == name_prefix + matrix_digest
+    # v2 hashed the unrounded matrix. BLAS kernels can change the name suffix
+    # at the last floating-point bit while emitting identical DCP rationals.
+    actual_name = (base["ProfileName"] + "\0").encode()
+    assert bundle.dcp.count(actual_name) == 1
+    canonical = bundle.dcp.replace(actual_name, (name_prefix + published_digest + "\0").encode(), 1)
+    assert sha256(canonical).hexdigest() == "9645264bd0a7e5f81aadede14d82dd4ccf7d7eac63ffa944156fb2614cc71f22"
+    forward = base["ForwardMatrix1"]
     indices = np.array(list(np.ndindex(32, 32, 32)))
     wireframe = np.count_nonzero((indices == 0) | (indices == 31), axis=1) >= 2
     neutral = np.all(indices == indices[:, :1], axis=1)
