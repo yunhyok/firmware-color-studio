@@ -31,7 +31,7 @@ def outer_conversion(monkeypatch):
         calls.append((image, list(outer)))
         return np.array([(30, 30), (330, 30), (330, 210), (30, 210)], dtype=float)
 
-    monkeypatch.setattr(chart_dialog, "centers_from_outer_corners", convert)
+    monkeypatch.setattr(chart_dialog, "orient_outer_corners", convert)
     return calls
 
 
@@ -68,14 +68,19 @@ def test_outer_corner_fallback_autofit_raw_preview_and_export(application, tmp_p
         assert not dialog.swatches.pixmap().isNull()
         dialog.tabs.setCurrentIndex(1)
         assert not dialog.raw_view.pixmap().isNull(), messages
-        # The previous DCP must never be saved under a newly edited name or edition.
+        # Renaming keeps the estimate and the RAW preview on screen; Save writes the name then shown.
+        shown = dialog.result
         dialog.name.setText("Camera X")
-        assert dialog.result is None and not dialog.save_button.isEnabled()
-        QTest.qWait(300)
-        assert read_dcp(dialog.result.dcp)["ProfileName"] == "Camera X"
+        assert dialog.result is shown and dialog.save_button.isEnabled()
+        assert dialog.tabs.currentIndex() == 1 and not dialog.swatches.pixmap().isNull()
+        dialog.name.setText("  ")
+        assert dialog.result is shown and not dialog.save_button.isEnabled()
+        assert "이름" in dialog.guide.text() or "name" in dialog.guide.text()
+        dialog.name.setText("Camera X")
+        # Another edition is another estimate; the preview follows it without leaving its tab.
         dialog.edition.setCurrentIndex(1)
-        assert not dialog.save_button.isEnabled()
-        QTest.qWait(300)
+        assert dialog.result is not shown and dialog.save_button.isEnabled()
+        assert dialog.tabs.currentIndex() == 1
         protected = tmp_path / "alias.dcp"
         os.link(jpeg, protected)
         monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (str(protected), ""))
@@ -88,6 +93,7 @@ def test_outer_corner_fallback_autofit_raw_preview_and_export(application, tmp_p
         monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (str(dest), ""))
         dialog.save_button.click()
         assert dest.read_bytes() == dialog.result.dcp
+        assert read_dcp(dest.read_bytes())["ProfileName"] == "Camera X"
     finally:
         dialog.close()
         parent.raw = None
@@ -162,15 +168,12 @@ def test_automatic_success_has_no_manual_controls_or_hints(application, tmp_path
         dialog.tabs.setCurrentIndex(1)
         assert not dialog.raw_view.pixmap().isNull(), messages
         dialog.name.setText("Automatic Rename")
-        assert dialog.result is None and not dialog.save_button.isEnabled()
+        assert dialog.result is result and dialog.save_button.isEnabled()
+        assert dialog.tabs.currentIndex() == 1
         assert dialog.reset_button.isHidden() and dialog.corner_diagram.isHidden()
         assert "모서리" not in dialog.guide.text() and "corner" not in dialog.guide.text()
-        QTest.qWait(300)
-        assert read_dcp(dialog.result.dcp)["ProfileName"] == "Automatic Rename"
         old_dcp = dialog.result.dcp
         dialog.edition.setCurrentIndex(1)
-        assert not dialog.save_button.isEnabled()
-        QTest.qWait(300)
         assert dialog.result.dcp != old_dcp and dialog.save_button.isEnabled()
         dest = tmp_path / "automatic.dcp"
         monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (str(dest), ""))
@@ -182,7 +185,7 @@ def test_automatic_success_has_no_manual_controls_or_hints(application, tmp_path
         parent.close()
 
 
-def test_consecutive_detection_failure_and_pending_refit_reset(application, tmp_path, monkeypatch):
+def test_consecutive_detection_failure_resets_the_previous_estimate(application, tmp_path, monkeypatch):
     outer_conversion(monkeypatch)
     jpeg = tmp_path / "Automatic.jpg"
     colors = reference_srgb().reshape(4, 6, 3)
@@ -196,10 +199,8 @@ def test_consecutive_detection_failure_and_pending_refit_reset(application, tmp_
     try:
         assert dialog.load_path(jpeg) and dialog.result is not None
         dialog.name.setText("Pending")
-        assert dialog.refit_timer.isActive()
         monkeypatch.setattr(chart_dialog, "detect_chart", no_detection)
         assert dialog.load_path(jpeg)
-        QTest.qWait(300)
         assert not dialog.outer_corners and not dialog.corners and dialog.result is None
         assert not dialog.view.markers and not dialog.save_button.isEnabled()
         assert dialog.swatches.pixmap().isNull()
@@ -251,8 +252,7 @@ def test_fit_failure_after_detection_does_not_request_manual_corners(application
         assert "Fit unavailable" in dialog.stats.text()
         assert not dialog.save_button.isEnabled()
         monkeypatch.setattr(chart_dialog, "fit_chart", real_fit)
-        dialog.name.setText("Retry via corrected name")
-        QTest.qWait(300)
+        dialog.edition.setCurrentIndex(1)
         assert dialog.result is not None and dialog.save_button.isEnabled()
         assert not dialog.fallback and dialog.reset_button.isHidden()
     finally:
@@ -330,3 +330,130 @@ def test_explicit_jpeg_startup_opens_chart_window(monkeypatch):
     monkeypatch.setattr(app.sys, "argv", ["FirmwareColorStudio", "donor.JPEG"])
     assert app.main() == 0
     assert calls == ["show", "donor.JPEG"]
+
+
+def bordered_chart(tmp_path, turns=0):
+    colors = reference_srgb().reshape(4, 6, 3)
+    pixels = np.full((280, 400, 3), .025)
+    for row in range(4):
+        for column in range(6):
+            pixels[25 + row * 60:75 + row * 60, 25 + column * 60:75 + column * 60] = colors[row, column]
+    jpeg = tmp_path / "Bordered.jpg"
+    turned = np.rot90(pixels, turns).copy()
+    assert rgb_image(turned).convertToFormat(QImage.Format.Format_RGB888).save(str(jpeg), quality=98)
+    return jpeg, turned.shape[1], turned.shape[0]
+
+
+@pytest.mark.parametrize("order", [(0, 1, 2, 3), (1, 2, 3, 0), (2, 3, 0, 1), (0, 3, 2, 1), (0, 2, 1, 3), (3, 1, 0, 2)])
+@pytest.mark.parametrize("turns", [0, 1, 2])
+def test_outer_corners_in_any_order_follow_the_printed_arrangement(application, tmp_path, monkeypatch, order, turns):
+    monkeypatch.setattr(chart_dialog, "detect_chart", no_detection)
+    jpeg, width, height = bordered_chart(tmp_path, turns)
+    parent = app.MainWindow()
+    dialog = chart_dialog.ChartDialog(parent)
+    try:
+        assert dialog.load_path(jpeg)
+        outer = [(10, 10), (width - 11, 10), (width - 11, height - 11), (10, height - 11)]
+        for index in order:
+            dialog.select_corner(*outer[index])
+        assert dialog.result is not None and dialog.save_button.isEnabled(), dialog.stats.text()
+        # Whatever was clicked first, patch 1 is dark skin and patch 19 is white.
+        np.testing.assert_allclose(dialog.patches, reference_srgb(), atol=4 / 255)
+        assert dialog.corner_diagram.isHidden() and len(dialog.view.markers) == 24
+    finally:
+        dialog.close()
+        parent.close()
+
+
+@pytest.mark.parametrize("lang", [0, 1])
+def test_unreadable_arrangement_keeps_the_clicked_order_and_explains_failure(application, tmp_path, monkeypatch, lang):
+    monkeypatch.setattr(chart_dialog, "detect_chart", no_detection)
+    jpeg = tmp_path / "Monochrome.jpg"
+    gray = np.repeat(reference_srgb().mean(axis=1, keepdims=True), 3, axis=1).reshape(4, 6, 3)
+    pixels = np.full((280, 400, 3), .025)
+    for row in range(4):
+        for column in range(6):
+            pixels[25 + row * 60:75 + row * 60, 25 + column * 60:75 + column * 60] = gray[row, column]
+    assert rgb_image(pixels).convertToFormat(QImage.Format.Format_RGB888).save(str(jpeg), quality=98)
+    parent = app.MainWindow()
+    parent.lang = lang
+    dialog = chart_dialog.ChartDialog(parent)
+    try:
+        assert dialog.load_path(jpeg)
+        outer = [(10, 10), (389, 10), (389, 269), (10, 269)]
+        for index in (0, 1, 2, 3):
+            dialog.select_corner(*outer[index])
+        # Hue cannot identify a monochrome chart, so the documented click order decides.
+        assert dialog.result is not None
+        np.testing.assert_allclose(dialog.patches, gray.reshape(24, 3), atol=4 / 255)
+        dialog.reset_button.click()
+        for index in (2, 3, 0, 1):
+            dialog.select_corner(*outer[index])
+        assert dialog.result is None and not dialog.save_button.isEnabled()
+        assert not dialog.corner_diagram.isHidden() and "①→④" in dialog.guide.text()
+        assert ("회색 여섯 칸" if lang == 0 else "six gray patches") in dialog.stats.text()
+    finally:
+        dialog.close()
+        parent.close()
+
+
+def test_enter_in_the_name_field_saves_instead_of_opening_another_jpeg(application, tmp_path, monkeypatch):
+    jpeg, _, _ = bordered_chart(tmp_path)
+    monkeypatch.setattr(chart_dialog, "detect_chart", lambda image: np.array(
+        [(49.5, 49.5), (349.5, 49.5), (349.5, 229.5), (49.5, 229.5)]))
+    asked = []
+    monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *args: (asked.append("open") or ("", "")))
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (asked.append("save") or ("", "")))
+    parent = app.MainWindow()
+    dialog = chart_dialog.ChartDialog(parent)
+    try:
+        assert dialog.load_path(jpeg)
+        dialog.show()
+        application.processEvents()
+        dialog.name.setFocus()
+        QTest.keyClick(dialog.name, Qt.Key.Key_Return)
+        assert asked == ["save"]
+        dialog.name.clear()
+        QTest.keyClick(dialog.name, Qt.Key.Key_Return)
+        assert asked == ["save"]
+    finally:
+        dialog.close()
+        parent.close()
+
+
+def test_several_charts_and_unfitted_results_are_explained(application, tmp_path, monkeypatch):
+    jpeg, _, _ = bordered_chart(tmp_path)
+
+    def several(image):
+        raise chart_dialog.MultipleCharts("Multiple charts found.")
+
+    monkeypatch.setattr(chart_dialog, "detect_chart", several)
+    parent = app.MainWindow()
+    parent.lang = 1
+    dialog = chart_dialog.ChartDialog(parent)
+    try:
+        assert dialog.load_path(jpeg)
+        assert dialog.fallback and dialog.guide.text().startswith("Several charts are visible.")
+        for point in [(10, 10), (389, 10), (389, 269), (10, 269)]:
+            dialog.select_corner(*point)
+        # These patches are the nominal colors, so a fitted look cannot improve on the plain profile.
+        assert not dialog.result.fitted
+        assert "uncorrected profile" in dialog.stats.text() and "→" not in dialog.stats.text()
+        fit = dialog.result
+        improved = type(fit)(fit.dcp, fit.predicted_srgb, 4.0, 9.0)
+        monkeypatch.setattr(chart_dialog, "fit_chart", lambda *args, **kwargs: improved)
+        dialog.edition.setCurrentIndex(1)
+        assert "9.0 before → 4.0 after fitting" in dialog.stats.text()
+    finally:
+        dialog.close()
+        parent.close()
+
+
+def test_korean_messages_cover_existing_error_texts():
+    from pathlib import Path
+    import firmware_color_studio
+
+    package = Path(firmware_color_studio.__file__).parent
+    source = (package / "chart_input.py").read_text(encoding="utf-8") + (package / "chart_fit.py").read_text(encoding="utf-8")
+    for english in chart_dialog._KOREAN:
+        assert english in source

@@ -67,7 +67,8 @@ def main():
     chart.add_argument("output", type=Path)
     selection = chart.add_mutually_exclusive_group()
     selection.add_argument("--outer-corners", type=float, nargs=8, metavar="N",
-                           help="specify the four outer panel corners on the sides of patches 1, 6, 24, 19")
+                           help="the four outer panel corners; any order while the printed colors show the "
+                                "direction, otherwise the sides of patches 1, 6, 24, 19")
     selection.add_argument("--corners", type=float, nargs=8, metavar="N",
                        help="override automatic detection with oriented JPEG coordinates for patches 1, 6, 24, 19")
     chart.add_argument("--name", help="profile name (defaults to the JPEG camera name or filename stem)")
@@ -87,7 +88,7 @@ def main():
                 stream.write(data)
         elif args.command == "chart-fit":
             from .chart_fit import fit_chart
-            from .chart_input import centers_from_outer_corners, load_chart_jpeg, sample_chart
+            from .chart_input import load_chart_jpeg, sample_chart
 
             if args.output.suffix.lower() != ".dcp":
                 raise ValueError("chart-fit output must be .dcp")
@@ -95,7 +96,8 @@ def main():
                 raise FileExistsError(args.output)
             photo = load_chart_jpeg(args.jpeg)
             if args.outer_corners is not None:
-                corners = centers_from_outer_corners(photo.image, np.asarray(args.outer_corners).reshape(4, 2))
+                from .chart_detect import orient_outer_corners
+                corners = orient_outer_corners(photo.image, np.asarray(args.outer_corners).reshape(4, 2))
             elif args.corners is None:
                 from .chart_detect import detect_chart
                 try:

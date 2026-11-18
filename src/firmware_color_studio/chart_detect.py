@@ -6,7 +6,11 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage
 
 from .chart_fit import _lab, reference_srgb
-from .chart_input import patch_centers, sample_chart
+from .chart_input import centers_from_outer_corners, patch_centers, sample_chart
+
+
+class MultipleCharts(ValueError):
+    """More than one chart is visible, so the caller has to choose one."""
 
 
 # OpenCV 4.11 MCC model geometry, not the centres returned to the application:
@@ -92,7 +96,7 @@ def detect_chart(image: QImage) -> np.ndarray:
             continue
         checkers = detector.getListColorChecker()
         if len(checkers) >= 32:
-            raise ValueError("Too many chart candidates.")
+            raise MultipleCharts("Too many chart candidates.")
         scale = np.array([image.width() / frame.width(), image.height() / frame.height()])
         for checker in checkers:
             cost = float(checker.getCost())
@@ -116,7 +120,7 @@ def detect_chart(image: QImage) -> np.ndarray:
     if not candidates:
         raise ValueError("No reliable ColorChecker Classic 24 found.")
     if len(candidates) != 1:
-        raise ValueError("Multiple charts found.")
+        raise MultipleCharts("Multiple charts found.")
     centers = candidates[0][1]
     grid = patch_centers(centers).reshape(4, 6, 2)
     if min(np.linalg.norm(np.diff(grid, axis=axis), axis=2).min() for axis in (0, 1)) < 20:
@@ -124,3 +128,29 @@ def detect_chart(image: QImage) -> np.ndarray:
     if _quality(image, centers) is None:
         raise ValueError("The full-resolution chart is not reliable.")
     return centers
+
+
+def orient_outer_corners(image: QImage, outer) -> np.ndarray:
+    """Centers 1, 6, 24, 19 from four outer panel corners selected in any order.
+
+    The printed arrangement decides which corner is which. When it cannot,
+    as in a monochrome or strongly toned JPEG, the corners are taken in the
+    order given: the sides of patches 1, 6, 24, 19.
+    """
+    points = np.asarray(outer, dtype=float)
+    if points.shape != (4, 2) or not np.isfinite(points).all():
+        raise ValueError("Select four finite patch centers in chart order.")
+    offsets = points - points.mean(axis=0)
+    ring = points[np.argsort(np.arctan2(offsets[:, 1], offsets[:, 0]))]
+    matches = []
+    for winding in (ring, ring[::-1]):
+        for shift in range(4):
+            try:
+                centers = centers_from_outer_corners(image, np.roll(winding, shift, axis=0))
+                if _quality(image, centers) is not None:
+                    matches.append(centers)
+            except ValueError:
+                continue
+    if len(matches) == 1:
+        return matches[0]
+    return centers_from_outer_corners(image, points)

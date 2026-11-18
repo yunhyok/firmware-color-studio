@@ -197,3 +197,44 @@ def test_color_space_change_refreshes_default_thumbnails(application, monkeypatc
         assert calls == ["adobergb", "srgb"]
     finally:
         window.close()
+
+
+def test_dropped_chart_jpeg_opens_after_the_drop_returns(application, monkeypatch):
+    from PySide6.QtCore import QMimeData, QUrl
+    from firmware_color_studio import app as app_module
+
+    window = MainWindow()
+    opened, deferred = [], []
+    monkeypatch.setattr(window, "open_chart_path", opened.append)
+    monkeypatch.setattr(app_module, "QTimer", SimpleNamespace(singleShot=lambda delay, call: deferred.append(call)))
+    try:
+        data = QMimeData()
+        data.setUrls([QUrl.fromLocalFile("/photos/donor.JPG")])
+        window.dropEvent(SimpleNamespace(mimeData=lambda: data))
+        # A modal dialog inside the drop would keep the dragging application waiting.
+        assert not opened and len(deferred) == 1
+        deferred[0]()
+        assert opened == ["/photos/donor.JPG"]
+    finally:
+        window.close()
+
+
+def test_menu_title_and_demo_label_follow_the_language(application):
+    from firmware_color_studio.cli import DEMO_RAW
+
+    window = MainWindow()
+    try:
+        window.language.setCurrentIndex(0)
+        assert window.file_menu.title() == "파일"
+        window.raw = SimpleNamespace(rgb=None, warnings=[], metadata={
+            "path": str(DEMO_RAW), "model": "PENTAX K-3 Mark III", "width": 3096, "height": 2064})
+        window.language.setCurrentIndex(1)
+        assert window.file_menu.title() == "File"
+        assert window.file_label.text().startswith("Demo photo · color-cube.dng")
+        window.raw.metadata["path"] = "/photos/IMGP0001.PEF"
+        window.language.setCurrentIndex(0)
+        assert window.file_label.text().startswith("IMGP0001.PEF")
+        assert window.chart_button.toolTip()
+    finally:
+        window.raw = None
+        window.close()

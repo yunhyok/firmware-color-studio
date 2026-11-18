@@ -66,6 +66,7 @@ class ChartFit:
     predicted_srgb: np.ndarray
     mean_delta_e: float
     baseline_mean_delta_e: float
+    fitted: bool = True     # False: the uncorrected profile was closer and is returned instead
 
 
 @lru_cache(maxsize=8)
@@ -174,5 +175,5 @@ def fit_chart(patches, name, *, camera_id=profiles.CAMERA_ID, edition="2014+"):
     before = np.linalg.norm(_lab(baseline) - target_lab, axis=1)
     after = np.linalg.norm(_lab(prediction) - target_lab, axis=1)
     if before.mean() < after.mean():
-        return ChartFit(identity, baseline, float(before.mean()), float(before.mean()))
+        return ChartFit(identity, baseline, float(before.mean()), float(before.mean()), fitted=False)
     return ChartFit(data, prediction, float(after.mean()), float(before.mean()))
