@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 
 import numpy as np
-from PySide6.QtCore import QPointF, QRectF, Qt, Signal
+from PySide6.QtCore import QPointF, QRectF, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QDialog, QFileDialog, QGraphicsScene, QGraphicsView, QHBoxLayout,
@@ -11,8 +11,9 @@ from PySide6.QtWidgets import (
 )
 
 from .app import ImageView, checked_output, write_output
+from .chart_detect import detect_chart
 from .chart_fit import fit_chart
-from .chart_input import load_chart_jpeg, patch_centers, sample_chart
+from .chart_input import centers_from_outer_corners, load_chart_jpeg, patch_centers, sample_chart
 from .display import rgb_image
 from .profiles import render_dcp
 from .raw import resize_rgb
@@ -95,6 +96,13 @@ class ChartDialog(QDialog):
         self.display_space = parent.display_space
         self.source = self.image = self.result = None
         self.corners = []
+        self.outer_corners = []
+        self.fallback = False
+        self.detection_status = ""
+        self.refit_timer = QTimer(self)
+        self.refit_timer.setSingleShot(True)
+        self.refit_timer.setInterval(200)
+        self.refit_timer.timeout.connect(self.estimate)
         self.setWindowTitle(parent.tr_text("chart"))
         self.resize(860, 680)
         layout = QVBoxLayout(self)
@@ -106,7 +114,7 @@ class ChartDialog(QDialog):
         self.edition = QComboBox()
         self.edition.addItem(self.t("2014년 11월 이후", "Nov 2014 and later"), "2014+")
         self.edition.addItem(self.t("2014년 11월 이전", "Before Nov 2014"), "pre2014")
-        self.edition.currentIndexChanged.connect(self.changed)
+        self.edition.currentIndexChanged.connect(self.metadata_changed)
         header.addWidget(self.edition)
         reload_button = QPushButton(self.t("다른 JPEG 열기", "Open another JPEG"))
         reload_button.clicked.connect(self.open_jpeg)
@@ -116,6 +124,16 @@ class ChartDialog(QDialog):
         self.guide.setWordWrap(True)
         self.guide.setTextFormat(Qt.TextFormat.PlainText)
         layout.addWidget(self.guide)
+        self.corner_diagram = QLabel(self.t(
+            "① 짙은 피부색 쪽 ┌─────────────┐ ② 청록색 쪽\n"
+            "                       │   차트 바깥 테두리   │\n"
+            "④ 흰색 쪽          └─────────────┘ ③ 검정 쪽",
+            "① Dark skin side ┌────────────────┐ ② Bluish green side\n"
+            "                         │   Outer chart border   │\n"
+            "④ White side     └────────────────┘ ③ Black side"))
+        self.corner_diagram.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.corner_diagram.setStyleSheet("font-family: Consolas; font-size: 12px;")
+        layout.addWidget(self.corner_diagram)
         self.tabs = QTabWidget()
         self.view = ChartView()
         self.view.clicked.connect(self.select_corner)
@@ -128,7 +146,7 @@ class ChartDialog(QDialog):
         self.undo_button = QPushButton(self.t("한 점 취소", "Undo last point"))
         self.undo_button.clicked.connect(self.undo)
         controls.addWidget(self.undo_button)
-        self.reset_button = QPushButton(self.t("다시 지정", "Reset points"))
+        self.reset_button = QPushButton(self.t("바깥 모서리 다시 지정", "Redo outer corners"))
         self.reset_button.clicked.connect(self.reset)
         controls.addWidget(self.reset_button)
         controls.addStretch()
@@ -136,7 +154,7 @@ class ChartDialog(QDialog):
         self.name = QLineEdit()
         self.name.setMaxLength(120)
         self.name.setMinimumWidth(180)
-        self.name.textChanged.connect(self.changed)
+        self.name.textChanged.connect(self.metadata_changed)
         controls.addWidget(self.name)
         layout.addLayout(controls)
         self.stats = QLabel()
@@ -149,9 +167,6 @@ class ChartDialog(QDialog):
         layout.addLayout(results)
         actions = QHBoxLayout()
         actions.addStretch()
-        self.fit_button = QPushButton(self.t("색감 추정", "Estimate look"))
-        self.fit_button.clicked.connect(self.estimate)
-        actions.addWidget(self.fit_button)
         self.save_button = QPushButton(self.t("DCP 저장…", "Save DCP…"))
         self.save_button.setObjectName("primary")
         self.save_button.setStyleSheet("QPushButton:disabled { background:#29323e; color:#8796a4; }")
@@ -177,6 +192,9 @@ class ChartDialog(QDialog):
         except (OSError, ValueError) as error:
             self.warn(error)
             return False
+        self.refit_timer.stop()
+        self.fallback = False
+        self.detection_status = ""
         self.source = Path(path)
         self.image = photo.image
         self.filename.setText(self.source.name)
@@ -188,23 +206,55 @@ class ChartDialog(QDialog):
                 displayed = converted
         self.view.set_image(displayed)
         self.corners.clear()
+        self.outer_corners.clear()
         self.name.setText(photo.name)
         self.changed()
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        try:
+            corners = np.asarray(detect_chart(self.image), dtype=float)
+            patch_centers(corners)
+        except ValueError:
+            self.begin_fallback(self.t(
+                "차트를 자동 인식하지 못했습니다. 차트 바깥 테두리의 네 모서리를 지정하세요.",
+                "Automatic recognition failed. Select the four corners of the outer chart border."))
+        else:
+            self.corners = corners.tolist()
+            self.changed()
+            self.estimate()
+        finally:
+            QApplication.restoreOverrideCursor()
         return True
 
     def select_corner(self, x, y):
-        if self.image is not None and len(self.corners) < 4:
-            self.corners.append((x, y))
-            self.changed()
+        if self.fallback and self.image is not None and len(self.outer_corners) < 4:
+            self.outer_corners.append((x, y))
+            if self.changed():
+                self.estimate()
 
     def undo(self):
-        if self.corners:
-            self.corners.pop()
+        if self.fallback and self.outer_corners:
+            self.refit_timer.stop()
+            self.outer_corners.pop()
             self.changed()
 
     def reset(self):
+        if self.fallback:
+            self.refit_timer.stop()
+            self.outer_corners.clear()
+            self.changed()
+
+    def begin_fallback(self, status):
+        self.refit_timer.stop()
+        self.fallback = True
+        self.outer_corners.clear()
         self.corners.clear()
+        self.detection_status = status
         self.changed()
+
+    def metadata_changed(self):
+        self.refit_timer.stop()
+        if self.changed():
+            self.refit_timer.start()
 
     def changed(self):
         self.result = None
@@ -213,42 +263,75 @@ class ChartDialog(QDialog):
         self.tabs.setCurrentIndex(0)
         self.tabs.setTabEnabled(1, False)
         self.save_button.setEnabled(False)
-        n = len(self.corners)
-        numbers = (1, 6, 24, 19)
-        self.view.markers = list(zip(numbers, self.corners))
+        n = len(self.outer_corners)
+        self.undo_button.setVisible(self.fallback)
+        self.reset_button.setVisible(self.fallback)
+        self.corner_diagram.setVisible(self.fallback and n < 4)
+        self.view.setCursor(Qt.CursorShape.CrossCursor if self.fallback else Qt.CursorShape.ArrowCursor)
+        self.view.markers = list(enumerate(self.outer_corners, 1)) if self.fallback else []
         self.undo_button.setEnabled(bool(n))
         self.reset_button.setEnabled(bool(n))
-        valid = n == 4
+        valid = len(self.corners) == 4 and not self.fallback
+        if self.fallback:
+            self.corners.clear()
+            if n == 4:
+                try:
+                    self.corners = centers_from_outer_corners(self.image, self.outer_corners).tolist()
+                    valid = True
+                except ValueError:
+                    self.guide.setText(self.t(
+                        "바깥 모서리를 확인하세요. '한 점 취소' 또는 '바깥 모서리 다시 지정'으로 수정할 수 있습니다.",
+                        "Check the outer corners. Use Undo last point or Redo outer corners to correct them."))
         if valid:
             try:
                 self.view.markers = list(enumerate(patch_centers(self.corners), 1))
-                self.guide.setText(self.t("번호가 24개 패치의 가운데에 있는지 확인한 뒤 색감 추정을 누르세요.",
-                                          "Check that each number falls on its patch center, then select Estimate look."))
-            except ValueError as error:
+                self.guide.setText(self.t("24개 번호와 색감 추정 결과를 확인하세요.",
+                                          "Review the 24 numbered patches and fitted colors."))
+            except ValueError:
                 valid = False
-                self.guide.setText(self.t("모서리를 다시 지정하세요. ", "Reselect the corners. ") + str(error))
-        else:
+                self.guide.setText(self.t("바깥 모서리를 다시 지정하세요.", "Reselect the outer chart corners."))
+        elif self.fallback and n < 4:
             names = self.t(("짙은 피부색", "청록색", "검정", "흰색"),
                            ("dark skin", "bluish green", "black", "white"))
             self.guide.setText(self.t(
-                f"{n + 1}/4 · {numbers[n]}번 {names[n]} 패치의 가운데를 클릭하세요.  "
-                "지정 순서  1 → 6 → 24 → 19  ·  마우스 휠로 확대",
-                f"{n + 1}/4 · Click the center of patch {numbers[n]} ({names[n]}).  "
-                "Corner order  1 → 6 → 24 → 19  ·  Scroll to zoom"))
+                f"{n + 1}/4 · {names[n]} 패치 쪽의 차트 바깥 모서리를 클릭하세요.  "
+                "마우스 휠로 확대",
+                f"{n + 1}/4 · Click the outer chart corner on the {names[n]} side.  "
+                "Scroll to zoom"))
+        elif not self.fallback:
+            self.guide.clear()
+        if self.detection_status:
+            self.guide.setText(self.detection_status + "\n" + self.guide.text())
         self.view.viewport().update()
-        self.fit_button.setEnabled(valid and bool(self.name.text().strip()))
+        return valid and bool(self.name.text().strip())
 
     def warn(self, error):
         QMessageBox.warning(self, self.parent().tr_text("error"), str(error))
 
     def estimate(self):
+        self.refit_timer.stop()
+        self.result = None
+        self.stats.clear()
+        self.swatches.clear()
+        self.tabs.setCurrentIndex(0)
+        self.tabs.setTabEnabled(1, False)
+        self.save_button.setEnabled(False)
+        if self.image is None or len(self.corners) != 4 or not self.name.text().strip():
+            return False
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             patches = sample_chart(self.image, self.corners)
             result = fit_chart(patches, self.name.text().strip(), edition=self.edition.currentData())
         except (ValueError, OSError) as error:
             self.stats.setText(self.t("색감 추정 실패 · ", "Estimation failed · ") + str(error))
-            return
+            if self.fallback:
+                self.guide.setText(self.t(
+                    "색감 추정에 실패했습니다. '한 점 취소' 또는 '바깥 모서리 다시 지정'으로 수정하세요.",
+                    "Estimation failed. Use Undo last point or Redo outer corners to correct the selection."))
+            else:
+                self.guide.setText(self.t("자동 색감 추정에 실패했습니다. 아래 오류를 확인하세요.",
+                                          "Automatic estimation failed. Review the error below."))
+            return False
         finally:
             QApplication.restoreOverrideCursor()
         self.result = result
@@ -263,10 +346,11 @@ class ChartDialog(QDialog):
             "Each patch shows the JPEG on the left and the estimate on the right.\n"
             f"Mean ΔE76 across 24 patches  {result.baseline_mean_delta_e:.1f} → {result.mean_delta_e:.1f}"))
         self.tabs.setTabEnabled(1, self.raw is not None)
-        self.fit_button.setEnabled(False)
         self.save_button.setEnabled(True)
-        self.guide.setText(self.t("색감 추정을 마쳤습니다. 아래에서 패치 차이를 확인한 뒤 DCP를 저장하세요.",
-                                  "Review the fitted patch colors below, then save the DCP."))
+        self.guide.setText(self.t(
+            "색감 추정을 마쳤습니다. 24개 번호와 아래 패치 차이를 확인한 뒤 DCP를 저장하세요.",
+            "Review the 24 numbered patches and fitted colors below, then save the DCP."))
+        return True
 
     def preview_raw(self, index):
         if index == 1 and self.raw is not None and self.result is not None:

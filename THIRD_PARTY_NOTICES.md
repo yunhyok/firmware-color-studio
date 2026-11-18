@@ -23,6 +23,8 @@ The JPEG chart feature uses the D50/2° numerical reference measurements publish
 
 ## Runtime dependencies
 
+- Automatic chart recognition uses OpenCV 4.11.0 and the MCC module by Pedro Diamel Marrero Fernández. The installer includes the wheel's notices under `_internal/cv2` and the MCC module's MIT license under `resources/licenses/OpenCV`. [OpenCV license](https://github.com/opencv/opencv/blob/4.11.0/LICENSE) · [MCC source and license](https://github.com/opencv/opencv_contrib/blob/4.11.0/modules/mcc/include/opencv2/mcc/checker_detector.hpp) · [Wheel distribution](https://pypi.org/project/opencv-contrib-python-headless/4.11.0.86/)
+
 - NumPy 1.26.4 uses BSD-3-Clause. The wheel's license also lists its bundled
   libraries. [NumPy source and license](https://github.com/numpy/numpy/tree/v1.26.4)
 - Qt, PySide6 and Shiboken 6.8.3 are distributed under LGPLv3. The installer

@@ -133,6 +133,49 @@ def patch_centers(corners) -> np.ndarray:
     return _project(_homography(corners), _GRID)
 
 
+def _panel_axis(signal, count):
+    """Locate the evenly spaced divider strips between patches on one rectified axis."""
+    length = len(signal)
+    half_cell = length / (2 * count)
+    # Actual Classic and Passport panels have different margins around the patch grid.
+    first = np.arange(round(.45 * half_cell), round(2.05 * half_cell) + 1)
+    last = length - 1 - first
+    start, end = np.meshgrid(first, last, indexing="ij")
+    pitch = (end - start) / (count - 1)
+    gaps = start[..., None] + pitch[..., None] * (np.arange(count - 1) + .5)
+    pixels = np.arange(length)
+    center = np.interp(gaps, pixels, signal)
+    left = np.interp(gaps - .22 * pitch[..., None], pixels, signal) - center
+    right = np.interp(gaps + .22 * pitch[..., None], pixels, signal) - center
+    contrast = np.maximum(np.minimum(left, right), np.minimum(-left, -right))
+    # Favor an alignment that explains all dividers, including low-contrast ones.
+    score = np.minimum(contrast, 50).mean(axis=-1)
+    if score.max() < 8:
+        return np.array([half_cell - .5, length - half_cell - .5])
+    near_best = score >= score.max() - 1
+    return np.array([np.median(start[near_best]), np.median(end[near_best])])
+
+
+def centers_from_outer_corners(image: QImage, outer) -> np.ndarray:
+    """Map four outer panel corners adjacent to patches 1, 6, 24, 19 to patch centers."""
+    outer = np.asarray(outer, dtype=float)
+    matrix = _homography(outer)
+    if image.isNull() or (outer < 0).any() or (outer > [image.width()-1, image.height()-1]).any():
+        raise ValueError("Select the four outer chart corners inside the photo.")
+    width, height = 360, 240
+    ax, ay = np.meshgrid(np.arange(width) * 5 / (width - 1), np.arange(height) * 3 / (height - 1))
+    xy = np.rint(_project(matrix, np.stack((ax, ay), axis=-1))).astype(int)
+    rgb = image.convertToFormat(QImage.Format.Format_RGB888)
+    pixels = np.ndarray((rgb.height(), rgb.width(), 3), dtype=np.uint8, buffer=rgb.constBits(),
+                        strides=(rgb.bytesPerLine(), 3, 1))
+    brightness = pixels[xy[..., 1], xy[..., 0]].max(axis=-1)
+    x = _panel_axis(np.percentile(brightness[height//6:-height//6], 70, axis=0), 6)
+    y = _panel_axis(np.percentile(brightness[:, width//8:-width//8], 70, axis=1), 4)
+    x *= 5 / (width - 1)
+    y *= 3 / (height - 1)
+    return _project(matrix, np.array([[x[0], y[0]], [x[1], y[0]], [x[1], y[1]], [x[0], y[1]]]))
+
+
 def sample_chart(image: QImage, corners) -> np.ndarray:
     """Median of 81 projected inner-patch samples, row-major, encoded sRGB 0…1."""
     if image.isNull():

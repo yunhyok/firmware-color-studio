@@ -6,7 +6,7 @@
 
 ## 사용 방법
 
-**다른 카메라의 JPEG 색감을 가져오려면** 상단의 **차트 JPEG → DCP**를 누르거나 JPEG를 창에 끌어 놓으세요. 24패치 차트에서 1번 짙은 피부색 → 6번 청록 → 24번 검정 → 19번 흰색 패치의 **가운데**를 차례로 클릭합니다. 24개 번호의 위치를 확인하고 **색감 추정**을 누르면 JPEG와 추정 색상, 현재 Pentax RAW 미리보기를 확인할 수 있습니다. 원하는 이름으로 DCP를 저장하고 Lightroom Classic 현상 모듈의 프로파일 브라우저에서 가져오세요. [차트 종류·촬영 조건·실제 검증 결과](docs/chart-profiles.md)
+**다른 카메라의 JPEG 색감을 가져오려면** 상단의 **차트 JPEG → DCP**를 누르거나 JPEG를 창에 끌어 놓으세요. Studio가 ColorChecker Classic의 위치와 방향을 찾아 24개 패치에 번호를 표시하고 색감을 추정합니다. 번호와 미리보기를 확인한 뒤 **DCP 저장**을 누르세요. 자동 인식에 실패했을 때만 바깥 네 모서리를 지정해 달라는 안내가 나타납니다. 네 번째 모서리를 누르면 색감 추정이 자동으로 끝납니다. [지원 차트·사용법·검증 결과](docs/chart-profiles.md)
 
 **펌웨어 카메라 모드와 RAW 비교**
 
@@ -48,7 +48,7 @@ python -m venv .venv
 
 CLI는 `fcs verify --report result.json`, `fcs export recipe.json output.dcp`, `fcs export recipe.json output.zip --enhanced`, `fcs preview input.DNG output.png --mode natural`을 제공합니다. CLI 출력 파일은 기존 파일을 덮어쓰지 않습니다.
 
-차트 사진에는 `fcs chart-fit`을 사용합니다. [좌표와 이름을 지정하는 예제](docs/chart-profiles.md#cli)
+차트 사진에는 `fcs chart-fit`을 사용합니다. [자동 인식과 수동 좌표 사용 예제](docs/chart-profiles.md#cli)
 
 ## 출처와 라이선스
 
