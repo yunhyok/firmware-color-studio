@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from hashlib import md5, sha256
 from io import BytesIO
+from itertools import product
 import json
 import struct
 from uuid import NAMESPACE_URL, uuid5
@@ -19,7 +20,7 @@ GRID_SIZE = 32
 _ALPHABET = b"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?`'|()[]{}@%$#"
 _CRS = "http://ns.adobe.com/camera-raw-settings/1.0/"
 _RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-_FORMAT_VERSION = 2
+_FORMAT_VERSION = 3
 
 
 def _normalized_matrix(matrix: np.ndarray) -> np.ndarray:
@@ -71,17 +72,42 @@ def _base_dcp(pack, recipe: dict, camera: color_model.CameraColour) -> tuple[byt
 
 
 def _lut(camera: color_model.CameraColour, base_forward: np.ndarray) -> np.ndarray:
-    grid = np.linspace(0.0, 1.0, GRID_SIZE)
-    lut_input = np.stack(np.meshgrid(grid, grid, grid, indexing="ij"), axis=-1)
+    # Odd indices are midpoints of the seven tetrahedral edge directions.
+    grid = color_model.srgb_decode(np.linspace(0.0, 1.0, 2 * GRID_SIZE - 1))
+    linear_input = np.stack(np.meshgrid(grid, grid, grid, indexing="ij"), axis=-1)
     # Compensate the small SDK matrix-rounding error inside the LUT. Values
     # already lost to the base's clip cannot be recovered by this correction.
     correction = camera.matrix @ np.linalg.inv(_working_matrix(base_forward))
-    matrix_output = color_model.srgb_decode(lut_input) @ correction.T
+    matrix_output = linear_input @ correction.T
     encoded = camera.encode(matrix_output)
     to_prophoto = _PCS_TO_PROPHOTO @ _normalized_matrix(camera.to_pcs)
     output = camera.decode(encoded) @ to_prophoto.T
     nonlinear = color_model.srgb_encode(np.clip(output, 0.0, 1.0))
-    return np.floor(nonlinear * 65535.0 + 0.5).astype("<u2")
+    nodes = nonlinear[::2, ::2, ::2].copy()
+    counts = np.zeros(nodes.shape[:3] + (1,))
+    edges = []
+    for direction in product((0, 1), repeat=3):
+        if not any(direction):
+            continue
+        lower = tuple(slice(None, -1) if step else slice(None) for step in direction)
+        upper = tuple(slice(1, None) if step else slice(None) for step in direction)
+        # Face nodes learn only from tetrahedral edges in that face.
+        interior = tuple(slice(1, -1) if step else slice(None) for step in direction)
+        target = nonlinear[tuple(slice(step, None, 2) for step in direction)]
+        edges.append((lower, upper, interior, target))
+        counts[interior] += 2
+    # Two clipped channels land on the cube wireframe (zero or two neighbours).
+    # Preserve those 1D responses and the diagonal used by neutral camera RGB.
+    weight = np.where(counts > 2, 1.0 / (counts + 2.0), 0.0)
+    diagonal = np.arange(GRID_SIZE)
+    weight[diagonal, diagonal, diagonal] = 0.0
+    for _ in range(4):
+        update = np.zeros_like(nodes)
+        for lower, upper, interior, target in edges:
+            residual = target - (nodes[lower] + nodes[upper]) * 0.5
+            update[interior] += residual[lower] + residual[upper]
+        nodes = np.clip(nodes + update * weight, 0.0, 1.0)
+    return np.floor(nodes * 65535.0 + 0.5).astype("<u2")
 
 
 def _table_stream(samples: np.ndarray) -> bytes:
@@ -177,6 +203,7 @@ def build_enhanced(recipe: dict) -> EnhancedBundle:
         "lut_grid": [GRID_SIZE] * 3,
         "lut_domain": "ProPhoto RGB primaries, sRGB transfer",
         "base_transform": "firmware CC0 in intermediate ProPhoto coordinates; paired XMP required",
+        "base_format_version": 2,
         "format_version": _FORMAT_VERSION,
         "lut_bits": 16,
         "lut_interpolation": "tetrahedral",
@@ -214,8 +241,8 @@ def _tetrahedral(rgb: np.ndarray, samples: np.ndarray) -> np.ndarray:
     return interpolated / 65535.0
 
 
-def render_enhanced(camera_rgb, bundle: EnhancedBundle, baseline_exposure=0.0) -> np.ndarray:
-    """Render the serialized DCP through SDK normalization and the quantized XMP."""
+def _render_prophoto(camera_rgb, bundle: EnhancedBundle, baseline_exposure=0.0) -> np.ndarray:
+    """Render the serialized DCP and quantized XMP to linear working-space RGB."""
     rgb, exposure = profiles._render_inputs(camera_rgb, baseline_exposure)
     base = profiles._render_profile(bundle.dcp)
     ev = exposure + base["BaselineExposureOffset"]
@@ -226,7 +253,12 @@ def render_enhanced(camera_rgb, bundle: EnhancedBundle, baseline_exposure=0.0) -
     if ev < 0.0:
         working = color_model.dng_tone(working, base["curve_x"], base["curve_y"], ev)
     code = _tetrahedral(color_model.srgb_encode(working), bundle._samples)
-    linear = color_model.srgb_decode(code) @ _PROPHOTO_TO_SRGB.T
+    return color_model.srgb_decode(code)
+
+
+def render_enhanced(camera_rgb, bundle: EnhancedBundle, baseline_exposure=0.0) -> np.ndarray:
+    """Render the serialized DCP and quantized XMP as encoded sRGB."""
+    linear = _render_prophoto(camera_rgb, bundle, baseline_exposure) @ _PROPHOTO_TO_SRGB.T
     return np.clip(color_model.srgb_encode(linear), 0.0, 1.0)
 
 

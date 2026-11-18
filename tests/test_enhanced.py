@@ -214,7 +214,28 @@ def test_remaining_adobe_rgb_tint_boundary_has_an_explicit_error_bound():
     direct = direct_srgb(camera, rgb)
     actual = enhanced.render_enhanced(rgb, enhanced.build_enhanced(recipe), -.5)
     np.testing.assert_allclose(direct, [0, 0.9984821891, 0], atol=1e-8)
-    assert np.max(abs(actual - direct)) * 255 < 30
+    assert np.max(abs(actual - direct)) * 255 < 28.1  # v2 measured 29.48.
+
+
+def test_v3_bake_preserves_analytic_wireframe_neutral_diagonal_and_published_v2_base():
+    recipe = profiles.default_recipe("gold")
+    bundle = enhanced.build_enhanced(recipe)
+    assert bundle.report["format_version"] == 3
+    assert bundle.report["base_format_version"] == 2
+    assert bundle.report["dcp_sha256"] == "9645264bd0a7e5f81aadede14d82dd4ccf7d7eac63ffa944156fb2614cc71f22"
+    camera = profiles.camera_for_recipe(recipe)
+    forward = dcp.read_dcp(bundle.dcp)["ForwardMatrix1"]
+    indices = np.array(list(np.ndindex(32, 32, 32)))
+    wireframe = np.count_nonzero((indices == 0) | (indices == 31), axis=1) >= 2
+    neutral = np.all(indices == indices[:, :1], axis=1)
+    anchored = indices[wireframe | neutral]
+    correction = camera.matrix @ np.linalg.inv(enhanced._working_matrix(forward))
+    encoded = camera.encode(color_model.srgb_decode(anchored / 31.0) @ correction.T)
+    to_working = np.linalg.solve(normalized(color_model.PROPHOTO_TO_PCS), normalized(camera.to_pcs))
+    target = color_model.srgb_encode(np.clip(camera.decode(encoded) @ to_working.T, 0., 1.))
+    quantized = np.floor(target * 65535.0 + 0.5).astype(np.uint16)
+    _, samples = read_lut(bundle.xmp)
+    np.testing.assert_array_equal(samples[tuple(anchored.T)], quantized)
 
 
 def test_all_cc0_matrices_preserve_white_and_bound_sdk_rounding():
