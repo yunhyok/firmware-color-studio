@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from . import __version__
+from .cli import DEMO_RAW
 from .display import monitor_space, rgb_image
 from .profiles import (build_profile, default_recipe, list_modes, load_recipe,
                        render_dcp, save_recipe, validate_recipe)
@@ -28,6 +29,7 @@ from .raw import load_raw, read_calibration, resize_rgb
 
 TEXT = {
     "open": ("RAW 열기", "Open RAW"), "empty": ("PEF 또는 DNG 파일을 끌어 놓으세요", "Drop a PEF or DNG file here"),
+    "chart": ("차트 JPEG → DCP", "Chart JPEG → DCP"),
     "profiles": ("카메라 프로파일", "Camera profiles"), "adjust": ("프로파일 조정", "Profile controls"),
     "baseline": ("비교 기준", "Reference"), "current": ("현재 프로파일", "Current profile"),
     "factory": ("출고값으로 복원", "Reset to factory"), "recorded": ("촬영 설정 가져오기", "Use shot settings"),
@@ -216,6 +218,9 @@ class MainWindow(QMainWindow):
         self.open_button.setObjectName("primary")
         self.open_button.clicked.connect(self.open_raw)
         top.addWidget(self.open_button)
+        self.chart_button = QPushButton()
+        self.chart_button.clicked.connect(self.open_chart)
+        top.addWidget(self.chart_button)
         self.language = QComboBox()
         self.language.addItems(["한국어", "English"])
         self.language.setCurrentIndex(self.lang)
@@ -382,6 +387,7 @@ class MainWindow(QMainWindow):
         menu = self.menuBar().addMenu("File")
         for key, shortcut, callback in [
             ("open", "Ctrl+O", self.open_raw), ("load", "Ctrl+Shift+O", self.open_saved_recipe),
+            ("chart", "", self.open_chart),
             ("save", "Ctrl+S", self.save_current_recipe), ("export", "Ctrl+E", self.export_profile),
             ("calibration", "", self.import_calibration), ("clear_calibration", "", self.clear_calibration),
             ("info", "F1", self.show_details),
@@ -394,7 +400,7 @@ class MainWindow(QMainWindow):
             self.actions[key] = action
 
     def _translate(self):
-        for widget, key in [(self.open_button,"open"),(self.profile_heading,"profiles"),(self.adjust_heading,"adjust"),
+        for widget, key in [(self.open_button,"open"),(self.chart_button,"chart"),(self.profile_heading,"profiles"),(self.adjust_heading,"adjust"),
                             (self.reference_label,"baseline"),(self.name_label,"name"),(self.space_label,"color_space"),
                             (self.tone_label,"toning"),(self.factory_button,"factory"),(self.recorded_button,"recorded"),
                             (self.export_button,"export"),(self.save_button,"save"),(self.format_label,"format"),
@@ -710,6 +716,20 @@ class MainWindow(QMainWindow):
         self.generation["thumbs"] += 1
         self._thumbnails()
 
+    def open_chart(self):
+        path, _ = QFileDialog.getOpenFileName(self, self.tr_text("chart"), "", "JPEG (*.jpg *.jpeg *.JPG *.JPEG)")
+        if path:
+            self.open_chart_path(path)
+
+    def open_chart_path(self, path):
+        from .chart_dialog import ChartDialog
+        dialog = ChartDialog(self)
+        try:
+            if dialog.load_path(path):
+                dialog.exec()
+        finally:
+            dialog.deleteLater()
+
     def show_details(self):
         box = QMessageBox(self)
         box.setWindowTitle(self.tr_text("info"))
@@ -721,13 +741,20 @@ class MainWindow(QMainWindow):
         box.exec()
 
     def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls() and any(url.isLocalFile() and Path(url.toLocalFile()).suffix.lower() in (".pef", ".dng") for url in event.mimeData().urls()):
+        if event.mimeData().hasUrls() and any(url.isLocalFile() and Path(url.toLocalFile()).suffix.lower() in (".pef", ".dng", ".jpg", ".jpeg") for url in event.mimeData().urls()):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
         for url in event.mimeData().urls():
-            if url.isLocalFile() and Path(url.toLocalFile()).suffix.lower() in (".pef", ".dng"):
-                self.load_raw_path(url.toLocalFile())
+            if not url.isLocalFile():
+                continue
+            path = url.toLocalFile()
+            suffix = Path(path).suffix.lower()
+            if suffix in (".pef", ".dng"):
+                self.load_raw_path(path)
+                break
+            if suffix in (".jpg", ".jpeg"):
+                self.open_chart_path(path)
                 break
 
     def showEvent(self, event):
@@ -754,7 +781,7 @@ class MainWindow(QMainWindow):
 
 
 def main():
-    if len(sys.argv) > 1 and sys.argv[1] in ("verify", "export", "preview"):
+    if len(sys.argv) > 1 and sys.argv[1] in ("verify", "export", "preview", "chart-fit"):
         from .cli import main as cli_main
         return cli_main()
     application = QApplication(sys.argv)
@@ -765,6 +792,11 @@ def main():
     window.show()
     if len(sys.argv) == 2 and Path(sys.argv[1]).suffix.lower() in (".pef", ".dng"):
         window.load_raw_path(sys.argv[1])
+    elif len(sys.argv) == 2 and Path(sys.argv[1]).suffix.lower() in (".jpg", ".jpeg"):
+        path = sys.argv[1]
+        QTimer.singleShot(0, lambda: window.open_chart_path(path))
+    elif len(sys.argv) == 1:
+        window.load_raw_path(DEMO_RAW)
     return application.exec()
 
 

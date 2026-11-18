@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "0.1.1"
+#define AppVersion "0.2.1"
 #endif
 #define AppName "Firmware Color Studio"
 

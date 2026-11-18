@@ -1,0 +1,170 @@
+{
+  "app_version": "0.1.4",
+  "xmp_format": 4,
+  "lightroom_classic": "16.0",
+  "input": "color-cube.dng",
+  "input_sha256": "1e3352ccba0db428fd2a183718fc857fb283b1d43ad704305e5094c19e0a0428",
+  "settings": "As Shot white balance, Exposure2012 = 0, no sharpening or noise reduction",
+  "comparison": "Absolute normalized sRGB channel differences at matching pixel coordinates, 1000px long edge. Fixed firmware recipes, no photo fitting.",
+  "cases": [
+    {
+      "mode": "harubeni",
+      "recipe": {
+        "schema_version": 1,
+        "camera_id": "pentax-k3iii",
+        "pack_version": "2.20-1",
+        "mode": "harubeni",
+        "settings": {
+          "saturation": 0,
+          "hue": 0,
+          "key": 0,
+          "contrast": 2,
+          "highlight": -4,
+          "shadow": -2
+        },
+        "color_space": "adobergb",
+        "toning": 1,
+        "name": "Boundary 014 harubeni",
+        "calibration": null,
+        "runtime": {}
+      },
+      "uuid": "370EBCEC993B53D58EBED472A8D3AC19",
+      "xmp_sha256": "4f405f1bb89c666a79b584ed681b797b88988b5d24370c703f1d8c4b23a19bda",
+      "base_sha256": "845b52d0b56a536245eb119fab8252e781403a9428272ebf6adbe22d3793d3b6",
+      "table": "6B095BE1153F441C4FF5614FAD3BFC4F",
+      "tiff": {
+        "width": 1000,
+        "height": 667,
+        "bits_per_sample": [
+          16,
+          16,
+          16
+        ],
+        "compression": 1,
+        "icc_sha256": "2b3aa1645779a9e634744faf9b01e9102b0c9b88fd6deced7934df86b949af7e",
+        "sRGB": true,
+        "pixel_data_sha256": "dbda30b2b82a3734a0d20090d4207a97b2a6d6c1506da6a5ce2e6620bc01eb35",
+        "file_sha256": "985407c74d1e215c10c0fedca00507ade13ff76ec39837efa379b7cf2a8fbc86",
+        "xmp": {
+          "CameraProfile": [
+            "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 5587a8abea21"
+          ],
+          "CameraProfileDigest": [
+            "7AEE8567EC0208FD8642AA5ED991D612"
+          ],
+          "RGBTable": [
+            "6B095BE1153F441C4FF5614FAD3BFC4F"
+          ]
+        }
+      },
+      "mean": 0.005106964659605606,
+      "p95": 0.012019637195396582
+    },
+    {
+      "mode": "gold",
+      "recipe": {
+        "schema_version": 1,
+        "camera_id": "pentax-k3iii",
+        "pack_version": "2.20-1",
+        "mode": "gold",
+        "settings": {
+          "saturation": 4,
+          "hue": -4,
+          "key": 4,
+          "contrast": -4,
+          "highlight": 4,
+          "shadow": -4
+        },
+        "color_space": "adobergb",
+        "toning": 0,
+        "name": "Boundary 014 gold",
+        "calibration": null,
+        "runtime": {}
+      },
+      "uuid": "94066174903D5432AE83C7F90C7A2631",
+      "xmp_sha256": "f0831af382167a177424d7cbf0008803909148fcea545062ddf44427e2ad1ff5",
+      "base_sha256": "5f5a9329c312010f879c3eaadc09d8214b03929539eeb4b3253ba7cc81635e4c",
+      "table": "B44814CB6473103769311C8B8BB3F2D5",
+      "tiff": {
+        "width": 1000,
+        "height": 667,
+        "bits_per_sample": [
+          16,
+          16,
+          16
+        ],
+        "compression": 1,
+        "icc_sha256": "2b3aa1645779a9e634744faf9b01e9102b0c9b88fd6deced7934df86b949af7e",
+        "sRGB": true,
+        "pixel_data_sha256": "c94d4fe0637445f400d2784d01dee077e05218171c9f6d7b9e824f9611fc9252",
+        "file_sha256": "9ba41dbc7ce936d390167be075da59ab5216305636a27cecafd94e2294bd3ead",
+        "xmp": {
+          "CameraProfile": [
+            "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 179cc3a96df6"
+          ],
+          "CameraProfileDigest": [
+            "A1341562E613EA1D281AF9F8CFEDAC99"
+          ],
+          "RGBTable": [
+            "B44814CB6473103769311C8B8BB3F2D5"
+          ]
+        }
+      },
+      "mean": 0.00542739896442325,
+      "p95": 0.016168974795935605
+    },
+    {
+      "mode": "fuyuno",
+      "recipe": {
+        "schema_version": 1,
+        "camera_id": "pentax-k3iii",
+        "pack_version": "2.20-1",
+        "mode": "fuyuno",
+        "settings": {
+          "saturation": 0,
+          "hue": 0,
+          "key": 3,
+          "contrast": 4,
+          "highlight": -4,
+          "shadow": 4
+        },
+        "color_space": "srgb",
+        "toning": 0,
+        "name": "Boundary 014 fuyuno",
+        "calibration": null,
+        "runtime": {}
+      },
+      "uuid": "A7141012E4AE579A85DB9B622FB8F5A9",
+      "xmp_sha256": "e077bc79c12a076f3d76b61771355484db942eef418197aeb51cce523bb47b23",
+      "base_sha256": "c45b7464ba134a073b94ebd4b55f609a834d1d5c87ca51ca25458fdd4ef5e780",
+      "table": "C8EC4C5614AA8DD6668D476B629687D6",
+      "tiff": {
+        "width": 1000,
+        "height": 667,
+        "bits_per_sample": [
+          16,
+          16,
+          16
+        ],
+        "compression": 1,
+        "icc_sha256": "2b3aa1645779a9e634744faf9b01e9102b0c9b88fd6deced7934df86b949af7e",
+        "sRGB": true,
+        "pixel_data_sha256": "924ab34d01da244ccb5656555ee4ee981d17e66bc3b21123c07928a2716ac679",
+        "file_sha256": "f9f3545559da0a424023dbff1501dc93c6752de09a08e043a9870a9e8bb10977",
+        "xmp": {
+          "CameraProfile": [
+            "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 0350170c1e55"
+          ],
+          "CameraProfileDigest": [
+            "56E90445066E4AC1F53B16D8CE4B9D44"
+          ],
+          "RGBTable": [
+            "C8EC4C5614AA8DD6668D476B629687D6"
+          ]
+        }
+      },
+      "mean": 0.004029670454673734,
+      "p95": 0.0072592857013543885
+    }
+  ]
+}

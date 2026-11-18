@@ -1,0 +1,88 @@
+import json
+import sys
+
+import pytest
+
+from firmware_color_studio import cli
+
+
+def test_verify_renders_bundled_camera_raw():
+    report = cli.verify()
+    demo = report["demo"]
+    assert report["status"] == "passed"
+    assert demo["file"] == "color-cube.dng"
+    assert demo["sha256"] == "1e3352ccba0db428fd2a183718fc857fb283b1d43ad704305e5094c19e0a0428"
+    assert demo["model"] == "PENTAX K-3 Mark III"
+    assert (demo["width"], demo["height"]) == (3096, 2064)
+    assert demo["baseline_exposure"] == pytest.approx(-0.8372650146484375)
+    assert demo["natural_bright_max_difference"] > 1 / 255
+    assert report["modes"]["natural"]["render_ok"]
+    assert report["modes"]["bright"]["render_ok"]
+
+
+def test_verify_reports_missing_demo(monkeypatch, tmp_path):
+    missing = tmp_path / "missing.dng"
+    report_file = tmp_path / "report.json"
+    monkeypatch.setattr(cli, "DEMO_RAW", missing)
+    monkeypatch.setattr(sys, "argv", ["fcs", "verify", "--report", str(report_file)])
+
+    assert cli.main() == 1
+    report = json.loads(report_file.read_text(encoding="utf-8"))
+    assert report["status"] == "failed"
+    assert missing.name in report["error"]
+
+
+def test_chart_fit_from_jpeg_exports_standalone_named_dcp_and_protects_output(monkeypatch, tmp_path):
+    import numpy as np
+    from PySide6.QtGui import QImage
+    from firmware_color_studio.chart_fit import reference_srgb
+    from firmware_color_studio.dcp import read_dcp
+
+    patches = np.rint(reference_srgb("pre2014").reshape(4, 6, 3) * 255).astype(np.uint8)
+    pixels = patches.repeat(30, axis=0).repeat(30, axis=1)
+    jpeg = tmp_path / "Reference.jpg"
+    image = QImage(pixels.data, 180, 120, pixels.strides[0], QImage.Format.Format_RGB888)
+    assert image.save(str(jpeg), "JPEG", 95)
+    output = tmp_path / "chart.dcp"
+    argv = ["fcs", "chart-fit", str(jpeg), str(output), "--edition", "pre2014",
+            "--corners", "15", "15", "165", "15", "165", "105", "15", "105"]
+    monkeypatch.setattr(sys, "argv", argv)
+    assert cli.main() == 0
+    original = output.read_bytes()
+    assert read_dcp(original)["ProfileName"] == "Reference"
+    monkeypatch.setattr(sys, "argv", [*argv, "--name", "Override"])
+    assert cli.main() == 1
+    assert output.read_bytes() == original
+
+
+def test_chart_fit_automatically_detects_classic_jpeg(tmp_path):
+    import os
+    import subprocess
+    import numpy as np
+    from PySide6.QtGui import QImage
+    from firmware_color_studio.chart_fit import reference_srgb
+    from firmware_color_studio.dcp import read_dcp
+
+    pixels = np.full((320, 480, 3), 140, dtype=np.uint8)
+    pixels[47:273, 72:408] = 19
+    for index, rgb in enumerate(reference_srgb()):
+        row, col = divmod(index, 6)
+        x, y = 80 + col * 55, 55 + row * 55
+        pixels[y:y + 46, x:x + 46] = np.rint(rgb * 255).astype(np.uint8)
+    jpeg, output = tmp_path / "Classic.jpg", tmp_path / "auto.dcp"
+    image = QImage(pixels.data, 480, 320, pixels.strides[0], QImage.Format.Format_RGB888)
+    assert image.save(str(jpeg), "JPEG", 96)
+    frozen = os.environ.get("FCS_FROZEN_EXE")
+    command = [frozen] if frozen else [sys.executable, "-m", "firmware_color_studio"]
+    subprocess.run([*command, "chart-fit", jpeg, output], check=True, timeout=30)
+    assert read_dcp(output.read_bytes())["ProfileName"] == "Classic"
+    outer = tmp_path / "outer.dcp"
+    subprocess.run([*command, "chart-fit", jpeg, outer, "--outer-corners",
+                    "72", "47", "407", "47", "407", "272", "72", "272"], check=True, timeout=30)
+    assert read_dcp(outer.read_bytes())["ProfileName"] == "Classic"
+
+    pixels[:] = 140
+    assert image.save(str(jpeg), "JPEG", 96)
+    unfitted = tmp_path / "no-chart.dcp"
+    assert subprocess.run([*command, "chart-fit", jpeg, unfitted], timeout=30).returncode == 1
+    assert not unfitted.exists()

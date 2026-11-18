@@ -1,10 +1,13 @@
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+import sys
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
 from PySide6.QtWidgets import QApplication
+from firmware_color_studio import app
 from firmware_color_studio.app import MainWindow, STYLE, checked_output, render_recipe
 from firmware_color_studio.display import rgb_image
 from firmware_color_studio.profiles import default_recipe
@@ -15,6 +18,25 @@ def application():
     app = QApplication.instance() or QApplication([])
     app.setStyleSheet(STYLE)
     yield app
+
+
+@pytest.mark.parametrize("raw_arg", [None, "explicit.PEF", "explicit.dng"])
+def test_main_loads_explicit_raw_or_bundled_demo_after_show(monkeypatch, raw_arg):
+    events = []
+    gui = SimpleNamespace(
+        setApplicationName=lambda _: None, setStyle=lambda _: None,
+        setStyleSheet=lambda _: None, exec=lambda: 0,
+    )
+    window = SimpleNamespace(
+        show=lambda: events.append("show"),
+        load_raw_path=lambda path: events.append(Path(path)),
+    )
+    monkeypatch.setattr(app, "QApplication", lambda _: gui)
+    monkeypatch.setattr(app, "MainWindow", lambda: window)
+    monkeypatch.setattr(sys, "argv", ["firmware-color-studio"] + ([raw_arg] if raw_arg else []))
+
+    assert app.main() == 0
+    assert events == ["show", Path(raw_arg) if raw_arg else app.DEMO_RAW]
 
 
 def test_controls_keep_recipe_and_visible_settings_together(application):

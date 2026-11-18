@@ -1,0 +1,334 @@
+{
+  "schema_version": 1,
+  "camera_model": "PENTAX K-3 Mark III",
+  "raw_preview_policy": {
+    "pef_baseline_exposure_ev": -0.3,
+    "pef_white_level_cap": 16315,
+    "white_normalization": "min(MakerNote WhiteLevel, 16315)",
+    "black_normalization": "Per-channel MakerNote BlackPoint",
+    "camera_authored_dng_policy": "File BaselineExposure and WhiteLevel"
+  },
+  "source_evidence_sha256": {
+    "same_capture_and_metadata_ablation": "49afd8e3e62e3c1a0ede1fd57ebdbd7ee28a098f7740b53e438b902fc3436623",
+    "converter_metadata_controls": "a524d99a587237089a3ee71163fad781479eeb6c617c8449fe8c4883d91f607d",
+    "converter_white_cap_boundary": "7fdeca1880cc40c0c8a9d40daaa8f4c2f12405c0ff584a9230f06b00b08e5263",
+    "paired_lightroom_and_stage3_control": "5398a7664af4a1592e84ade51b7cd59eb79eeae7170a8dc9d0141dd66c81d313"
+  },
+  "paired_capture": {
+    "files_sha256": {
+      "PEF": "28b0a4a0fae9b3c60d4950d8d4baeaa5a056a7fb130dfba0c2c212119ed29543",
+      "DNG": "4639584e7c807b46747ab4fac90b90b8459943c8e0f680ea68dfec6cdc580b07",
+      "TIFF": "cc97c419b60db0d761a3b3a7076175b5ad3b9ba7ffa0a421d98c98dd1ab275d9"
+    },
+    "converted_by": "Adobe DNG Converter 18.7 (Windows)",
+    "converted_dng_compression": 7,
+    "natural_dcp_sha256": "08f54133192467110c23059042a5c0ca6141166e986a230bec7825ed6c09519d",
+    "sensor_sample_count": 26628096,
+    "sensor_cfa_identical": true,
+    "sensor_cfa_sha256_le_uint16": "b5dbb0a1bcaf6d4002a54c0069fbfd52e17964156cdf7359ae10395519b145b3",
+    "visible_samples_above_white": {
+      "PEF_white": 8479,
+      "DNG_white": 8529
+    },
+    "active_area": [
+      34,
+      26,
+      4194,
+      6250
+    ],
+    "default_crop": [
+      28,
+      24,
+      6192,
+      4128
+    ],
+    "black_level": [
+      64.0,
+      64.0,
+      64.0,
+      64.0
+    ],
+    "PEF": {
+      "white_level": 16378,
+      "wb": [
+        2.31640625,
+        1.0,
+        1.59765625,
+        1.0
+      ],
+      "maker_tag_0x009d": 2048,
+      "firmware_derived_baseline_ev": -0.5062431183662984
+    },
+    "DNG": {
+      "white_level": 16315,
+      "wb": [
+        2.316407344864409,
+        1.0,
+        1.5976559192352981,
+        1.0
+      ],
+      "baseline_exact_rational": "-3/10",
+      "baseline_ev": -0.3
+    },
+    "wb_max_abs_gain_difference": 1.0948644089125992e-06,
+    "paired_rgb_max_error_at_same_levels": 5.364418029785156e-07,
+    "metrics_unit": "normalized sRGB code value",
+    "metrics_against_lightroom_pef_tiff": {
+      "firmware_metadata": {
+        "baseline_ev": -0.5062431183662984,
+        "mean_absolute_error": 0.028507989253497578,
+        "p95_absolute_error": 0.046353753676728754
+      },
+      "converted_white_only": {
+        "baseline_ev": -0.5062431183662984,
+        "mean_absolute_error": 0.027672699581814206,
+        "p95_absolute_error": 0.045433758597764794
+      },
+      "converted_baseline_only": {
+        "baseline_ev": -0.3,
+        "mean_absolute_error": 0.010006005611084555,
+        "p95_absolute_error": 0.03152204675478026
+      },
+      "converted_white_and_baseline": {
+        "baseline_ev": -0.3,
+        "mean_absolute_error": 0.01047287274133187,
+        "p95_absolute_error": 0.03221188764518369
+      },
+      "converted_dng_all_tags": {
+        "baseline_ev": -0.3,
+        "mean_absolute_error": 0.010472887735557353,
+        "p95_absolute_error": 0.032212071382394646
+      }
+    }
+  },
+  "converter_metadata_controls": {
+    "converter_sha256": "6fd0af0d40e72ab634460fd00085a035ae7d5048bc69fbd19ae926c7e904e8a1",
+    "original_pef_sha256": "28b0a4a0fae9b3c60d4950d8d4baeaa5a056a7fb130dfba0c2c212119ed29543",
+    "cfa_sha256": "b5dbb0a1bcaf6d4002a54c0069fbfd52e17964156cdf7359ae10395519b145b3",
+    "scope": "One physical capture; synthetic controls change selected metadata bytes only",
+    "results": {
+      "unchanged_control": {
+        "changed_metadata_byte_ranges": [],
+        "synthetic_input_sha256": "28b0a4a0fae9b3c60d4950d8d4baeaa5a056a7fb130dfba0c2c212119ed29543",
+        "converted_output_sha256": "44003eb31c43558771722df32655b7293a526efc97979911acbd0162f440e619",
+        "baseline_exposure_exact_ev": "-3/10",
+        "black_level": [
+          64.0,
+          64.0,
+          64.0,
+          64.0
+        ],
+        "white_level": 16315,
+        "identical_raw_cfa_to_original": true
+      },
+      "reported_ISO_400": {
+        "changed_metadata_byte_ranges": [
+          [
+            558,
+            2
+          ],
+          [
+            582,
+            4
+          ],
+          [
+            1078,
+            2
+          ]
+        ],
+        "synthetic_input_sha256": "a82b021caf345bc96f62f3a66b73cf95b6986987c6d41b59cfbf1fb6ed30cc15",
+        "converted_output_sha256": "f2fa37b004fc4b4c6586c625fa42a8463c327f076c879e006cbe07edde0aa96a",
+        "baseline_exposure_exact_ev": "-3/10",
+        "black_level": [
+          64.0,
+          64.0,
+          64.0,
+          64.0
+        ],
+        "white_level": 16315,
+        "identical_raw_cfa_to_original": true
+      },
+      "reported_ISO_6400": {
+        "changed_metadata_byte_ranges": [
+          [
+            558,
+            2
+          ],
+          [
+            582,
+            4
+          ],
+          [
+            1078,
+            2
+          ]
+        ],
+        "synthetic_input_sha256": "ac3831f2eb1d6ed6d0252e92f57fa4e3a3f644e71597413976a28cc0b4709714",
+        "converted_output_sha256": "c07bd50f95625fe11c0822750bd26f6a429f8d3e50e5bc5572a4f15857969066",
+        "baseline_exposure_exact_ev": "-3/10",
+        "black_level": [
+          64.0,
+          64.0,
+          64.0,
+          64.0
+        ],
+        "white_level": 16315,
+        "identical_raw_cfa_to_original": true
+      },
+      "maker_gain_half": {
+        "changed_metadata_byte_ranges": [
+          [
+            1522,
+            2
+          ]
+        ],
+        "synthetic_input_sha256": "e06833833f1dfa0777e0590f3c6b61318bf242a9c3858812bacdd5b1250f57eb",
+        "converted_output_sha256": "742061b806c322bbb43c0451bb576044ed73b9d41d3d3ec675c986f4b29c1c48",
+        "baseline_exposure_exact_ev": "-3/10",
+        "black_level": [
+          64.0,
+          64.0,
+          64.0,
+          64.0
+        ],
+        "white_level": 16315,
+        "identical_raw_cfa_to_original": true
+      },
+      "maker_gain_twice": {
+        "changed_metadata_byte_ranges": [
+          [
+            1522,
+            2
+          ]
+        ],
+        "synthetic_input_sha256": "f2a7e075ca30556ec83a3e32a8d9cdbd3fd8012ab35a47e3f67d771b66edca1e",
+        "converted_output_sha256": "5b84c7834fdfa1847718605019223e65773829693b91ae32ff40a17727842202",
+        "baseline_exposure_exact_ev": "-3/10",
+        "black_level": [
+          64.0,
+          64.0,
+          64.0,
+          64.0
+        ],
+        "white_level": 16315,
+        "identical_raw_cfa_to_original": true
+      },
+      "maker_white_16000": {
+        "changed_metadata_byte_ranges": [
+          [
+            1450,
+            4
+          ]
+        ],
+        "synthetic_input_sha256": "515a6a752700faff5c80918b32a4f3700bb026f962e75242b806def876531e21",
+        "converted_output_sha256": "6588eb8eac563cffefb9a7106d87fd6effb3782c280dbeb464fe1ba0db6248d9",
+        "baseline_exposure_exact_ev": "-3/10",
+        "black_level": [
+          64.0,
+          64.0,
+          64.0,
+          64.0
+        ],
+        "white_level": 16000,
+        "identical_raw_cfa_to_original": true
+      },
+      "maker_black_128": {
+        "changed_metadata_byte_ranges": [
+          [
+            2094,
+            8
+          ]
+        ],
+        "synthetic_input_sha256": "272f5a726575e71ac36a24aac18cb003207efcda316177e136595d985394b05e",
+        "converted_output_sha256": "c97b1b1c42e3a08514ab69b911ab5be9819ea8ea89ad1a3966e0f1644aa65199",
+        "baseline_exposure_exact_ev": "-3/10",
+        "black_level": [
+          128.0,
+          128.0,
+          128.0,
+          128.0
+        ],
+        "white_level": 16315,
+        "identical_raw_cfa_to_original": true
+      }
+    }
+  },
+  "converter_white_cap_boundary": {
+    "16314": {
+      "dng_white": 16314,
+      "dng_black": [
+        64.0,
+        64.0,
+        64.0,
+        64.0
+      ],
+      "baseline": -0.3
+    },
+    "16315": {
+      "dng_white": 16315,
+      "dng_black": [
+        64.0,
+        64.0,
+        64.0,
+        64.0
+      ],
+      "baseline": -0.3
+    },
+    "16316": {
+      "dng_white": 16315,
+      "dng_black": [
+        64.0,
+        64.0,
+        64.0,
+        64.0
+      ],
+      "baseline": -0.3
+    }
+  },
+  "paired_lightroom_and_stage3_control": {
+    "lightroom_version": "16.0",
+    "paired_lightroom_tiffs": {
+      "pef": {
+        "file_sha256": "2596b7377875dab417bad8def98bd00761f78a4716970cf5abbcbc631f9caea3",
+        "pixel_sha256": "7f897711ae4d76439541fb09c616b3b0c4e2c55f8ad54e3e8d5c4d6e7122ee20",
+        "xmp_profile_digest": "37158C10E58F59069BA767DA109E1634"
+      },
+      "converted": {
+        "file_sha256": "87ebba8c1509c4d6b95bc1400acaeb56344c4a29ccbb3a6aaaf284a9d488b44c",
+        "pixel_sha256": "7f897711ae4d76439541fb09c616b3b0c4e2c55f8ad54e3e8d5c4d6e7122ee20",
+        "xmp_profile_digest": "37158C10E58F59069BA767DA109E1634"
+      }
+    },
+    "paired_lightroom_pixel_statistics": {
+      "mae": 0.0,
+      "p95": 0.0,
+      "max": 0.0,
+      "different_samples": 0
+    },
+    "source_cfa_dng_sha256": "4639584e7c807b46747ab4fac90b90b8459943c8e0f680ea68dfec6cdc580b07",
+    "sdk_stage3_sha256": "a70bcc4adef44c925659480c95d9da401538fda6a5c4667318573abc1f042b58",
+    "natural_dcp_sha256": "e019a0f3ba0a82967ee7ff68274afd17a077c8af84e20ae79c1d488fb76d4680",
+    "sdk_stage3_control": "Existing pinned SDK 1.7.1 Stage 3 dump; application area resize and DCP render retained",
+    "metrics_unit": "normalized sRGB code values at matching pixel indices",
+    "metrics_against_paired_lightroom_output": {
+      "runtime_half_bayer_wb_then_area_resize": {
+        "mae": 0.01047287274133187,
+        "p95": 0.03221188764518369,
+        "max": 0.25206094776359556,
+        "different_samples": 2000426
+      },
+      "half_bayer_area_resize_then_wb": {
+        "mae": 0.010482715407066986,
+        "p95": 0.032228393052224094,
+        "max": 0.34938004585962246,
+        "different_samples": 2000426
+      },
+      "sdk_stage3_area_resize_then_wb": {
+        "mae": 0.009341086454522668,
+        "p95": 0.028636442668818304,
+        "max": 0.2423729839964549,
+        "different_samples": 2000443
+      }
+    }
+  }
+}

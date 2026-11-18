@@ -11,6 +11,7 @@ from PySide6.QtGui import QGuiApplication, QImage, QPainter, QColor
 
 # Upstream texts for the pinned Windows libraries. Source URLs are in THIRD_PARTY_NOTICES.md.
 UPSTREAM_LICENSES = {
+    "OpenCV/MCC-MIT.txt": "9018d65a9809d1721a38fba269d0bcd859a9c4ba088d5dd64692df41074029a2",
     "Qt/GPL-3.0-only.txt": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
     "Qt/LGPL-3.0-only.txt": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
     "LibRaw/COPYRIGHT.txt": "574c88f5dd59414cfc896293a63defbc2d525a418ed413d7ab7dcc43cf79c509",

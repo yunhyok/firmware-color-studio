@@ -17,7 +17,13 @@ No original firmware image or decompiled manufacturer code is distributed.
 The original calibration row scales are from the metadata of a reference
 camera, not a RAW/JPEG fit. Users can import their own K-3 III DNG calibration.
 
+## ColorChecker reference measurements
+
+The JPEG chart feature uses the D50/2° numerical reference measurements published by X-Rite for the ColorChecker Classic before November 2014 and from November 2014 onward. ColorChecker is a trademark of its owner. The app includes the reference numbers in patch order. X-Rite chart artwork and example JPEGs are not bundled. [Manufacturer’s edition notes](https://www.xrite.com/en/service-support/new_color_specifications_for_colorchecker_sg_and_classic_charts) · [X-Rite reference data archive](https://doi.org/10.5281/zenodo.3245895)
+
 ## Runtime dependencies
+
+- Automatic chart recognition uses OpenCV 4.11.0 and the MCC module by Pedro Diamel Marrero Fernández. The installer includes the wheel's notices under `_internal/cv2` and the MCC module's MIT license under `resources/licenses/OpenCV`. [OpenCV license](https://github.com/opencv/opencv/blob/4.11.0/LICENSE) · [MCC source and license](https://github.com/opencv/opencv_contrib/blob/4.11.0/modules/mcc/include/opencv2/mcc/checker_detector.hpp) · [Wheel distribution](https://pypi.org/project/opencv-contrib-python-headless/4.11.0.86/)
 
 - NumPy 1.26.4 uses BSD-3-Clause. The wheel's license also lists its bundled
   libraries. [NumPy source and license](https://github.com/numpy/numpy/tree/v1.26.4)
@@ -63,3 +69,10 @@ The DNG format and enhanced profiles are implemented using the
 Adobe SDK source is not bundled in the application. The independent preview
 implements a bounded reference processing path; it is not Adobe Camera Raw
 or Lightroom, and does not claim pixel identity with those applications.
+
+## Demo photograph
+
+The bundled color cube RAW is Terry Duell’s PENTAX K-3 Mark III photograph,
+published as raw.pixls.us sample 4678 under CC0 1.0. The bundle contains the
+original DNG bytes.
+[Source DNG](https://raw.pixls.us/getfile.php/4678/nice/Pentax%20-%20K-3%20Mark%20III%20-%2014bit%20%283%3A2%29.DNG) · [Source EXIF](https://raw.pixls.us/getfile.php/4678/exif/_IMG0114.DNG.exif.txt) · [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
