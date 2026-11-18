@@ -54,7 +54,7 @@ def verify() -> dict:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Firmware-derived color profiles; no photographic fitting.")
+    parser = argparse.ArgumentParser(description="Firmware and chart-based camera profiles for Lightroom.")
     commands = parser.add_subparsers(dest="command", required=True)
     check = commands.add_parser("verify", help="verify packaged defaults and render the bundled demo RAW")
     check.add_argument("--report", type=Path, required=True)
@@ -62,6 +62,14 @@ def main():
     export.add_argument("recipe", type=Path)
     export.add_argument("output", type=Path)
     export.add_argument("--enhanced", action="store_true", help="write a DCP+XMP ZIP")
+    chart = commands.add_parser("chart-fit", help="estimate a Pentax DCP from a Classic 24 chart JPEG")
+    chart.add_argument("jpeg", type=Path)
+    chart.add_argument("output", type=Path)
+    chart.add_argument("--corners", type=float, nargs=8, required=True, metavar="N",
+                       help="oriented JPEG pixel coordinates x y for patch centers 1, 6, 24, 19 in that order")
+    chart.add_argument("--name", help="profile name (defaults to the JPEG camera name or filename stem)")
+    chart.add_argument("--edition", choices=("2014+", "pre2014"), default="2014+",
+                       help="Classic chart formulation, November 2014 and later or earlier")
     preview = commands.add_parser("preview", help="render a half-resolution RAW color preview to PNG")
     preview.add_argument("raw", type=Path)
     preview.add_argument("output", type=Path)
@@ -74,6 +82,22 @@ def main():
             data = json.dumps(verify(), indent=2).encode() + b"\n"
             with args.report.open("xb") as stream:
                 stream.write(data)
+        elif args.command == "chart-fit":
+            from .chart_fit import fit_chart
+            from .chart_input import load_chart_jpeg, sample_chart
+
+            if args.output.suffix.lower() != ".dcp":
+                raise ValueError("chart-fit output must be .dcp")
+            if args.output.exists():
+                raise FileExistsError(args.output)
+            photo = load_chart_jpeg(args.jpeg)
+            corners = np.asarray(args.corners).reshape(4, 2)
+            fitted = fit_chart(sample_chart(photo.image, corners), photo.name if args.name is None else args.name,
+                               edition=args.edition)
+            with args.output.open("xb") as stream:
+                stream.write(fitted.dcp)
+            if sys.stdout is not None:
+                print(f"Mean patch Delta E76: {fitted.baseline_mean_delta_e:.2f} -> {fitted.mean_delta_e:.2f}")
         elif args.command == "export":
             recipe = load_recipe(args.recipe)
             if args.enhanced:
