@@ -38,6 +38,8 @@ jobs:
           if ($process.ExitCode -ne 0) { throw 'Frozen application failed' }
           $result = Get-Content dist/frozen-check.json | ConvertFrom-Json
           if ($result.status -ne 'passed') { throw 'Invalid frozen report' }
+          $env:FCS_FROZEN_EXE = (Resolve-Path './dist/FirmwareColorStudio/FirmwareColorStudio.exe').Path
+          & ./.venv/Scripts/python -m pytest -q tests/test_cli.py::test_chart_fit_automatically_detects_classic_jpeg
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer

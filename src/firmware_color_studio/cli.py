@@ -65,8 +65,11 @@ def main():
     chart = commands.add_parser("chart-fit", help="estimate a Pentax DCP from a Classic 24 chart JPEG")
     chart.add_argument("jpeg", type=Path)
     chart.add_argument("output", type=Path)
-    chart.add_argument("--corners", type=float, nargs=8, required=True, metavar="N",
-                       help="oriented JPEG pixel coordinates x y for patch centers 1, 6, 24, 19 in that order")
+    selection = chart.add_mutually_exclusive_group()
+    selection.add_argument("--outer-corners", type=float, nargs=8, metavar="N",
+                           help="specify the four outer panel corners on the sides of patches 1, 6, 24, 19")
+    selection.add_argument("--corners", type=float, nargs=8, metavar="N",
+                       help="override automatic detection with oriented JPEG coordinates for patches 1, 6, 24, 19")
     chart.add_argument("--name", help="profile name (defaults to the JPEG camera name or filename stem)")
     chart.add_argument("--edition", choices=("2014+", "pre2014"), default="2014+",
                        help="Classic chart formulation, November 2014 and later or earlier")
@@ -84,14 +87,23 @@ def main():
                 stream.write(data)
         elif args.command == "chart-fit":
             from .chart_fit import fit_chart
-            from .chart_input import load_chart_jpeg, sample_chart
+            from .chart_input import centers_from_outer_corners, load_chart_jpeg, sample_chart
 
             if args.output.suffix.lower() != ".dcp":
                 raise ValueError("chart-fit output must be .dcp")
             if args.output.exists():
                 raise FileExistsError(args.output)
             photo = load_chart_jpeg(args.jpeg)
-            corners = np.asarray(args.corners).reshape(4, 2)
+            if args.outer_corners is not None:
+                corners = centers_from_outer_corners(photo.image, np.asarray(args.outer_corners).reshape(4, 2))
+            elif args.corners is None:
+                from .chart_detect import detect_chart
+                try:
+                    corners = detect_chart(photo.image)
+                except ValueError as error:
+                    raise ValueError(f"{error} Supply --outer-corners for manual selection.") from error
+            else:
+                corners = np.asarray(args.corners).reshape(4, 2)
             fitted = fit_chart(sample_chart(photo.image, corners), photo.name if args.name is None else args.name,
                                edition=args.edition)
             with args.output.open("xb") as stream:

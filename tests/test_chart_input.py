@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from PySide6.QtGui import QColor, QColorSpace, QImage
 
-from firmware_color_studio.chart_input import load_chart_jpeg, patch_centers, sample_chart
+from firmware_color_studio.chart_input import centers_from_outer_corners, load_chart_jpeg, patch_centers, sample_chart
 
 
 def qimage(rgb):
@@ -167,3 +167,22 @@ def test_refuse_crossed_collapsed_tiny_and_partial_patches(corners):
     image = QImage(80, 80, QImage.Format.Format_RGB888)
     with pytest.raises(ValueError):
         sample_chart(image, corners)
+
+
+def test_outer_panel_with_unequal_margins_and_a_turned_chart():
+    colors = np.random.default_rng(99).integers(70, 245, (24, 3), dtype=np.uint8)
+    panel = np.full((240, 360, 3), 20, dtype=np.uint8)
+    expected = []
+    for number, color in enumerate(colors):
+        row, column = divmod(number, 6)
+        x, y = 42 + column * 54, 49 + row * 49
+        panel[y - 20:y + 21, x - 22:x + 23] = color
+        expected.append([x, y])
+    outer = np.array([[0, 0], [359, 0], [359, 239], [0, 239]])
+    image = qimage(np.ascontiguousarray(np.rot90(panel)))
+    turned_outer = np.column_stack([outer[:, 1], 359 - outer[:, 0]])
+    centers = patch_centers(centers_from_outer_corners(image, turned_outer))
+    np.testing.assert_allclose(centers, [[y, 359 - x] for x, y in expected], atol=6)
+    np.testing.assert_array_equal(sample_chart(image, centers[[0, 5, 23, 18]]), colors / 255)
+    with pytest.raises(ValueError):
+        centers_from_outer_corners(image, turned_outer[[0, 2, 1, 3]])

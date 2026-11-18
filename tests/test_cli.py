@@ -53,3 +53,36 @@ def test_chart_fit_from_jpeg_exports_standalone_named_dcp_and_protects_output(mo
     monkeypatch.setattr(sys, "argv", [*argv, "--name", "Override"])
     assert cli.main() == 1
     assert output.read_bytes() == original
+
+
+def test_chart_fit_automatically_detects_classic_jpeg(tmp_path):
+    import os
+    import subprocess
+    import numpy as np
+    from PySide6.QtGui import QImage
+    from firmware_color_studio.chart_fit import reference_srgb
+    from firmware_color_studio.dcp import read_dcp
+
+    pixels = np.full((320, 480, 3), 140, dtype=np.uint8)
+    pixels[47:273, 72:408] = 19
+    for index, rgb in enumerate(reference_srgb()):
+        row, col = divmod(index, 6)
+        x, y = 80 + col * 55, 55 + row * 55
+        pixels[y:y + 46, x:x + 46] = np.rint(rgb * 255).astype(np.uint8)
+    jpeg, output = tmp_path / "Classic.jpg", tmp_path / "auto.dcp"
+    image = QImage(pixels.data, 480, 320, pixels.strides[0], QImage.Format.Format_RGB888)
+    assert image.save(str(jpeg), "JPEG", 96)
+    frozen = os.environ.get("FCS_FROZEN_EXE")
+    command = [frozen] if frozen else [sys.executable, "-m", "firmware_color_studio"]
+    subprocess.run([*command, "chart-fit", jpeg, output], check=True, timeout=30)
+    assert read_dcp(output.read_bytes())["ProfileName"] == "Classic"
+    outer = tmp_path / "outer.dcp"
+    subprocess.run([*command, "chart-fit", jpeg, outer, "--outer-corners",
+                    "72", "47", "407", "47", "407", "272", "72", "272"], check=True, timeout=30)
+    assert read_dcp(outer.read_bytes())["ProfileName"] == "Classic"
+
+    pixels[:] = 140
+    assert image.save(str(jpeg), "JPEG", 96)
+    unfitted = tmp_path / "no-chart.dcp"
+    assert subprocess.run([*command, "chart-fit", jpeg, unfitted], timeout=30).returncode == 1
+    assert not unfitted.exists()
