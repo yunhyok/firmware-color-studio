@@ -28,8 +28,10 @@ from .raw import load_raw, read_calibration, resize_rgb
 
 
 TEXT = {
-    "open": ("RAW 열기", "Open RAW"), "empty": ("PEF 또는 DNG 파일을 끌어 놓으세요", "Drop a PEF or DNG file here"),
-    "chart": ("차트 JPEG → DCP", "Chart JPEG → DCP"),
+    "open": ("RAW 열기", "Open RAW"), "empty": ("PEF·DNG 또는 차트 JPEG를 끌어 놓으세요", "Drop a PEF, DNG or chart JPEG here"),
+    "chart": ("차트 JPEG → DCP", "Chart JPEG → DCP"), "file": ("파일", "File"), "demo": ("데모 사진", "Demo photo"),
+    "chart_tip": ("다른 카메라로 찍은 ColorChecker Classic JPEG의 색감을 K-3 III용 DCP로 만듭니다",
+                  "Estimate a K-3 III DCP from another camera's ColorChecker Classic JPEG"),
     "profiles": ("카메라 프로파일", "Camera profiles"), "adjust": ("프로파일 조정", "Profile controls"),
     "baseline": ("비교 기준", "Reference"), "current": ("현재 프로파일", "Current profile"),
     "factory": ("출고값으로 복원", "Reset to factory"), "recorded": ("촬영 설정 가져오기", "Use shot settings"),
@@ -384,7 +386,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.progress)
         self.setCentralWidget(root)
         self.actions = {}
-        menu = self.menuBar().addMenu("File")
+        menu = self.file_menu = self.menuBar().addMenu("")
         for key, shortcut, callback in [
             ("open", "Ctrl+O", self.open_raw), ("load", "Ctrl+Shift+O", self.open_saved_recipe),
             ("chart", "", self.open_chart),
@@ -406,6 +408,9 @@ class MainWindow(QMainWindow):
                             (self.export_button,"export"),(self.save_button,"save"),(self.format_label,"format"),
                             (self.limit_label,"limits")]:
             widget.setText(self.tr_text(key))
+        self.file_menu.setTitle(self.tr_text("file"))
+        self.chart_button.setToolTip(self.tr_text("chart_tip"))
+        self._update_file_label()
         self.name_edit.setPlaceholderText(self.tr_text("name_hint"))
         for name, label in self.control_labels.items():
             label.setText(CONTROL_LABELS[name][self.lang])
@@ -423,6 +428,16 @@ class MainWindow(QMainWindow):
         self._update_calibration_label()
         self._sync_format()
         self.rendition.setText(self.tr_text("dcp_note" if self.output_format.currentData() == "dcp" else "xmp_note"))
+
+    def _update_file_label(self):
+        if self.raw is None:
+            return
+        info = self.raw.metadata
+        name = Path(info["path"]).name
+        if Path(info["path"]) == DEMO_RAW:
+            # The app opened this bundled photograph itself.
+            name = f'{self.tr_text("demo")} · {name}'
+        self.file_label.setText(f"{name}  ·  {info['model']}  ·  {info['width']} × {info['height']}")
 
     def _language_changed(self, value):
         self.lang = value
@@ -591,7 +606,7 @@ class MainWindow(QMainWindow):
             self.raw = result
             self.preview_cache = {}
             self.generation["thumbs"] += 1
-            self.file_label.setText(f"{Path(result.metadata['path']).name}  ·  {result.metadata['model']}  ·  {result.metadata['width']} × {result.metadata['height']}")
+            self._update_file_label()
             self.recorded_button.setEnabled(bool(result.metadata.get("settings")))
             self.warning_label.setText("\n".join(result.warnings))
             self._request_preview()
@@ -754,7 +769,8 @@ class MainWindow(QMainWindow):
                 self.load_raw_path(path)
                 break
             if suffix in (".jpg", ".jpeg"):
-                self.open_chart_path(path)
+                # The dialog is modal: opened inside the drop, it would hold up the dragging application.
+                QTimer.singleShot(0, lambda: self.open_chart_path(path))
                 break
 
     def showEvent(self, event):
