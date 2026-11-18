@@ -1,5 +1,6 @@
 """Enhanced-profile export and offline rendering checks with synthetic RGB."""
 
+from dataclasses import replace
 from hashlib import md5, sha256
 from itertools import permutations
 from io import BytesIO
@@ -217,14 +218,50 @@ def test_remaining_adobe_rgb_tint_boundary_has_an_explicit_error_bound():
     assert np.max(abs(actual - direct)) * 255 < 28.1  # v2 measured 29.48.
 
 
-def test_v3_bake_preserves_analytic_wireframe_neutral_diagonal_and_published_v2_base():
+def test_harubeni_dark_red_near_the_firmware_chroma_gain_break():
+    recipe = profiles.default_recipe("harubeni")
+    recipe.update(color_space="adobergb", toning=1)
+    recipe["settings"]["highlight"] = -4
+    rgb = np.array([0.03125, 0.71875, 0.3125])
+    target = direct_srgb(profiles.camera_for_recipe(recipe), rgb)
+    bundle = enhanced.build_enhanced(recipe)
+    _, exported_samples = read_lut(bundle.xmp)
+    actual = enhanced.render_enhanced(rgb, replace(bundle, _samples=exported_samples), -.5)
+    # v3's 10.674 red error exceeded this recipe's v2 maximum of 8.629.
+    assert np.max(abs(actual - target)) * 255 < 8.629
+
+
+@pytest.mark.parametrize(("space", "v3_sha256"), [
+    ("srgb", "9efe23ba9d9cdc197a833bda1ddb6d2d40a90970f380744e8fe46d4f8f37e678"),
+    ("adobergb", "5c017e5260a4d1e8651ec35485bc312d420f684c197a42897b97c8869b082c2c"),
+])
+def test_monochrome_keeps_published_v3_quantized_table(space, v3_sha256):
+    recipe = profiles.default_recipe("monochrome")
+    recipe["color_space"] = space
+    _, exported = read_lut(enhanced.build_enhanced(recipe).xmp)
+    assert sha256(exported.astype("<u2").tobytes()).hexdigest() == v3_sha256
+
+
+def test_v4_bake_preserves_analytic_wireframe_neutral_diagonal_and_published_v2_base():
     recipe = profiles.default_recipe("gold")
     bundle = enhanced.build_enhanced(recipe)
-    assert bundle.report["format_version"] == 3
+    assert bundle.report["format_version"] == 4
     assert bundle.report["base_format_version"] == 2
-    assert bundle.report["dcp_sha256"] == "9645264bd0a7e5f81aadede14d82dd4ccf7d7eac63ffa944156fb2614cc71f22"
     camera = profiles.camera_for_recipe(recipe)
-    forward = dcp.read_dcp(bundle.dcp)["ForwardMatrix1"]
+    calibration = profiles._pack(recipe["camera_id"]).engine.dng_color_matrices()
+    raw_forward = color_model.PROPHOTO_TO_PCS @ camera.matrix
+    matrix_digest = sha256(np.asarray([*calibration, raw_forward], dtype="<f8").tobytes()).hexdigest()[:12]
+    base = dcp.read_dcp(bundle.dcp)
+    published_digest = "7de5b8abbe0e"
+    name_prefix = "K-3 III Firmware Base (기본 프로파일) 2 2.20-1 "
+    assert base["ProfileName"] == name_prefix + matrix_digest
+    # v2 hashed the unrounded matrix. BLAS kernels can change the name suffix
+    # at the last floating-point bit while emitting identical DCP rationals.
+    actual_name = (base["ProfileName"] + "\0").encode()
+    assert bundle.dcp.count(actual_name) == 1
+    canonical = bundle.dcp.replace(actual_name, (name_prefix + published_digest + "\0").encode(), 1)
+    assert sha256(canonical).hexdigest() == "9645264bd0a7e5f81aadede14d82dd4ccf7d7eac63ffa944156fb2614cc71f22"
+    forward = base["ForwardMatrix1"]
     indices = np.array(list(np.ndindex(32, 32, 32)))
     wireframe = np.count_nonzero((indices == 0) | (indices == 31), axis=1) >= 2
     neutral = np.all(indices == indices[:, :1], axis=1)

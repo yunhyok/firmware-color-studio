@@ -20,7 +20,7 @@ GRID_SIZE = 32
 _ALPHABET = b"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?`'|()[]{}@%$#"
 _CRS = "http://ns.adobe.com/camera-raw-settings/1.0/"
 _RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-_FORMAT_VERSION = 3
+_FORMAT_VERSION = 4
 
 
 def _normalized_matrix(matrix: np.ndarray) -> np.ndarray:
@@ -73,16 +73,16 @@ def _base_dcp(pack, recipe: dict, camera: color_model.CameraColour) -> tuple[byt
 
 def _lut(camera: color_model.CameraColour, base_forward: np.ndarray) -> np.ndarray:
     # Odd indices are midpoints of the seven tetrahedral edge directions.
-    grid = color_model.srgb_decode(np.linspace(0.0, 1.0, 2 * GRID_SIZE - 1))
-    linear_input = np.stack(np.meshgrid(grid, grid, grid, indexing="ij"), axis=-1)
-    # Compensate the small SDK matrix-rounding error inside the LUT. Values
-    # already lost to the base's clip cannot be recovered by this correction.
     correction = camera.matrix @ np.linalg.inv(_working_matrix(base_forward))
-    matrix_output = linear_input @ correction.T
-    encoded = camera.encode(matrix_output)
     to_prophoto = _PCS_TO_PROPHOTO @ _normalized_matrix(camera.to_pcs)
-    output = camera.decode(encoded) @ to_prophoto.T
-    nonlinear = color_model.srgb_encode(np.clip(output, 0.0, 1.0))
+
+    def evaluate(linear_input):
+        encoded = camera.encode(linear_input @ correction.T)
+        output = camera.decode(encoded) @ to_prophoto.T
+        return color_model.srgb_encode(np.clip(output, 0.0, 1.0))
+
+    grid = color_model.srgb_decode(np.linspace(0.0, 1.0, 2 * GRID_SIZE - 1))
+    nonlinear = evaluate(np.stack(np.meshgrid(grid, grid, grid, indexing="ij"), axis=-1))
     nodes = nonlinear[::2, ::2, ::2].copy()
     counts = np.zeros(nodes.shape[:3] + (1,))
     edges = []
@@ -93,8 +93,8 @@ def _lut(camera: color_model.CameraColour, base_forward: np.ndarray) -> np.ndarr
         upper = tuple(slice(1, None) if step else slice(None) for step in direction)
         # Face nodes learn only from tetrahedral edges in that face.
         interior = tuple(slice(1, -1) if step else slice(None) for step in direction)
-        target = nonlinear[tuple(slice(step, None, 2) for step in direction)]
-        edges.append((lower, upper, interior, target))
+        parity = tuple(slice(step, None, 2) for step in direction)
+        edges.append((lower, upper, interior, parity))
         counts[interior] += 2
     # Two clipped channels land on the cube wireframe (zero or two neighbours).
     # Preserve those 1D responses and the diagonal used by neutral camera RGB.
@@ -103,11 +103,121 @@ def _lut(camera: color_model.CameraColour, base_forward: np.ndarray) -> np.ndarr
     weight[diagonal, diagonal, diagonal] = 0.0
     for _ in range(4):
         update = np.zeros_like(nodes)
-        for lower, upper, interior, target in edges:
-            residual = target - (nodes[lower] + nodes[upper]) * 0.5
+        for lower, upper, interior, parity in edges:
+            residual = nonlinear[parity] - (nodes[lower] + nodes[upper]) * 0.5
             update[interior] += residual[lower] + residual[upper]
         nodes = np.clip(nodes + update * weight, 0.0, 1.0)
+    # Start from the serialized v3 interpolant, including its rounding to 16 bits.
+    previous = np.floor(nodes * 65535.0 + 0.5).astype("<u2")
+    if not camera.csp_enable or camera.chroma_fixed:
+        return previous
+    # Only the chroma-suppression stage can introduce its gain discontinuities.
+    borders = np.asarray(camera.csp_border)
+    widths = np.diff(np.r_[0, borders])
+    left = np.asarray(camera.csp_offset[:-1]) + np.asarray(camera.csp_gain[:-1]) * widths / 8
+    jumps = borders[np.clip(left, 0, 1023) != np.clip(camera.csp_offset[1:], 0, 1023)]
+    if not len(jumps):
+        return previous
+    node_input = np.stack(np.meshgrid(grid[::2], grid[::2], grid[::2], indexing="ij"), axis=-1)
+    gamma = camera.gamma(np.clip(node_input @ correction.T, 0.0, 1.0))
+    luma = (gamma @ (camera.yc[0] / 256.0)) * 1023.0
+    # Use the darkest signed display channel only to locate the sRGB transfer toe.
+    native_nodes = nonlinear[::2, ::2, ::2]
+    darkest = np.min(color_model.srgb_decode(native_nodes) @ _PROPHOTO_TO_SRGB.T, axis=-1)
+    low, high, toe = luma.copy(), luma.copy(), darkest.copy()
+    for lower, upper, _, _ in edges:
+        low[lower] = np.minimum(low[lower], luma[upper])
+        low[upper] = np.minimum(low[upper], luma[lower])
+        high[lower] = np.maximum(high[lower], luma[upper])
+        high[upper] = np.maximum(high[upper], luma[lower])
+        toe[lower] = np.minimum(toe[lower], darkest[upper])
+        toe[upper] = np.minimum(toe[upper], darkest[lower])
+    crosses = np.any((low[..., None] <= jumps) & (high[..., None] >= jumps), axis=-1)
+    movable = (weight[..., 0] > 0.0) & crosses & (toe <= 0.0031308)
+    if not movable.any():
+        return previous
+    nodes = previous.astype(np.float64) / 65535.0
+
+    def display_code(code):
+        linear = color_model.srgb_decode(code) @ _PROPHOTO_TO_SRGB.T
+        return color_model.srgb_encode(np.clip(linear, 0.0, 1.0))
+
+    def exceeds_two_codes(target, predicted):
+        return np.max(np.abs(display_code(target) - display_code(predicted)), axis=-1) > 2 / 255
+
+    sharp = np.empty(nonlinear.shape[:3], dtype=bool)
+    sharp[::2, ::2, ::2] = exceeds_two_codes(nonlinear[::2, ::2, ::2], nodes)
+    for lower, upper, _, parity in edges:
+        sharp[parity] = exceeds_two_codes(nonlinear[parity], (nodes[lower] + nodes[upper]) * 0.5)
+    cells = np.zeros((GRID_SIZE - 1,) * 3, dtype=bool)
+    for offset in product(range(3), repeat=3):
+        cells |= sharp[tuple(slice(i, i + 2 * (GRID_SIZE - 1), 2) for i in offset)]
+    incident = np.zeros_like(cells)
+    for direction in product((0, 1), repeat=3):
+        incident |= movable[tuple(slice(step, step + GRID_SIZE - 1) for step in direction)]
+    cells &= incident
+    if not cells.any():
+        return previous
+    refined = nodes.copy()
+    _refine_sharp_cells(refined, cells, nonlinear, evaluate, movable)
+    refined = np.floor(refined * 65535.0 + 0.5) / 65535.0
+    # The half step retains the ordinary interpolation accuracy of the v3 table.
+    nodes += 0.5 * (refined - nodes)
     return np.floor(nodes * 65535.0 + 0.5).astype("<u2")
+
+
+def _refine_sharp_cells(nodes, cells, half_targets, evaluate, movable):
+    """Reduce large interpolation errors on a shared quarter-cell lattice."""
+    side = 4 * (GRID_SIZE - 1) + 1
+    selected = np.zeros((side,) * 3, dtype=bool)
+    for offset in product(range(5), repeat=3):
+        selected[tuple(slice(i, i + side - 1, 4) for i in offset)] |= cells
+    points = np.flatnonzero(selected)
+    node_ids = np.arange(GRID_SIZE ** 3)
+    node_xyz = np.column_stack(np.unravel_index(node_ids, nodes.shape[:3]))
+    node_codes = nodes.reshape(-1, 3)
+    to_prophoto = np.linalg.inv(_PROPHOTO_TO_SRGB)
+    batches = []
+    batch_size = 32768
+    for start in range(0, len(points), batch_size):
+        quarter = np.column_stack(np.unravel_index(points[start:start + batch_size], selected.shape))
+        coordinates = quarter / 4
+        indices, weights = _tetrahedron(coordinates, GRID_SIZE)
+        half = np.all(quarter % 2 == 0, axis=1)
+        target = np.empty_like(coordinates)
+        target[half] = half_targets[tuple((quarter[half] // 2).T)]
+        target[~half] = evaluate(color_model.srgb_decode(coordinates[~half] / (GRID_SIZE - 1)))
+        linear = color_model.srgb_decode(target) @ _PROPHOTO_TO_SRGB.T
+
+        # A boundary vertex can only learn from points lying on that same face.
+        vertices = node_xyz[indices]
+        on_face = np.all(((vertices != 0) | (quarter[:, None] == 0))
+                         & ((vertices != GRID_SIZE - 1) | (quarter[:, None] == side - 1)), axis=-1)
+        # Quarter-lattice weights are exactly representable in float32.
+        weights = weights.astype(np.float32)
+        batches.append((indices.astype(np.uint16), weights, weights * on_face, linear, color_model.srgb_encode(linear)))
+
+    mask = movable.ravel()
+    for _ in range(4):
+        numerator = np.zeros_like(node_codes)
+        denominator = np.ones_like(node_codes)
+        for indices, weights, eligible, target, target_code in batches:
+            prediction = np.sum(node_codes[indices] * weights[..., None], axis=1)
+            linear = color_model.srgb_decode(prediction) @ _PROPHOTO_TO_SRGB.T
+            delta = target - linear
+            error = target_code - color_model.srgb_encode(linear)
+            slope = np.divide(error, delta, out=np.ones_like(delta), where=np.abs(delta) > 1e-9)
+            # Iteratively reweighted sixth-power loss in signed sRGB code. The
+            # signed extension retains out-of-gamut working-space differences.
+            priority = np.maximum(np.abs(error) * 255, 1.0) ** 4 * np.clip(slope, 0.5, 12.92) ** 2
+            flat = indices.ravel()
+            for ch in range(3):
+                contribution = eligible * priority[:, ch, None]
+                numerator[:, ch] += np.bincount(flat, (contribution * delta[:, ch, None]).ravel(), len(node_ids))
+                denominator[:, ch] += np.bincount(flat, contribution.ravel(), len(node_ids))
+        linear = color_model.srgb_decode(node_codes) + (numerator / denominator) @ to_prophoto.T
+        proposal = color_model.srgb_encode(np.clip(linear, 0.0, 1.0))
+        node_codes[mask] = (node_codes[mask] + proposal[mask]) * 0.5
 
 
 def _table_stream(samples: np.ndarray) -> bytes:
@@ -218,10 +328,8 @@ def build_enhanced(recipe: dict) -> EnhancedBundle:
     return EnhancedBundle(base, xmp, recipe, report, samples)
 
 
-def _tetrahedral(rgb: np.ndarray, samples: np.ndarray) -> np.ndarray:
-    """Interpolate the four vertices ordered by the three fractional coordinates."""
-    size = samples.shape[0]
-    scaled = np.clip(rgb, 0.0, 1.0) * (size - 1)
+def _tetrahedron(scaled: np.ndarray, size: int) -> tuple[np.ndarray, np.ndarray]:
+    """Return the four tetrahedral vertex indices and their interpolation weights."""
     lower = np.minimum(scaled.astype(np.intp), size - 2)
     fraction = scaled - lower
     order = np.argsort(-fraction, axis=-1)
@@ -231,14 +339,18 @@ def _tetrahedral(rgb: np.ndarray, samples: np.ndarray) -> np.ndarray:
     origin = lower @ stride
     first_step = stride[order[..., 0]]
     second_step = stride[order[..., 1]]
+    indices = np.stack((origin, origin + first_step, origin + first_step + second_step, origin + stride.sum()), axis=-1)
+    return indices, np.stack((1 - high, high - middle, middle - low, low), axis=-1)
+
+
+def _tetrahedral(rgb: np.ndarray, samples: np.ndarray) -> np.ndarray:
+    size = samples.shape[0]
+    indices, weights = _tetrahedron(np.clip(rgb, 0.0, 1.0) * (size - 1), size)
     table = samples.reshape(-1, 3)
-    interpolated = (
-        (1 - high)[..., None] * table[origin]
-        + (high - middle)[..., None] * table[origin + first_step]
-        + (middle - low)[..., None] * table[origin + first_step + second_step]
-        + low[..., None] * table[origin + stride.sum()]
-    )
-    return interpolated / 65535.0
+    result = np.zeros_like(rgb, dtype=np.float64)
+    for i in range(4):
+        result += table[indices[..., i]] * weights[..., i, None]
+    return result / 65535.0
 
 
 def _render_prophoto(camera_rgb, bundle: EnhancedBundle, baseline_exposure=0.0) -> np.ndarray:

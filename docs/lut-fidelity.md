@@ -1,6 +1,6 @@
 # Enhanced-profile boundary fidelity
 
-This report records the v0.1.2 baseline. See the [current enhanced profile measurements](enhanced.md#preview-and-validation) for the comparison with v0.1.3.
+This report records the v0.1.2 baseline. See the [current enhanced profile measurements](enhanced.md#preview-and-validation) for comparisons across v0.1.2, v0.1.3 and v0.1.4.
 
 The v2 enhanced-profile builder moves the firmware colour matrix (CC0) into the
 paired DCP, before the RGB LUT. It also fixes a separate Gold gamma evaluation
