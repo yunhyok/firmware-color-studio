@@ -14,6 +14,18 @@ The test suite covers recipe validation, source hashes, numeric output, DCP pars
 
 The developer checks reproduced an installed Adobe XMP table’s serialized bytes and MD5 fingerprint. The application decodes the bundled CC0 color cube DNG at startup when no input file is specified. The verify command checks the sample’s SHA-256 and renders Natural and Bright. [Sample and license](../src/firmware_color_studio/data/demo/README.md)
 
+## Lightroom Classic 16.0 boundary verification for v0.1.4
+
+Lightroom loaded the v4 profiles on the bundled K-3 Mark III color-cube DNG and exported three 1000 × 667, 16-bit sRGB TIFFs. Each export used As Shot white balance and zero Develop exposure. The Lightroom SDK recorded the selected profile UUID before export. Each TIFF contained the expected base DCP name and RGB-table fingerprint, and all three pixel hashes differed. The photograph was used only after the table values were fixed. [Profile identities, TIFF hashes and measurements](lut-boundary-v4-lightroom.json)
+
+| Profile and camera settings | Mean absolute difference | 95th percentile |
+|---|---:|---:|
+| HARUBENI (하루베니), Adobe RGB, tint 1, highlight contrast −4 | 0.005107 | 0.012020 |
+| Gold (골드), Adobe RGB, mixed slider endpoints | 0.005427 | 0.016169 |
+| FUYUNO (후유노), sRGB, default | 0.004030 | 0.007259 |
+
+These differences compare the app preview with Lightroom at matching pixel coordinates in normalized 0–1 sRGB. The separate 32³ interpolation study compares synthetic RGB with the direct firmware formula and reports encoded channel errors on a 0–255 scale. [All ten regressions and the HARUBENI breakpoint](https://yunhyok.github.io/pentax-k3iii-firmware-analysis/analysis/gold-enhanced-profile.html#lut-v4)
+
 ## Historical Lightroom Classic 16.0 validation for v0.1.0
 
 Lightroom Classic 16.0 exported TIFFs for all 21 v0.1.0 cases: the 16 default DCPs, two customized DCPs, Gold, green-toned Bleach Bypass, and Natural on a PEF. Each output was a 1000×667, 16-bit RGB TIFF with an sRGB ICC. The 18 plain DNG outputs had distinct profile digests and pixel hashes. The enhanced outputs recorded the generated XMP UUID and RGB-table fingerprint, and their pixels differed from each other and from the plain outputs. Source RAW and isolated catalog preparation hashes were checked. [Machine-readable evidence](lightroom-validation.json)
