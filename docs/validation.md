@@ -27,7 +27,19 @@ The table reports absolute errors in normalized 0…1 encoded sRGB. It compares 
 | DNG, green Bleach Bypass | 0.00686 | 0.01608 |
 | PEF, Natural | 0.02851 | 0.04635 |
 
-## Current enhanced profile validation
+## Lightroom Classic 16.0 enhanced profile validation for v0.1.3
+
+Three newly exported v3 profiles were selected in Lightroom Classic's Profile Browser on the bundled K-3 III color cube DNG. Lightroom exported three 1000×667, 16-bit sRGB TIFFs. Each contained the expected DCP name and RGB table fingerprint. The three TIFF pixel hashes were distinct. The comparison used As Shot white balance, zero exposure-slider adjustment, and matching pixel coordinates. The image served only to check the completed profiles. [Recipes, hashes, export metadata and measurements](lut-boundary-lightroom.json)
+
+| Recipe | Offline vs. Lightroom mean absolute error, normalized sRGB | p95 |
+| --- | ---: | ---: |
+| Gold, Adobe RGB | 0.005630 | 0.014639 |
+| Muted, Adobe RGB, tint 1, key −4 | 0.004574 | 0.011154 |
+| Bleach Bypass, sRGB, tint 1 | 0.005060 | 0.010493 |
+
+The [synthetic boundary measurements](enhanced.md#preview-and-validation) compare interpolation against the firmware model over the sensor cube. The TIFF comparison measures the complete Adobe and offline renders on one photograph.
+
+## Lightroom Classic 16.0 enhanced profile validation for v0.1.2
 
 Lightroom Classic 16.0 exported 12 enhanced profiles from the same K-3 Mark III color cube DNG. The cases were Gold in both camera color spaces, green-toned Bleach Bypass, and HARUBENI at all nine toning values including 0. Each 1000×667 TIFF contained 16-bit RGB samples and an sRGB ICC profile. All 12 TIFF pixel hashes and RGB table fingerprints were distinct. TIFF XMP recorded four distinct base profile digests, with one shared by the nine HARUBENI variants. [Machine-readable evidence](lightroom-fidelity.json)
 
@@ -41,9 +53,9 @@ The comparison below uses matching pixel coordinates, fixed generated recipes, A
 | Green-toned Bleach Bypass | 1 | 0.006879 | 0.015975 |
 | HARUBENI, toning 0–8 | 9 | 0.005430–0.005435 | 0.011640–0.011645 |
 
-## Current plain profile validation
+## Plain profile validation in v0.1.2
 
-The current Lightroom validation includes 16 exports, with four plain Natural cases alongside the 12 enhanced profiles. The camera DNG exported with both the stock bilingual profile name and a custom name. Those DCPs had the same numerical tag payloads, and the two TIFFs had identical pixels. Lightroom also exported the native PEF and its lossless converted DNG as a pair, with identical TIFF pixels. All four exports had the requested profile identity in TIFF XMP. [Machine-readable evidence](lightroom-fidelity.json)
+The v0.1.2 Lightroom validation includes 16 exports, with four plain Natural cases alongside the 12 enhanced profiles. The camera DNG exported with both the stock bilingual profile name and a custom name. Those DCPs had the same numerical tag payloads, and the two TIFFs had identical pixels. Lightroom also exported the native PEF and its lossless converted DNG as a pair, with identical TIFF pixels. All four exports had the requested profile identity in TIFF XMP. [Machine-readable evidence](lightroom-fidelity.json)
 
 Earlier SDK runs reverted to Adobe Standard for the camera DNG. The successful plain run used the refreshed Develop module and let the loaded profile settle before export. The converted DNG served as a Lightroom control. The three native-input previews were compared offline at the same coordinates and in the same normalized sRGB units as the enhanced tests. [Comparison data](lightroom-fidelity.json)
 
