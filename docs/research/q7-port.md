@@ -4,7 +4,7 @@ Goal: add **PENTAX Q7** as a second, selectable camera in Firmware Color Studio,
 derived from its firmware in the same way as the K-3 Mark III pack. This file is the working
 record. It is updated at every milestone so that the work can be resumed from here.
 
-**Status: in progress (research phase). The firmware is fully unpacked and symbolised; the colour tables are not located yet. Nothing in the app has changed yet.**
+**Status: in progress (research phase). The firmware is fully unpacked and symbolised and the colour tables are exported; the arithmetic that combines them is not read yet. Nothing in the app has changed yet.**
 
 ## How to resume
 
@@ -102,18 +102,46 @@ record. It is updated at every milestone so that the work can be resumed from he
 - `Q7_IMAGE=image.bin:0x80000600 python3 -I tools/q7/dis.py firmware.bin NAME` disassembles
   any function by symbol name (needs `pip install capstone`).
 
+### Colour tables (located and exported: `tools/q7/export_tables.py`, `q7-color-tables.json`)
+
+The Q7 firmware has the same family of colour engine as the K-3 Mark III, with named tables.
+All are in unpacked part A. Values are in [`q7-color-tables.json`](q7-color-tables.json).
+
+| Symbol | Meaning (by name and by values) | K-3 III counterpart in `engine.py` |
+|---|---|---|
+| `cnsCameraBasicMatrix` `0x804add38` | sensor matrix, 1.0 = 8192, rows sum to 8192: `11243 -3459 408 / -2736 12937 -2009 / -2 -4343 12537` | `common_matrix` |
+| `cnsMakeUpMatrix<Mode>` | per Custom Image matrix, 1.0 = 8192. Modes: Natural, Vivid, Portrait, Landscape, Miyabi, Monotone, Flat, Honoka, Reversal, BleachBypass, PopTune | `mode_matrix` |
+| `cnsMakeUpMatrix<Mode>6` | six matrices per mode (108 bytes); purpose not yet known | – |
+| `cnarsSatCtlMatrix00`…`08` | saturation −4…+4, 1.0 = 8192 (`04` is identity) | `saturation_matrix_sets` |
+| `cnarsFilterEffectMatrix00`…`08` | monochrome filter effect | saturation set `s1` |
+| `cnsHueShiftMatrix00`…`08` | hue −4…+4 as YC rotations, **1.0 = 256** (K-3 III stores 8192) | `hue_matrix_sets` |
+| `arcnwYCbCrConversionMatrixDefault` | `77 150 29 / -43 -85 128 / 128 -107 -21`, 1.0 = 256 | `hue_right_matrix` |
+| `cnarwBasicTone{128,256,512,1024,2048}{Low,Middle,High}` | 15 tone curves of 256 × u16: three contrast families × **five** columns (K-3 III has six) | `gamma.families` |
+| `cnarwReversalTone{128,181,256,362,512,724,1024}` | seven Reversal Film curves (K-3 III has nine) | `gamma.reversal_curves` |
+| `arcnlDNGColorMatrix1`, `2` | nine (numerator, 65536) pairs each | `dng_color_matrix_tables` |
+
+Routines to read next (all in part A): `ColorMatchingService_MakeColorMatrix` `0x8041c180`
+(1,628 bytes), `ImageQualityService_SetupColorMatrix` `0x80428654`, `MakeToneForContrastControl`,
+the tone list tables `cnarpwBasicToneListLow/Middle/High`, `cnarpwReversalToneList`,
+`arcnpwToneTableListDefault`, and the Custom Image records `cntCustomImageUnit<Mode>` (28 bytes).
+
+**Not yet verified:** that the Q7 combines these tables with the same integer arithmetic as
+`engine.py` (matrix product rounding, gain, tone blending, key table, YC and chroma suppression).
+The table shapes differ in places (five tone columns, 256-scaled hue matrices), so `engine.py`
+must not be reused unchanged.
+
 ## Next steps
 
-1. With the unpacked image and `symbols.py`, read the Custom Image parameter tables: colour
-   matrices, saturation/hue/key/contrast tables, gamma and tone tables, YC conversion, chroma
-   suppression (`cnarwBasicTone*`, `arbGammaTable`, `ImageTuningRelay_*`, `CCmFilter::*`,
-   `MakeToneForContrastControl`, `cntCustomImageUnit*`).
-2. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); these are plain.
-3. Reconstruct the calculation from those parameters to the ISP registers and write
-   `engine`-compatible tables for a `pentax-q7` camera pack.
-4. App work: second entry in `profiles._PACKS`, camera picker in the GUI, Q7 DNG input in
+1. Disassemble `ColorMatchingService_MakeColorMatrix` and the tone routine; write down the
+   arithmetic and compare it with `engine.py` (`cc0`, `yc`, `_regular_curve`, `_reversal_curve`).
+2. Read the Custom Image records (`cntCustomImageUnit*`) and the default-id functions
+   `ImageTuningRelay_GetDefault*Id` for factory settings and which controls each mode has.
+3. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); these are plain.
+4. Write `q7` engine tables in the format `Engine` needs (or a `Q7Engine` where the arithmetic
+   differs) and a `pentax-q7` camera pack with its manifest.
+5. App work: second entry in `profiles._PACKS`, camera picker in the GUI, Q7 DNG input in
    `raw.py` (sensor geometry, levels, maker note), `UniqueCameraModel` `PENTAX Q7`, tests, docs.
-5. Validation that is possible without a camera: internal consistency only. Lightroom and
+6. Validation that is possible without a camera: internal consistency only. Lightroom and
    camera JPEG comparisons need Q7 RAW files from the user.
 
 ## Open questions for the user
