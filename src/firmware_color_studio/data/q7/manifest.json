@@ -33,5 +33,5 @@
   "profile_copyright": "Derived from PENTAX Q7 firmware 1.01 colour tables (pentax-q7-firmware-analysis)",
   "profile_name_prefix": "Q7 Firmware",
   "source_repository": "https://github.com/yunhyok/pentax-q7-firmware-analysis",
-  "source_revision": "pull request 3 (analysis/color-engine-tables.json)"
+  "source_revision": "2a2fd4532d9313f04e96154e5e5501070b46fcd4"
 }
