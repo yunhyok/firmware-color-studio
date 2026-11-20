@@ -4,7 +4,7 @@ Goal: add **PENTAX Q7** as a second, selectable camera in Firmware Color Studio,
 derived from its firmware in the same way as the K-3 Mark III pack. This file is the working
 record. It is updated at every milestone so that the work can be resumed from here.
 
-**Status: in progress (research phase). The firmware is fully unpacked and symbolised and the colour tables are exported; the arithmetic that combines them is not read yet. Nothing in the app has changed yet.**
+**Status: in progress (research phase). The firmware is unpacked and symbolised, the colour tables are exported, and the colour matrix and gamma routines are ported to Python and reproduce the emulated firmware exactly (see "Colour arithmetic"). Reversal Film gamma, factory settings per Custom Image and the app work are still to do. Nothing in the app has changed yet.**
 
 ## How to resume
 
@@ -14,12 +14,14 @@ record. It is updated at every milestone so that the work can be resumed from he
    (file structure, unpacking, update path, colour matrix routing, HDR). The K-3 III engine this
    work is compared with is in
    [pentax-k3iii-firmware-analysis](https://github.com/yunhyok/pentax-k3iii-firmware-analysis).
-   New findings from here are also sent to the Q7 repository.
+   New findings from here are also sent to the Q7 repository
+   ([pentax-q7-firmware-analysis pull request 3](https://github.com/yunhyok/pentax-q7-firmware-analysis/pull/3)).
 2. The firmware is not in the repository and must not be committed (`*.bin` is ignored).
    Input used: `fwdc603p.bin`, 18,743,520 bytes,
    SHA-256 `8a928b574623c28624127501526d8496a98a42eac3d843def6d3b5ceb074ff3b`.
 3. The scripts in `tools/q7/` take the firmware path as their first argument and only read it:
-   `python3 -I tools/q7/<script>.py /path/to/fwdc603p.bin`.
+   `python3 -I tools/q7/<script>.py /path/to/fwdc603p.bin`. `disasm.py`, `emu.py` and `check_port.py`
+   need `capstone` and `unicorn` (not project dependencies; install them in a scratch environment).
 4. Work on branch `claude/affectionate-archimedes-wg148l`; the draft pull request for this work
    links to this file.
 
@@ -132,15 +134,58 @@ All are in unpacked part A. Values are in [`q7-color-tables.json`](q7-color-tabl
 | `cnarwReversalTone{128,181,256,362,512,724,1024}` | seven Reversal Film curves (K-3 III has nine) | `gamma.reversal_curves` |
 | `arcnlDNGColorMatrix1`, `2` | nine (numerator, 65536) pairs each | `dng_color_matrix_tables` |
 
-Routines to read next (all in part A): `ColorMatchingService_MakeColorMatrix` `0x8041c180`
-(1,628 bytes), `ImageQualityService_SetupColorMatrix` `0x80428654`, `MakeToneForContrastControl`,
-the tone list tables `cnarpwBasicToneListLow/Middle/High`, `cnarpwReversalToneList`,
-`arcnpwToneTableListDefault`, and the Custom Image records `cntCustomImageUnit<Mode>` (28 bytes).
+### Colour arithmetic (read from the code; port verified by emulation: `tools/q7/q7port.py`, `check_port.py`)
 
-**Not yet verified:** that the Q7 combines these tables with the same integer arithmetic as
-`engine.py` (matrix product rounding, gain, tone blending, key table, YC and chroma suppression).
-The table shapes differ in places (five tone columns, 256-scaled hue matrices), so `engine.py`
-must not be reused unchanged.
+`tools/q7/emu.py` runs routines of the unpacked image in a CPU emulator (unicorn, MIPS32 LE; kseg0
+addresses are mapped to physical memory). `tools/q7/check_port.py` runs the two firmware routines
+below for many settings and compares every output value with the Python port `tools/q7/q7port.py`:
+
+    MakeColorMatrix: 578/578 settings identical     (11 modes x saturation x hue x colour space x toning)
+    CalcGammaCorrectionTable: 308/308 settings identical   (key x contrast x exposure gain x ratio x step)
+
+**`ColorMatchingService_MakeColorMatrix` `0x8041c180`** (arguments: settings, white-balance data or 0,
+descriptor A, descriptor B, six-matrix output). Settings fields used: byte `+0x34` mode id,
+`+0x35` saturation 0..8, `+0x39` hue 0..8, `+0x3a` filter effect, `+0x3b` monochrome toning,
+`+0x3c` toning colour, word `+0x178` gain, `+0x1fc` colour space, `+0x200` development sensitivity
+(0..4 -> 128, 181, 256, 362, 512), byte `+0x1a0` a flag that disables the AdobeRGB variants.
+
+- Mode ids (jump table of `GetMakeUpMatrix`): 0 Natural, 1 Vivid, 2 Portrait, 3 Landscape, 4 Miyabi,
+  5 Honoka, 6 Reversal, 7 BleachBypass, 8 PopTune, 9 Vivid again, 10 Monotone.
+- `MatrixMultiplication(out, A, B)` is `A x B`, 1.0 = 8192, `(sum + 0x1000) >> 13` (logical), low 16 bits.
+- Colour matrix: for each of the six make-up matrices, `Sat[sat] x MakeUp6[i] x CameraBasic`
+  (mode 10 uses `FilterEffect[filter]` in place of `Sat`), each value divided by 32 towards zero, then
+  the diagonal is replaced so every row sums to 256. **Result is 1.0 = 256, like the K-3 III CC0.**
+  In firmware 1.01 all six matrices of every mode are equal to the single `cnsMakeUpMatrix<Mode>`,
+  so the six outputs are identical.
+- Descriptor A (`+0x18`, the CM register block in the Q7 research repository's routing) is **not** the
+  colour matrix: it is `256 x identity x gain / 8192`, multiplied by the white-balance gains when
+  white-balance data is given, clamped to +-0x7ff. The single matrix the routine also computes on its
+  stack (`Sat x MakeUp x CameraBasic x gain`) is not written to any output.
+- Descriptor B (`+0x18`, FC1): `HueShift[hue] x YCbCr`, 1.0 = 256, `(sum + 0x80) >> 8`; for AdobeRGB it
+  is then multiplied by `arcnsSRGBAdobeRGB` (`5857 2334 0 / 0 8192 0 / 0 335 7856`); the result is
+  shifted left by 3 (1.0 = 2048). Modes 5 and 7 always use hue index 4 (no hue control).
+- Chroma offsets (descriptor B `+0x2a`, `+0x2c`, stored with `+0x800`): mode 10 takes
+  `cnarsCbOffset/cnarsCrOffset[monochrome toning]`; modes 5 and 7 take
+  `cnarsCbAddition/cnarsCrAddition[toning colour]`; other modes 0. AdobeRGB has its own tables.
+
+**`GammaCorrectionService_CalcGammaCorrectionTable` `0x8041d058`** (settings, unused, output table of
+4096 x u16). Same algorithm as the K-3 III `_regular_curve` with these differences:
+
+- no highlight/shadow adjustment (the three offsets are constant 0);
+- five columns: 128, 256, 512, 1024, 2048; `v` is clamped to 128..2048;
+- `v = (key_table[key] * ratio / 256 * exposure) >> 13` with key table
+  `512 431 362 304 256 215 181 152 128` (the same as the K-3 III), `ratio = 0x400000 / word(+0x174)`
+  or 256 when that word is 0, `exposure = word(+0x164)` (0x2000 = 1.0);
+- family order High, Middle, Low; contrast weight `2 x contrast x 512 / 12` exactly as the K-3 III;
+- only tone table entries 0..128 are used. They are scaled by `4095 / 16130`
+  (`cnwBasicToneSaturationPointOutput / cnwBasicToneSaturationPointMin`), limited to 4095 and
+  linearly interpolated into table entries 0..2047 (16 per step); entries 2048..4095 are a straight
+  line from entry 2048 to 4095.
+
+Not yet read: `GammaCorrectionService_CalcGammaCorrectionTableReversal` `0x8041cd28`, the Custom
+Image records `cntCustomImageUnit<Mode>`, `ImageTuningRelay_GetDefault*Id`, where the six-matrix
+output goes after `ImageQualityService_SetupColorMatrix`, and how the gamma table input range
+(0..4095) relates to the sensor range.
 
 ## Next steps
 

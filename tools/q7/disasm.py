@@ -1,6 +1,6 @@
 """Disassemble a function of the uncompressed kernel (or of an unpacked image) by name or address.
 
-usage: dis.py firmware.bin NAME|0xADDR [bytes]     (optional env Q7_IMAGE=unpacked.bin:0xBASE)
+usage: disasm.py firmware.bin NAME|0xADDR [bytes]     (optional env Q7_IMAGE=unpacked.bin:0xBASE)
 """
 import os, sys, struct
 from capstone import Cs, CS_ARCH_MIPS, CS_MODE_MIPS32, CS_MODE_LITTLE_ENDIAN
