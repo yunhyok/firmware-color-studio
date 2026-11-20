@@ -55,8 +55,6 @@ def unpack_segment(data, start, filesz):
                 distance = ((2 | (code & 1)) << extra) + int(stream[p:p + extra], 2) + 1; p += extra
             if distance > len(out):
                 raise ValueError(f"distance {distance} beyond {len(out)} bytes in block {pos:#x}")
-            # The last match of a block may run past the block's output size; the output stops there.
-            length = min(length, end - len(out))
             if distance >= length:
                 out += out[-distance:len(out) - distance + length]
             else:

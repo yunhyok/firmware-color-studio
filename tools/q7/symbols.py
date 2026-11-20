@@ -1,13 +1,15 @@
-"""The firmware's sorted symbol table (address, name): 122,368 entries with full names.
+"""The firmware's sorted symbol table (address, name): 122,154 records with full names.
 
-Layout found by inspection: u32 addresses at 0xafa368, u32 name offsets at 0xb71b68,
-NUL-terminated names from 0xbe96c0.  `segment_of` names the ELF segment an address is in.
+Three files of the embedded FAT16 resource volume hold it (as found by the
+pentax-q7-firmware-analysis project): MAINSO~3.ADR, u32 addresses at 0xafa6c0;
+MAINSO~5.OFT, u32 name offsets at 0xb71ec0; MAINSO~7.STR, NUL-terminated names at 0xbe96c0.
+`segment_of` names the ELF segment an address is in.
 
 usage: symbols.py firmware.bin [regex ...]
 """
 import sys, re, struct, collections, bisect
 
-COUNT, ADDRESSES, OFFSETS, NAMES = 122368, 0xafa368, 0xb71b68, 0xbe96c0
+COUNT, ADDRESSES, OFFSETS, NAMES = 122154, 0xafa6c0, 0xb71ec0, 0xbe96c0
 # (label, file offset of the segment data, vaddr, file size, memory size)
 SEGMENTS = [
     ("boot", 0x1026c0 + 0x254, 0x80000600, 0x154, 0x154),

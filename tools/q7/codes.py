@@ -5,8 +5,8 @@ at `index`, 1 = pointer to a run-class table of B + A entries starting at `index
 Pointer: index = bits 2-10, B = bits 11-14, A = bits 15-18.  Entry 0 is the root pointer.
 Run-class table: the first B entries are selected by the length of a leading run of one bit
 value, the next A entries by the run of the other value; the longest run has no terminator.
-Leaf: value = bits 2-11, k = bits 12-14 extra bits, bits 15-17 = code bits beyond the table's
-shortest code + k (direct tables only).
+Leaf: value = bits 2-11, k = bits 12-14 extra bits, bits 15 and up = code bits beyond the
+table's shortest code + k (direct tables only).
 """
 import sys, struct
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
@@ -41,7 +41,7 @@ def enumerate_codes(table, **order):
                 if leaf & 3 != 3:
                     yield from walk(leaf, prefix + bitstr(v, b)); continue
                 k = (leaf >> 12) & 7
-                code = bitstr(v, b)[:(a & 7) + ((leaf >> 15) & 7) - k]
+                code = bitstr(v, b)[:a + (leaf >> 15) - k]
                 if (leaf, code) not in seen:
                     seen.add((leaf, code)); yield leaf, prefix + code, k
     yield from walk(table[0], "")

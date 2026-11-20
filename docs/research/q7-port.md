@@ -9,6 +9,12 @@ record. It is updated at every milestone so that the work can be resumed from he
 ## How to resume
 
 1. Read "Findings" and "Next steps" below. Each finding states how it was obtained.
+   Earlier research on this firmware is in
+   [pentax-q7-firmware-analysis](https://github.com/yunhyok/pentax-q7-firmware-analysis)
+   (file structure, unpacking, update path, colour matrix routing, HDR). The K-3 III engine this
+   work is compared with is in
+   [pentax-k3iii-firmware-analysis](https://github.com/yunhyok/pentax-k3iii-firmware-analysis).
+   New findings from here are also sent to the Q7 repository.
 2. The firmware is not in the repository and must not be committed (`*.bin` is ignored).
    Input used: `fwdc603p.bin`, 18,743,520 bytes,
    SHA-256 `8a928b574623c28624127501526d8496a98a42eac3d843def6d3b5ceb074ff3b`.
@@ -58,10 +64,12 @@ record. It is updated at every milestone so that the work can be resumed from he
   | `0x5ce660` | application part C (+ data at `0x80b62c00`) | `0x807f2c80` | `0x1800cc` → `0x36ff80`, data `0x2d82c` → `0x89780` **packed** |
   | `0xf4aac0` | relocatable with `__ksymtab` (79,537 entries, names cut to 25 characters) | – | plain |
 
-- A complete sorted symbol table precedes it: 122,368 entries, u32 addresses at `0xafa368`,
-  u32 name offsets at `0xb71b68`, names from `0xbe96c0`. `tools/q7/symbols.py` reads it and
-  reports the segment of each address. Distribution: kernel 7,597, part A 21,169, part B 15,430,
-  part C 58,603 (+15,619 data), other RAM 3,945.
+- A complete sorted symbol table precedes it: 122,154 records in three files of the embedded
+  FAT16 volume (`MAINSO~3.ADR` u32 addresses at `0xafa6c0`, `MAINSO~5.OFT` u32 name offsets at
+  `0xb71ec0`, `MAINSO~7.STR` names at `0xbe96c0`; the spans are those recorded by the Q7
+  research repository). `tools/q7/symbols.py` reads it and reports the segment of each address.
+  Distribution: kernel 7,597, part A 21,169, part B 15,430, part C 58,603 (+15,619 data),
+  other RAM 3,731.
 - Colour symbols are in the **packed** parts, for example `cnarwBasicTone512Middle` `0x804b3a70`,
   `arbGammaTable` `0x803944d4`, `g_gammaDefaultLut` `0x80bc8df0`. They cannot be read until the
   packed segments are unpacked.
@@ -80,11 +88,11 @@ record. It is updated at every milestone so that the work can be resumed from he
 - The data is LZ77 with **deflate's alphabets** (literals, end of block, lengths 3–258 with 0–5
   extra bits, distance codes with 0–13 extra bits) but with a prefix code given as a hardware
   lookup table instead of deflate's code lengths. Bits are read most significant bit first;
-  extra bits likewise. A block's last match may run past the block's output size and is cut.
+  extra bits likewise.
 - Table entries are `u32` (`tools/q7/codes.py`):
   - bits 0–1 = 3: **leaf**. Value in bits 2–11 (0–255 literal, `0x100` end, `0x200 + base`
     length; in table 2 the value is `extra_bits << 2 | 2 | low_bit`, or 0–3 for distances 1–4),
-    bits 12–14 number of extra bits, bits 15–17 code bits beyond the table's shortest code
+    bits 12–14 number of extra bits, bits 15 and up code bits beyond the table's shortest code
     plus extra bits.
   - bits 0–1 = 0: pointer to a **direct table** of `2^B` slots at `index`; shorter codes
     repeat. `index` = bits 2–10, `B` = bits 11–14, `A` = bits 15–18 (shortest code in it).
@@ -95,9 +103,13 @@ record. It is updated at every milestone so that the work can be resumed from he
 - Checks: the implied codes are complete prefix codes (Kraft sum exactly 1) for both tables; the
   first block starts with `addiu sp,sp,-0x18; sw s0,0x10(sp); sw ra,0x14(sp)` at the address of
   `EyeFiService_InitializeOnBoot2nd`; all four segments unpack to their exact memory sizes;
-  1,153 of 1,779 sampled function symbols in the unpacked parts begin with `addiu sp,sp,-N`.
+  1,153 of 1,779 sampled function symbols in the unpacked parts begin with `addiu sp,sp,-N`;
+  **the SHA-256 of each of the four unpacked segments equals the value recorded independently in
+  the Q7 research repository** (`analysis/segment-decode.json`). An earlier version of
+  `codes.py` masked the leaf length field to three bits and got part B wrong; that comparison
+  found it.
 - `python3 -I tools/q7/unpack.py firmware.bin image.bin` writes the memory image
-  `0x80000600`–`0x80bec380` (12,500,352 bytes, SHA-256 `eb0e5607…f45e` for this firmware).
+  `0x80000600`–`0x80bec380` (12,500,352 bytes, SHA-256 `8287b002…35dc` for this firmware).
   The image is firmware content: keep it out of the repository.
 - `Q7_IMAGE=image.bin:0x80000600 python3 -I tools/q7/dis.py firmware.bin NAME` disassembles
   any function by symbol name (needs `pip install capstone`).
