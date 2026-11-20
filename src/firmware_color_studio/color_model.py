@@ -65,6 +65,11 @@ def adobe_decode(y):
 RGB_SPACES = {"srgb": (SRGB_TO_PCS, srgb_encode, srgb_decode), "adobergb": (ADOBE_RGB_TO_PCS, adobe_encode, adobe_decode)}
 
 
+# Integer coefficients of the Q7's RGB <-> YCbCr steps around its dark chroma suppression (1.0 = 1024).
+_SHADOW_TO_YCC = np.array([[306, 601, 117], [-173, -339, 512], [512, -429, -83]]) / 1024.0
+_SHADOW_TO_RGB = np.array([[1024, 0, 1436], [1024, -352, -731], [1024, 1815, 0]]) / 1024.0
+
+
 @dataclass
 class CameraColour:
     """Parameters of the colour stages for one Custom Image setting."""
@@ -80,6 +85,7 @@ class CameraColour:
     csp_border: tuple = (56, 768, 856)
     chroma_fixed: bool = False
     chroma_offset: tuple = (0, 0)           # YCOF: added to Cb, Cr after chroma suppression; 10-bit scale (1.0 = 1024)
+    shadow_chroma: np.ndarray | None = None  # Q7: chroma ratio of the matrix output over 2 x (256 - green), green on a 12-bit scale
     name: str = ""
     space: str = "srgb"                     # colour space of the JPEG the camera would write
     notes: dict = field(default_factory=dict)
@@ -160,6 +166,8 @@ class CameraColour:
         the result is the same for every colour the camera does not clip.
         """
         matrix_output = np.asarray(matrix_output, dtype=np.float64)
+        if self.shadow_chroma is not None:
+            matrix_output = self._suppress_shadow_chroma(matrix_output)
         rgb = self.gamma(np.minimum(matrix_output, 1.0) if extend else np.clip(matrix_output, 0.0, 1.0))
         ycc = rgb @ (self.yc.T / 256.0)
         if self.chroma_fixed:
@@ -173,6 +181,14 @@ class CameraColour:
             return np.minimum(ycc @ JFIF_DECODE.T, 1.0)
         ycc = np.concatenate([np.clip(ycc[..., :1], 0.0, 1.0), np.clip(ycc[..., 1:], -0.5, 0.5)], axis=-1)
         return np.clip(ycc @ JFIF_DECODE.T, 0.0, 1.0)
+
+    def _suppress_shadow_chroma(self, rgb):
+        """Q7 routine 0x8041c7dc: below green = 256/4095 the chroma of the matrix output is scaled down."""
+        table = self.shadow_chroma
+        green = rgb[..., 1] * 4095.0
+        ratio = np.where(green <= 256.0, np.interp(2.0 * (256.0 - green), np.arange(table.size), table), 1.0)
+        ycc = rgb @ _SHADOW_TO_YCC.T
+        return np.concatenate([ycc[..., :1], ycc[..., 1:] * ratio[..., None]], axis=-1) @ _SHADOW_TO_RGB.T
 
     def render(self, camera_rgb):
         """White-balanced linear camera RGB (1.0 = full scale) -> JPEG RGB code values 0..1."""

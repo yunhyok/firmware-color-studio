@@ -14,6 +14,7 @@ import numpy as np
 from . import color_model, dcp
 from .engine import Engine, PACK_DIRECTORY, SLIDERS
 from .gold import gold_camera
+from . import q7_engine
 
 CAMERA_ID = "pentax-k3iii"
 CAMERA_MODEL = "PENTAX K-3 Mark III"
@@ -51,7 +52,52 @@ class _CameraPack:
         return self.load_engine()
 
 
-_PACKS = {CAMERA_ID: _CameraPack(PACK_DIRECTORY, {**LABELS, "gold": "Gold"}, Engine.load, {"gold": gold_camera})}
+_PACKS = {
+    CAMERA_ID: _CameraPack(PACK_DIRECTORY, {**LABELS, "gold": "Gold"}, Engine.load, {"gold": gold_camera}),
+    "pentax-q7": _CameraPack(q7_engine.PACK_DIRECTORY, {mode: LABELS[mode] for mode in q7_engine.MODES},
+                             q7_engine.Q7Engine.load),
+}
+
+
+def list_cameras() -> dict:
+    """Camera id -> model name, in menu order."""
+    return {camera_id: pack.manifest["camera_model"] for camera_id, pack in _PACKS.items()}
+
+
+def camera_info(camera_id=CAMERA_ID) -> dict:
+    pack = _pack(camera_id)
+    return {"camera_id": camera_id, "model": pack.manifest["camera_model"],
+            "firmware_version": pack.manifest["firmware_version"],
+            "baseline_exposure_offset": baseline_exposure_offset(camera_id)}
+
+
+def baseline_exposure_offset(camera_id=CAMERA_ID) -> float:
+    return _pack(camera_id).manifest.get("baseline_exposure_offset", BASELINE_EXPOSURE_OFFSET)
+
+
+def convert_camera_rgb(rgb, source_id, target_id):
+    """White-balanced camera RGB of one camera as another would record the same colours.
+
+    Each pack's sensor matrix maps its camera RGB to linear sRGB; the colours are
+    taken through the first and back through the second.  This is for previews only.
+    """
+    if source_id == target_id:
+        return rgb
+    matrix = np.linalg.solve(_pack(target_id).engine.common_matrix(), _pack(source_id).engine.common_matrix())
+    return np.asarray(rgb, dtype=np.float64) @ matrix.T
+
+
+def preview_inputs(rgb, baseline_exposure, camera_id, source_id=CAMERA_ID):
+    """Camera RGB and preview EV of a `source_id` RAW for rendering with a profile of `camera_id`.
+
+    RAW input is K-3 Mark III only so far.  For another camera the scene is passed
+    through both sensor matrices and the tone curve receives the level the source
+    pack would give it, so that the same scene has the same exposure in both.
+    """
+    if camera_id == source_id:
+        return rgb, baseline_exposure
+    return (convert_camera_rgb(rgb, source_id, camera_id),
+            baseline_exposure + baseline_exposure_offset(source_id) - baseline_exposure_offset(camera_id))
 
 
 def _pack(camera_id) -> _CameraPack:
@@ -193,7 +239,7 @@ def _profile_tags(pack: _CameraPack, forward, matrices, name: str) -> dict:
         "ColorMatrix2": matrices[1],
         "ForwardMatrix1": forward,
         "ForwardMatrix2": forward,
-        "BaselineExposureOffset": BASELINE_EXPOSURE_OFFSET,
+        "BaselineExposureOffset": pack.manifest.get("baseline_exposure_offset", BASELINE_EXPOSURE_OFFSET),
         "DefaultBlackRender": 1,
     }
 

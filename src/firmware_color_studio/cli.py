@@ -10,7 +10,8 @@ import sys
 import numpy as np
 
 from . import __version__
-from .profiles import build_profile, default_recipe, list_modes, load_recipe, render_dcp
+from .profiles import (CAMERA_ID, build_profile, default_recipe, list_cameras, list_modes, load_recipe, preview_inputs,
+                       render_dcp)
 
 
 DEMO_RAW = Path(__file__).parent / "data" / "demo" / "color-cube.dng"
@@ -62,6 +63,10 @@ def main():
     export.add_argument("recipe", type=Path)
     export.add_argument("output", type=Path)
     export.add_argument("--enhanced", action="store_true", help="write a DCP+XMP ZIP")
+    factory = commands.add_parser("recipe", help="write the factory recipe of a Custom Image, to edit and export")
+    factory.add_argument("output", type=Path)
+    factory.add_argument("--camera", choices=list(list_cameras()), default=CAMERA_ID)
+    factory.add_argument("--mode", default="natural")
     chart = commands.add_parser("chart-fit", help="estimate a Pentax DCP from a Classic 24 chart JPEG")
     chart.add_argument("jpeg", type=Path)
     chart.add_argument("output", type=Path)
@@ -72,6 +77,7 @@ def main():
     selection.add_argument("--corners", type=float, nargs=8, metavar="N",
                        help="override automatic detection with oriented JPEG coordinates for patches 1, 6, 24, 19")
     chart.add_argument("--name", help="profile name (defaults to the JPEG camera name or filename stem)")
+    chart.add_argument("--camera", choices=list(list_cameras()), default=CAMERA_ID, help="camera the DCP is for")
     chart.add_argument("--edition", choices=("2014+", "pre2014"), default="2014+",
                        help="Classic chart formulation, November 2014 and later or earlier")
     preview = commands.add_parser("preview", help="render a half-resolution RAW color preview to PNG")
@@ -79,6 +85,8 @@ def main():
     preview.add_argument("output", type=Path)
     preview.add_argument("--recipe", type=Path)
     preview.add_argument("--mode", default="natural")
+    preview.add_argument("--camera", choices=list(list_cameras()), default=CAMERA_ID,
+                         help="camera of --mode; the RAW itself must be from a K-3 Mark III")
     preview.add_argument("--size", type=int, default=1000)
     args = parser.parse_args()
     try:
@@ -107,11 +115,15 @@ def main():
             else:
                 corners = np.asarray(args.corners).reshape(4, 2)
             fitted = fit_chart(sample_chart(photo.image, corners), photo.name if args.name is None else args.name,
-                               edition=args.edition)
+                               camera_id=args.camera, edition=args.edition)
             with args.output.open("xb") as stream:
                 stream.write(fitted.dcp)
             if sys.stdout is not None:
                 print(f"Mean patch Delta E76: {fitted.baseline_mean_delta_e:.2f} -> {fitted.mean_delta_e:.2f}")
+        elif args.command == "recipe":
+            with args.output.open("x", encoding="utf-8") as stream:
+                json.dump(default_recipe(args.mode, args.camera), stream, indent=2, ensure_ascii=False)
+                stream.write("\n")
         elif args.command == "export":
             recipe = load_recipe(args.recipe)
             if args.enhanced:
@@ -133,14 +145,14 @@ def main():
                 raise FileExistsError(args.output)
             application = QGuiApplication.instance() or QGuiApplication([])
             frame = load_raw(args.raw)
-            recipe = load_recipe(args.recipe) if args.recipe else default_recipe(args.mode)
-            rgb = resize_rgb(frame.rgb, args.size)
+            recipe = load_recipe(args.recipe) if args.recipe else default_recipe(args.mode, args.camera)
+            rgb, baseline = preview_inputs(resize_rgb(frame.rgb, args.size), frame.baseline_exposure, recipe["camera_id"])
             if recipe["toning"] or recipe["mode"] == "gold":
                 from .enhanced import build_enhanced, render_enhanced
-                pixels = render_enhanced(rgb, build_enhanced(recipe), frame.baseline_exposure)
+                pixels = render_enhanced(rgb, build_enhanced(recipe), baseline)
             else:
                 data, _ = build_profile(recipe)
-                pixels = render_dcp(rgb, data, frame.baseline_exposure)
+                pixels = render_dcp(rgb, data, baseline)
             if not rgb_image(pixels).save(str(args.output), "PNG"):
                 raise OSError("could not save PNG")
         return 0

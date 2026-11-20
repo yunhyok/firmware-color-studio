@@ -1,0 +1,37 @@
+{
+  "base_profile_label": "Base (기본 프로파일)",
+  "baseline_exposure_offset": 0.0,
+  "baseline_exposure_offset_note": "Not calibrated: no Q7 DNG and camera JPEG pair has been compared yet. The K-3 Mark III pack uses 0.5 from such a comparison.",
+  "camera_id": "pentax-q7",
+  "camera_model": "PENTAX Q7",
+  "default_profiles": {},
+  "files": {
+    "q7-color-tables.json": {
+      "bytes": 106762,
+      "sha256": "aeb2d0dab16fb3c7ed482f4b59a03317b968c68503f9fee56b798d8919e5acf4",
+      "source": "analysis/color-engine-tables.json"
+    }
+  },
+  "firmware_sha256": "8a928b574623c28624127501526d8496a98a42eac3d843def6d3b5ceb074ff3b",
+  "firmware_version": "1.01",
+  "mode_label_sources": {
+    "note": "Custom Image names as in the K-3 Mark III pack; the firmware names them Natural, Vivid, Portrait, Landscape, Miyabi, PopTune, Honoka, BleachBypass, Reversal and Monotone."
+  },
+  "mode_labels_ko": {
+    "bleach-bypass": "블리치 바이패스",
+    "bright": "선명하게",
+    "landscape": "풍경",
+    "monochrome": "모노톤",
+    "muted": "은은하게",
+    "natural": "자연스럽게",
+    "portrait": "인물",
+    "radiant": "팝튠",
+    "reversal-film": "리버설 필름",
+    "vibrant": "강렬 색감"
+  },
+  "pack_version": "1.01-1",
+  "profile_copyright": "Derived from PENTAX Q7 firmware 1.01 colour tables (pentax-q7-firmware-analysis)",
+  "profile_name_prefix": "Q7 Firmware",
+  "source_repository": "https://github.com/yunhyok/pentax-q7-firmware-analysis",
+  "source_revision": "pull request 3 (analysis/color-engine-tables.json)"
+}

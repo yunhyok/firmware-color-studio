@@ -113,7 +113,7 @@ record. It is updated at every milestone so that the work can be resumed from he
 - `python3 -I tools/q7/unpack.py firmware.bin image.bin` writes the memory image
   `0x80000600`–`0x80bec380` (12,500,352 bytes, SHA-256 `8287b002…35dc` for this firmware).
   The image is firmware content: keep it out of the repository.
-- `Q7_IMAGE=image.bin:0x80000600 python3 -I tools/q7/dis.py firmware.bin NAME` disassembles
+- `Q7_IMAGE=image.bin:0x80000600 python3 -I tools/q7/disasm.py firmware.bin NAME` disassembles
   any function by symbol name (needs `pip install capstone`).
 
 ### Colour tables (located and exported: `tools/q7/export_tables.py`, `q7-color-tables.json`)

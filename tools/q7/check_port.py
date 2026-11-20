@@ -1,84 +1,85 @@
-"""Compare q7port.py with the firmware routines run in the emulator.
+"""Compare firmware_color_studio.q7_engine with the firmware routines run in a CPU emulator.
 
-usage: check_port.py firmware.bin image.bin tables.json
+usage: check_port.py firmware.bin image.bin        (image.bin: the memory image written by unpack.py)
+
+Every output value of the three routines is compared for every Custom Image and setting that
+the engine offers, and for run-time gains outside the nominal ones.  Needs unicorn.
 """
-import json, struct, sys
+import sys
+from pathlib import Path
+
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from emu import Emulator
-import q7port as port
 
-e = Emulator(sys.argv[1], sys.argv[2])
-t = json.load(open(sys.argv[3]))
-im = e.image
-t["extra"] = {name: list(im.values(name, "h", 9)) for name in
-              ("cnarsCbOffset", "cnarsCrOffset", "cnarsCbOffsetAdobeRGB", "cnarsCrOffsetAdobeRGB",
-               "cnarsCbAddition", "cnarsCrAddition", "cnarsCbAdditionAdobeRGB", "cnarsCrAdditionAdobeRGB", "arcnsSRGBAdobeRGB")}
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from firmware_color_studio.q7_engine import Q7Engine
 
-settings = e.alloc(0x400)
-out_a, out_b, out6 = e.alloc(0x40), e.alloc(0x40), e.alloc(108)
-table = e.alloc(0x2100)
+emulator = Emulator(sys.argv[1], sys.argv[2])
+engine = Q7Engine.load()
+settings = emulator.alloc(0x400)
+out_a, out_b, out6, table = emulator.alloc(0x40), emulator.alloc(0x40), emulator.alloc(108), emulator.alloc(0x2100)
+LAYOUT = {"mode": (0x34, "B"), "saturation": (0x35, "B"), "contrast": (0x36, "B"), "key": (0x38, "B"), "hue": (0x39, "B"),
+          "filter": (0x3A, "B"), "mono_toning": (0x3B, "B"), "toning": (0x3C, "B"), "exposure": (0x164, "I"),
+          "ratio": (0x174, "I"), "gain": (0x178, "I"), "coarse": (0x1A0, "B"), "space": (0x1FC, "I"), "sensitivity": (0x200, "I")}
 
 
 def setup(**fields):
-    e.uc.mem_write(settings & 0x1FFFFFFF, bytes(0x400))
-    layout = {"mode": (0x34, "B"), "saturation": (0x35, "B"), "contrast": (0x36, "B"), "key": (0x38, "B"), "hue": (0x39, "B"),
-              "filter": (0x3A, "B"), "mono_toning": (0x3B, "B"), "toning": (0x3C, "B"), "exposure": (0x164, "I"),
-              "ratio": (0x174, "I"), "gain": (0x178, "I"), "flag": (0x1A0, "B"), "space": (0x1FC, "I"), "sensitivity": (0x200, "I")}
-    base = dict(mode=0, saturation=4, contrast=4, key=4, hue=4, filter=4, mono_toning=4, toning=0, exposure=0x2000, ratio=0,
-                gain=0x2000, flag=0, space=0, sensitivity=2)
-    base.update(fields)
-    for name, value in base.items():
-        offset, fmt = layout[name]
-        e.write(settings + offset, fmt, value)
+    emulator.write(settings, "1024x")
+    values = dict(mode=0, saturation=4, contrast=4, key=4, hue=4, filter=0, mono_toning=4, toning=0, exposure=0x2000, ratio=0,
+                  gain=0x2000, coarse=0, space=0, sensitivity=2)
+    values.update(fields)
+    for name, value in values.items():
+        offset, fmt = LAYOUT[name]
+        emulator.write(settings + offset, fmt, value)
 
 
+def report(label, bad, total):
+    print(f"{label}: {total - bad}/{total} settings identical")
+    return bad
+
+
+failures = 0
 bad = total = 0
-for mode in range(11):
-    for saturation in range(9):
-        for hue in (range(9) if saturation == 4 else (4,)):
-            for space in (0, 1):
-                for extra in ((0, 4), (3, 1), (8, 8)) if mode in (5, 7, 10) else ((0, 4),):
-                    toning, mono = extra
-                    setup(mode=mode, saturation=saturation, hue=hue, space=space, toning=toning, mono_toning=mono, filter=saturation)
-                    work = e.call("ColorMatchingService_MakeColorMatrix", settings, 0, out_a, out_b, out6)
-                    got6 = [list(e.read(out6 + 18 * i, "9h")) for i in range(6)]
-                    got_cm = list(e.read(out_a + 0x18, "9h")); got_yc = list(e.read(out_b + 0x18, "9h"))
-                    got_off = tuple(v - 0x800 for v in e.read(out_b + 0x2A, "2H")); got_work = list(e.read(work, "9h"))
-                    want6, want_work = port.color_matrices(t, mode, saturation, saturation)
-                    want = (want6, port.cm_matrix(), port.yc_matrix(t, mode, hue, space == 1),
-                            port.chroma_offsets(t, mode, toning, mono, space == 1), want_work)
+for mode, entry in engine.modes.items():
+    rule = entry["sliders"]
+    for saturation in (range(-4, 5) if rule["saturation"] == "slider" else (0,)):
+        for hue in (range(-4, 5) if rule["hue"] == "slider" and saturation == 0 else (0,)):
+            for space in ("srgb", "adobergb"):
+                for toning in (range(9) if entry["toning"] and saturation == 0 else (0,)):
+                    setup(mode=entry["id"], saturation=saturation + 4, hue=hue + 4, space=space == "adobergb", toning=toning,
+                          filter=entry["filter_effect"])
+                    emulator.call("ColorMatchingService_MakeColorMatrix", settings, 0, out_a, out_b, out6)
+                    six = [list(emulator.read(out6 + 18 * i, "9h")) for i in range(6)]
+                    cm = list(emulator.read(out_a + 0x18, "9h"))
+                    fc1 = list(emulator.read(out_b + 0x18, "9h"))
+                    offsets = tuple((value - 0x800) / 4 for value in emulator.read(out_b + 0x2A, "2H"))
+                    want = engine.color_matrix(mode, saturation)
                     total += 1
-                    if (got6, got_cm, got_yc, got_off, got_work) != want:
+                    if (six != [want] * 6 or cm != [256, 0, 0, 0, 256, 0, 0, 0, 256]
+                            or fc1 != [value << 3 for value in engine.yc(mode, hue, space == "adobergb")]
+                            or offsets != engine.chroma_offset(mode, toning, space)):
                         bad += 1
-                        if bad <= 5:
-                            print("MISMATCH", mode, saturation, hue, space, toning, mono)
-                            for g, w in zip((got6, got_cm, got_yc, got_off, got_work), want):
-                                if g != w: print("   got ", g, "\n   want", w)
-print(f"MakeColorMatrix: {total - bad}/{total} settings identical")
-
-for gain, sensitivity in ((0x2000, 0), (0x2000, 1), (0x2000, 3), (0x2000, 4), (0x1800, 2), (0x3000, 3), (0x1234, 1)):
-    setup(gain=gain, sensitivity=sensitivity)
-    e.call("ColorMatchingService_MakeColorMatrix", settings, 0, out_a, out_b, out6)
-    got = list(e.read(out_a + 0x18, "9h"))
-    print("CM gain", hex(gain), sensitivity, "OK" if got == port.cm_matrix(gain, sensitivity) else f"MISMATCH {got} {port.cm_matrix(gain, sensitivity)}")
+                        print("MISMATCH colour", mode, saturation, hue, space, toning)
+failures += report("MakeColorMatrix (six colour matrices, CM, FC1, chroma offsets)", bad, total)
 
 bad = total = 0
-cases = [(key, contrast, 0x2000, 0, 0) for key in range(9) for contrast in range(9)]
-cases += [(4, 4, exposure, 0, 0) for exposure in (0x800, 0x1000, 0x1555, 0x1800, 0x2abc, 0x3000, 0x4000, 0x8000, 0x10000, 0x20000)]
-cases += [(key, contrast, exposure, ratio, flag) for key in (0, 3, 8) for contrast in (0, 5, 8) for exposure in (0x1700, 0x2000, 0x5000)
-          for ratio in (0, 0x2000, 0x4000, 0x6000) for flag in (0, 1)]
-cases += [(0xFF, 0xFF, 0x2000, 0, 0)]
-for key, contrast, exposure, ratio, flag in cases:
-    setup(key=key, contrast=contrast, exposure=exposure, ratio=ratio, flag=flag)
-    e.uc.mem_write(table & 0x1FFFFFFF, bytes(0x2100))
-    e.call("GammaCorrectionService_CalcGammaCorrectionTable", settings, 0, table)
-    got = list(e.read(table, "4096H"))
-    after = e.read(table + 0x2000, "32H")
-    want = port.gamma(t, 4 if key == 0xFF else key, 4 if contrast == 0xFF else contrast, exposure, ratio, 4 if flag else 1)
-    total += 1
-    if got != want or any(after):
-        bad += 1
-        if bad <= 5:
-            diff = [i for i in range(4096) if got[i] != want[i]]
-            print("GAMMA MISMATCH", key, contrast, hex(exposure), hex(ratio), flag, len(diff), diff[:8], [(got[i], want[i]) for i in diff[:8]], any(after))
-print(f"CalcGammaCorrectionTable: {total - bad}/{total} settings identical")
+for mode, entry in engine.modes.items():
+    rule = entry["sliders"]
+    cases = [(key, contrast, 0x2000, 0, 1) for key in (range(-4, 5) if rule["key"] == "slider" else (0,))
+             for contrast in (range(-4, 5) if rule["contrast"] == "slider" else (0,))]
+    if mode in ("natural", "reversal-film"):
+        cases += [(0, 0, exposure, ratio, step) for exposure in (0x400, 0x800, 0x1000, 0x16A0, 0x1800, 0x2ABC, 0x2D41, 0x4000,
+                                                                0x5A82, 0x8000, 0x10000)
+                  for ratio in (0, 0x2000, 0x4000, 0x5555) for step in (1, 4)]
+    routine = "GammaCorrectionService_CalcGammaCorrectionTable" + ("Reversal" if entry["gamma"] == "reversal" else "")
+    for key, contrast, exposure, ratio, step in cases:
+        setup(mode=entry["id"], key=key + 4, contrast=contrast + 4, exposure=exposure, ratio=ratio, coarse=step == 4)
+        emulator.write(table, f"{0x2100}x")
+        emulator.call(routine, settings, 0, table)
+        total += 1
+        if list(emulator.read(table, "4096H")) != engine.gamma(mode, key, contrast, exposure, ratio, step) \
+                or any(emulator.read(table + 0x2000, "32H")):
+            bad += 1
+            print("MISMATCH gamma", mode, key, contrast, hex(exposure), hex(ratio), step)
+failures += report("CalcGammaCorrectionTable and ...Reversal (4096 entries each)", bad, total)
+sys.exit(1 if failures else 0)

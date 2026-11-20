@@ -15,7 +15,7 @@ from .chart_detect import MultipleCharts, detect_chart, orient_outer_corners
 from .chart_fit import fit_chart, reference_srgb
 from .chart_input import load_chart_jpeg, patch_centers, sample_chart
 from .display import rgb_image
-from .profiles import render_dcp
+from .profiles import preview_inputs, render_dcp
 from .raw import resize_rgb
 
 
@@ -138,6 +138,7 @@ class ChartDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.lang = parent.lang
+        self.camera_id = parent.recipe["camera_id"]
         self.sources = set(parent.source_paths)
         self.display_space = parent.display_space
         self.source = self.image = self.patches = self.result = None
@@ -416,7 +417,7 @@ class ChartDialog(QDialog):
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             try:
                 patches = sample_chart(self.image, self.corners)
-                self.result = fit_chart(patches, _PREVIEW_NAME, edition=self.edition.currentData())
+                self.result = fit_chart(patches, _PREVIEW_NAME, camera_id=self.camera_id, edition=self.edition.currentData())
                 self.patches = patches
             except (ValueError, OSError) as error:
                 self.problem = self.message(error)
@@ -428,8 +429,8 @@ class ChartDialog(QDialog):
     def preview_raw(self, index):
         if index == 1 and self.raw is not None and self.result is not None:
             try:
-                rgb = resize_rgb(self.raw.rgb, 720)
-                fitted = render_dcp(rgb, self.result.dcp, self.raw.baseline_exposure)
+                rgb, baseline = preview_inputs(resize_rgb(self.raw.rgb, 720), self.raw.baseline_exposure, self.camera_id)
+                fitted = render_dcp(rgb, self.result.dcp, baseline)
                 self.raw_view.set_image(rgb_image(fitted, self.display_space))
             except (ValueError, OSError) as error:
                 self.tabs.setCurrentIndex(0)
@@ -440,7 +441,7 @@ class ChartDialog(QDialog):
         if self.result is None or not name:
             return
         try:
-            named = fit_chart(self.patches, name, edition=self.edition.currentData())
+            named = fit_chart(self.patches, name, camera_id=self.camera_id, edition=self.edition.currentData())
         except ValueError as error:
             self.warn(self.message(error))
             return

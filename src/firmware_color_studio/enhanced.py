@@ -309,7 +309,7 @@ def build_enhanced(recipe: dict) -> EnhancedBundle:
         # follows its UUID, the base DCP name its CC0 matrix and calibration.
         "dcp_filename": base_filename,
         "xmp_filename": f'{recipe["camera_id"]}-{recipe["mode"]}-{identifier[:8].lower()}.xmp',
-        "baseline_exposure_offset": profiles.BASELINE_EXPOSURE_OFFSET,
+        "baseline_exposure_offset": profiles.baseline_exposure_offset(recipe["camera_id"]),
         "lut_grid": [GRID_SIZE] * 3,
         "lut_domain": "ProPhoto RGB primaries, sRGB transfer",
         "base_transform": "firmware CC0 in intermediate ProPhoto coordinates; paired XMP required",
