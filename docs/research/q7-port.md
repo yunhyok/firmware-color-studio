@@ -4,7 +4,7 @@ Goal: add **PENTAX Q7** as a second, selectable camera in Firmware Color Studio,
 derived from its firmware in the same way as the K-3 Mark III pack. This file is the working
 record. It is updated at every milestone so that the work can be resumed from here.
 
-**Status: in progress (research phase). Nothing in the app has changed yet.**
+**Status: in progress (research phase). The firmware is fully unpacked and symbolised; the colour tables are not located yet. Nothing in the app has changed yet.**
 
 ## How to resume
 
@@ -66,35 +66,54 @@ record. It is updated at every milestone so that the work can be resumed from he
   `arbGammaTable` `0x803944d4`, `g_gammaDefaultLut` `0x80bc8df0`. They cannot be read until the
   packed segments are unpacked.
 
-### Packed segments (not solved)
+### Packed segments (solved: `tools/q7/unpack.py`)
 
-- The kernel unpacks them with `InflateElfStream` (`0x800e9cc4`) → `InflatingStreamCreate/Decode`
-  (`0x800f9ba8`) → an "inflate processor" object called through function tables
-  (`InflateProcessorCreate` `0x800fa13c`, `gsInflateProcessor`, `sInflateCguUnits`: probably a
-  hardware block of the COACH chip).
-- The stream is **not** RFC 1951 deflate in any simple form: raw deflate, zlib and gzip were tried
-  at every start offset 0–4095 of segment A, also with 16/32-bit byte swaps and bit reversal.
-- Segment data starts with what looks like a header and a table, for part A:
-  `00000002 000045ac 00002700 0084058c 00069801 0001a84c 00008841 0000080f 0002b48c 0002b38c …`.
-  Parts B and C start with `2, 0x4660, 0x2800` and `2, 0xab04, 0x2d00`.
-- `tools/q7/dis.py firmware.bin NAME` disassembles kernel functions by symbol name (needs
-  `pip install capstone`).
+- The kernel unpacks them with `InflateElfStream` (`0x800e9cc4`) → `InflatingStreamSetupInputJob`
+  (`0x800fae80`) → an inflate processor of the COACH chip that is given lookup tables
+  (`IP_LoadVlcTable`). There is no software decoder in the firmware; the format below was
+  worked out from the header parser and from the tables themselves.
+- A packed segment is a chain of **blocks**. Block header, 16 bytes: `u32 kind (2)`,
+  `u32 output bytes`, `u32 data bytes`, `u16 table 1 bytes`, `u16 table 2 bytes`; then table 1
+  (literal/length code), table 2 (distance code), then the data (padded to 128 bytes).
+  The chains end exactly at each segment's file size and their output sizes add up to the
+  memory sizes (`tools/q7/blocks.py`): 178, 126, 125 and 19 blocks.
+- The data is LZ77 with **deflate's alphabets** (literals, end of block, lengths 3–258 with 0–5
+  extra bits, distance codes with 0–13 extra bits) but with a prefix code given as a hardware
+  lookup table instead of deflate's code lengths. Bits are read most significant bit first;
+  extra bits likewise. A block's last match may run past the block's output size and is cut.
+- Table entries are `u32` (`tools/q7/codes.py`):
+  - bits 0–1 = 3: **leaf**. Value in bits 2–11 (0–255 literal, `0x100` end, `0x200 + base`
+    length; in table 2 the value is `extra_bits << 2 | 2 | low_bit`, or 0–3 for distances 1–4),
+    bits 12–14 number of extra bits, bits 15–17 code bits beyond the table's shortest code
+    plus extra bits.
+  - bits 0–1 = 0: pointer to a **direct table** of `2^B` slots at `index`; shorter codes
+    repeat. `index` = bits 2–10, `B` = bits 11–14, `A` = bits 15–18 (shortest code in it).
+  - bits 0–1 = 1: pointer to a **run-class table** of `B + A` entries at `index + 1`: the first
+    `B` entries are chosen by a leading run of zeros of length 1…B (`01`, `001`, …, the longest
+    without the closing `1`), the next `A` by a run of ones (`10`, `110`, …).
+  - Entry 0 is the root pointer.
+- Checks: the implied codes are complete prefix codes (Kraft sum exactly 1) for both tables; the
+  first block starts with `addiu sp,sp,-0x18; sw s0,0x10(sp); sw ra,0x14(sp)` at the address of
+  `EyeFiService_InitializeOnBoot2nd`; all four segments unpack to their exact memory sizes;
+  1,153 of 1,779 sampled function symbols in the unpacked parts begin with `addiu sp,sp,-N`.
+- `python3 -I tools/q7/unpack.py firmware.bin image.bin` writes the memory image
+  `0x80000600`–`0x80bec380` (12,500,352 bytes, SHA-256 `eb0e5607…f45e` for this firmware).
+  The image is firmware content: keep it out of the repository.
+- `Q7_IMAGE=image.bin:0x80000600 python3 -I tools/q7/dis.py firmware.bin NAME` disassembles
+  any function by symbol name (needs `pip install capstone`).
 
 ## Next steps
 
-1. **Unpack the three packed parts.** Read the inflate processor code in the kernel (function
-   tables behind `InflatingStreamDecode`, `InflateProcessorCreate`) and look for a software
-   decoder; work out the header/table at the start of each packed segment.
-2. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); these are plain.
-3. With the unpacked image and `symbols.py`, read the Custom Image parameter tables: colour
+1. With the unpacked image and `symbols.py`, read the Custom Image parameter tables: colour
    matrices, saturation/hue/key/contrast tables, gamma and tone tables, YC conversion, chroma
    suppression (`cnarwBasicTone*`, `arbGammaTable`, `ImageTuningRelay_*`, `CCmFilter::*`,
    `MakeToneForContrastControl`, `cntCustomImageUnit*`).
-4. Reconstruct the calculation from those parameters to the ISP registers and write
+2. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); these are plain.
+3. Reconstruct the calculation from those parameters to the ISP registers and write
    `engine`-compatible tables for a `pentax-q7` camera pack.
-5. App work: second entry in `profiles._PACKS`, camera picker in the GUI, Q7 DNG input in
+4. App work: second entry in `profiles._PACKS`, camera picker in the GUI, Q7 DNG input in
    `raw.py` (sensor geometry, levels, maker note), `UniqueCameraModel` `PENTAX Q7`, tests, docs.
-6. Validation that is possible without a camera: internal consistency only. Lightroom and
+5. Validation that is possible without a camera: internal consistency only. Lightroom and
    camera JPEG comparisons need Q7 RAW files from the user.
 
 ## Open questions for the user
