@@ -1,8 +1,8 @@
 # Firmware Color Studio
 
-**PENTAX K-3 Mark III**용 Lightroom 프로파일을 만들고 RAW에 적용해 비교하는 Windows 앱입니다. 카메라 모드는 펌웨어 2.20에서 확인한 수식과 표로 재현합니다. **차트 JPEG → DCP**에서는 다른 카메라로 촬영한 ColorChecker Classic 사진 한 장을 이용해 색감을 추정합니다.
+**PENTAX K-3 Mark III**와 **PENTAX Q7**용 Lightroom 프로파일을 만들고 RAW에 적용해 비교하는 Windows 앱입니다. 카메라 모드는 각 카메라의 펌웨어(K-3 Mark III 2.20, Q7 1.01)에서 확인한 수식과 표로 재현합니다. **차트 JPEG → DCP**에서는 다른 카메라로 촬영한 ColorChecker Classic 사진 한 장을 이용해 색감을 추정합니다.
 
-[Windows 설치 파일](https://github.com/yunhyok/firmware-color-studio/releases/latest) · [계산 근거](docs/architecture.md) · [Gold 분석](docs/gold.md) · [XMP 방식과 한계](docs/enhanced.md)
+[Windows 설치 파일](https://github.com/yunhyok/firmware-color-studio/releases/latest) · [계산 근거](docs/architecture.md) · [Q7 지원 범위와 한계](docs/q7.md) · [Gold 분석](docs/gold.md) · [XMP 방식과 한계](docs/enhanced.md)
 
 ## 사용 방법
 
@@ -25,6 +25,14 @@
 | Bleach Bypass (블리치 바이패스), Reversal Film (리버설 필름), Monochrome (모노톤) | 카메라 sRGB/Adobe RGB 설정, 사용자 DNG 보정 행렬 |
 | SATOBI (사토비), HARUBENI (하루베니), KATEN (카텐), KYUSHU (큐슈), FUYUNO (후유노) | 설정 JSON 저장·불러오기, 커스텀 이름 |
 
+**PENTAX Q7 프로파일**
+
+상단의 카메라 메뉴에서 **PENTAX Q7**을 고르면 Q7 펌웨어 1.01의 Custom Image 10종으로 바뀝니다: Natural, Bright, Portrait, Landscape, Vibrant, Radiant, Muted, Bleach Bypass, Reversal Film, Monochrome. 조절 항목은 펌웨어를 따릅니다. Q7에는 하이라이트/섀도 대비가 없고, Muted와 Bleach Bypass는 색상 대신 조색을 씁니다. 내보낸 DCP의 카메라 이름은 `PENTAX Q7`이므로 Lightroom에서 Q7 DNG에만 나타납니다.
+
+- 색 행렬·감마·YC 계산은 Q7 펌웨어 루틴을 CPU 에뮬레이터로 실행한 결과와 모든 설정에서 일치합니다.
+- **Q7로 찍은 사진으로는 아직 확인하지 못했습니다.** 카메라 JPEG이나 Lightroom 결과와 비교한 적이 없고, 전체 밝기 기준(`BaselineExposureOffset`)은 보정 전 값 0입니다. Q7 DNG와 같은 컷의 카메라 JPEG이 있으면 맞출 수 있습니다.
+- RAW 열기는 K-3 Mark III 파일만 지원합니다. Q7을 고른 상태의 미리보기는 K-3 Mark III RAW를 두 카메라의 센서 행렬로 환산한 근사입니다. [Q7 지원 범위와 한계](docs/q7.md)
+
 ## 지원 범위
 
 - 일반 컬러 K-3 III의 14-bit 단일 프레임 Bayer PEF 및 원본 DNG를 지원합니다. Pixel Shift, HDR, K-3 III Monochrome과 변환된 DNG의 미리보기는 지원하지 않습니다.
@@ -46,13 +54,13 @@ python -m venv .venv
 ./tools/build_windows.ps1
 ```
 
-CLI는 `fcs verify --report result.json`, `fcs export recipe.json output.dcp`, `fcs export recipe.json output.zip --enhanced`, `fcs preview input.DNG output.png --mode natural`을 제공합니다. CLI 출력 파일은 기존 파일을 덮어쓰지 않습니다.
+CLI는 `fcs verify --report result.json`, `fcs recipe recipe.json --camera pentax-q7 --mode bright`(출고값 레시피 쓰기), `fcs export recipe.json output.dcp`, `fcs export recipe.json output.zip --enhanced`, `fcs preview input.DNG output.png --mode natural`을 제공합니다. `--camera`는 `pentax-k3iii`(기본) 또는 `pentax-q7`입니다. CLI 출력 파일은 기존 파일을 덮어쓰지 않습니다.
 
 차트 사진에는 `fcs chart-fit`을 사용합니다. [자동 인식과 수동 좌표 사용 예제](docs/chart-profiles.md#cli)
 
 ## 출처와 라이선스
 
-이 앱은 [pentax-k3iii-firmware-analysis](https://github.com/yunhyok/pentax-k3iii-firmware-analysis)의 `aa885bcdaee874d9b9bb18663dd62ed10263eda2` 연구를 기준으로 구현했습니다. 배포 패키지는 Terry Duell의 컬러 큐브 원본 DNG 한 장을 CC0 1.0으로 포함합니다. 데모의 출처와 해시는 별도 기록에서 확인할 수 있습니다. 패키지에 펌웨어, Adobe SDK 또는 제조사 코드의 디컴파일 결과를 포함하지 않습니다. [데모 출처와 라이선스](src/firmware_color_studio/data/demo/README.md) · [카메라 데이터 출처와 SHA-256](src/firmware_color_studio/data/k3iii/manifest.json)
+이 앱은 [pentax-k3iii-firmware-analysis](https://github.com/yunhyok/pentax-k3iii-firmware-analysis)의 `aa885bcdaee874d9b9bb18663dd62ed10263eda2` 연구를 기준으로 구현했습니다. Q7 팩의 수치는 [pentax-q7-firmware-analysis](https://github.com/yunhyok/pentax-q7-firmware-analysis)와 이 저장소의 [연구 기록](docs/research/q7-port.md)에서 나왔습니다. 배포 패키지는 Terry Duell의 컬러 큐브 원본 DNG 한 장을 CC0 1.0으로 포함합니다. 데모의 출처와 해시는 별도 기록에서 확인할 수 있습니다. 패키지에 펌웨어, Adobe SDK 또는 제조사 코드의 디컴파일 결과를 포함하지 않습니다. [데모 출처와 라이선스](src/firmware_color_studio/data/demo/README.md) · [카메라 데이터 출처와 SHA-256](src/firmware_color_studio/data/k3iii/manifest.json)
 
 앱 코드는 MIT입니다. 외부 라이브러리 및 수치 데이터의 출처는 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)를 확인하십시오. PENTAX/RICOH 및 Adobe와 제휴하거나 공식 인증받은 소프트웨어가 아닙니다.
 

@@ -4,7 +4,7 @@ Goal: add **PENTAX Q7** as a second, selectable camera in Firmware Color Studio,
 derived from its firmware in the same way as the K-3 Mark III pack. This file is the working
 record. It is updated at every milestone so that the work can be resumed from here.
 
-**Status: in progress (research phase). The firmware is unpacked and symbolised, the colour tables are exported, and the colour matrix and gamma routines are ported to Python and reproduce the emulated firmware exactly (see "Colour arithmetic"). Reversal Film gamma, factory settings per Custom Image and the app work are still to do. Nothing in the app has changed yet.**
+**Status: the `pentax-q7` camera pack is in the app (camera menu, CLI `--camera`) and builds DCP and DCP + XMP profiles for ten Custom Images. Its integer calculations reproduce the emulated firmware exactly. Not done: validation with Q7 photographs (exposure anchor, Lightroom, camera JPEG), Q7 RAW input, and the items under "Next steps".** User documentation: [../q7.md](../q7.md).
 
 ## How to resume
 
@@ -125,7 +125,7 @@ All are in unpacked part A. Values are in [`q7-color-tables.json`](q7-color-tabl
 |---|---|---|
 | `cnsCameraBasicMatrix` `0x804add38` | sensor matrix, 1.0 = 8192, rows sum to 8192: `11243 -3459 408 / -2736 12937 -2009 / -2 -4343 12537` | `common_matrix` |
 | `cnsMakeUpMatrix<Mode>` | per Custom Image matrix, 1.0 = 8192. Modes: Natural, Vivid, Portrait, Landscape, Miyabi, Monotone, Flat, Honoka, Reversal, BleachBypass, PopTune | `mode_matrix` |
-| `cnsMakeUpMatrix<Mode>6` | six matrices per mode (108 bytes); purpose not yet known | – |
+| `cnsMakeUpMatrix<Mode>6` | six matrices per mode (108 bytes), one per hue sector of the three-dimensional table; all six equal the single matrix in firmware 1.01 | – |
 | `cnarsSatCtlMatrix00`…`08` | saturation −4…+4, 1.0 = 8192 (`04` is identity) | `saturation_matrix_sets` |
 | `cnarsFilterEffectMatrix00`…`08` | monochrome filter effect | saturation set `s1` |
 | `cnsHueShiftMatrix00`…`08` | hue −4…+4 as YC rotations, **1.0 = 256** (K-3 III stores 8192) | `hue_matrix_sets` |
@@ -182,26 +182,66 @@ descriptor A, descriptor B, six-matrix output). Settings fields used: byte `+0x3
   linearly interpolated into table entries 0..2047 (16 per step); entries 2048..4095 are a straight
   line from entry 2048 to 4095.
 
-Not yet read: `GammaCorrectionService_CalcGammaCorrectionTableReversal` `0x8041cd28`, the Custom
-Image records `cntCustomImageUnit<Mode>`, `ImageTuningRelay_GetDefault*Id`, where the six-matrix
-output goes after `ImageQualityService_SetupColorMatrix`, and how the gamma table input range
-(0..4095) relates to the sensor range.
+**`GammaCorrectionService_CalcGammaCorrectionTableReversal` `0x8041cd28`** has the same form with
+seven curves (`cnarwReversalTone128`…`1024`, bounds `128 181 256 362 512 724 1024`), `v` clamped to
+128..1024, the key fixed at 0 and no contrast. Port verified with the regular table (906 tables).
+
+`check_port.py` now compares the engine the app uses (`src/firmware_color_studio/q7_engine.py`):
+
+    MakeColorMatrix (six colour matrices, CM, FC1, chroma offsets): 276/276 settings identical
+    CalcGammaCorrectionTable and ...Reversal (4096 entries each): 906/906 settings identical
+
+### Where the results go: a three-dimensional table (read from the code, not emulated)
+
+`ImageQualityService_SetupGammaCorrectionAndColorMatchingService` `0x804289b8` allocates four gamma
+tables and three descriptors and calls:
+
+- `GammaCorrectionService_SetupGammaCorrectionData` `0x8041e27c`: table A = the routine above (Reversal
+  for mode id 6); tables B and C are marked unused (`0xffff`) unless Cross Processing fills them; table
+  D = `CalcBasicGammaCorrectionTable`, which is encoded for the hardware gamma block (descriptor id 10).
+- `ColorMatchingService_MakeColorReproductionLutParam` `0x8041c7dc` (via `SetupColorReproductionLuts`,
+  descriptor id 0x13, 0x19c0 bytes): a 9 x 9 x 9 table of RGB triples. The nine node levels per axis
+  are where table D first reaches `0 512 1024 ... 3584 4095`. For each node: choose one of the six
+  matrices by the order of R, G, B (hue sector); `matrix x RGB >> 8`; convert to Y, Cb, Cr
+  (`306 601 117 / -173 -339 512 / 512 -429 -83`, `>> 10`); if the matrix output's green is <= 256,
+  scale Cb and Cr by `arwCChromaSuppressionRatioLut[min(2 x (256 - green), 2047)] / 8192` (1.0 down to
+  0.875 at black); convert back (`1436`, `-352 -731`, `1815`, `>> 10`); clamp to 0..4095; look each
+  channel up in gamma table A (B, C for Cross Processing).
+
+So the camera's colour rendering is this table, addressed by the output of the basic gamma block and
+interpolated by the hardware. At the nodes it equals `gamma(chroma suppression(matrix x RGB))`, which is
+what `Q7Engine.camera()` describes; between nodes the camera can differ. The interpolation method of
+the hardware is not known. The gamma routines do not read the colour space setting.
+
+### Custom Image records and DNG matrices
+
+`cntCustomImageUnit<Mode>` (28 bytes): byte 0 mode id, 1 saturation, 2 contrast, 3 sharpness, 4 key,
+5 hue, 6 monochrome filter effect, 7 monochrome toning, 8 toning colour (settings stored as 0..8, 4 =
+0). The bytes are copied to settings `+0x34`…. The values equal the K-3 Mark III factory settings for
+the same Custom Images (Bright contrast +1; Radiant key +2, contrast +3; Muted key +4, contrast -3;
+Bleach Bypass key -4, contrast +4, toning green). The toning offsets divided by 4 equal the K-3 III's.
+There are also records for scene modes (`DramaticArt`, `Gokusai`, `BlueSky`, …) that are not offered.
+
+`arcnlDNGColorMatrix2` equals the D65 matrix LibRaw lists for the Q-S1 (same sensor):
+`12995 -5593 -1107 / -1879 10139 2027 / -64 1233 4919` (x 1e-4). The model string in the firmware is
+`PENTAX Q7`.
 
 ## Next steps
 
-1. Disassemble `ColorMatchingService_MakeColorMatrix` and the tone routine; write down the
-   arithmetic and compare it with `engine.py` (`cc0`, `yc`, `_regular_curve`, `_reversal_curve`).
-2. Read the Custom Image records (`cntCustomImageUnit*`) and the default-id functions
-   `ImageTuningRelay_GetDefault*Id` for factory settings and which controls each mode has.
-3. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); these are plain.
-4. Write `q7` engine tables in the format `Engine` needs (or a `Q7Engine` where the arithmetic
-   differs) and a `pentax-q7` camera pack with its manifest.
-5. App work: second entry in `profiles._PACKS`, camera picker in the GUI, Q7 DNG input in
-   `raw.py` (sensor geometry, levels, maker note), `UniqueCameraModel` `PENTAX Q7`, tests, docs.
-6. Validation that is possible without a camera: internal consistency only. Lightroom and
-   camera JPEG comparisons need Q7 RAW files from the user.
+1. **Exposure anchor (needs a Q7 DNG and the camera JPEG of the same shot).** Set
+   `baseline_exposure_offset` in `data/q7/manifest.json` from a comparison, as the K-3 III pack did
+   (+0.5 EV); it is 0 now. Related open point: how the run-time gains (settings `+0x164`, `+0x174`,
+   `+0x178`) and the sensor's white level relate to the 0..4095 input of the gamma table.
+2. **Q7 RAW input** in `raw.py` (model identity, CFA pattern, levels, crop, maker note with the shot's
+   Custom Image), then calibration import from a Q7 DNG. Needs sample files.
+3. **Compare with Lightroom and camera JPEGs** once files exist, as `docs/validation.md` does for the
+   K-3 III; this also measures the effect of the camera's 9 x 9 x 9 table interpolation.
+4. Optional: model the table itself (port `MakeColorReproductionLutParam` and
+   `CalcBasicGammaCorrectionTable`, emulate to verify) and interpolate it, if step 3 shows a visible
+   difference. Cross Processing, monochrome filter effect and monochrome toning could be added the same way.
+5. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); not needed so far.
 
 ## Open questions for the user
 
-- A Q7 DNG (and, ideally, the camera JPEG of the same shot) is needed to implement and check
-  RAW preview and to confirm `UniqueCameraModel`, levels and the DNG colour matrices.
+- A Q7 DNG and the camera JPEG of the same shot (ideally with a grey card or colour chart) are needed
+  for steps 1 to 3. Without them the Q7 profiles are unverified against the camera's output.

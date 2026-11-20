@@ -43,6 +43,16 @@ def verify() -> dict:
         modes[mode] = {"sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data), "render_ok": True}
         if mode in ("natural", "bright"):
             comparison[mode] = preview
+    cameras = {}                                 # the other camera packs: the report keeps "modes" for the K-3 Mark III
+    for camera_id in list(list_cameras())[1:]:
+        cameras[camera_id] = {}
+        for mode in list_modes(camera_id):
+            data, _ = build_profile(default_recipe(mode, camera_id))
+            converted, baseline = preview_inputs(rgb, frame.baseline_exposure, camera_id)
+            preview = render_dcp(converted, data, baseline)
+            if preview.shape != rgb.shape or not np.isfinite(preview).all() or preview.min() < 0 or preview.max() > 1:
+                raise ValueError(f"invalid {camera_id} {mode} rendering")
+            cameras[camera_id][mode] = {"sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data), "render_ok": True}
     maximum_difference = float(np.max(np.abs(comparison["natural"] - comparison["bright"])))
     if maximum_difference <= 1 / 255:
         raise ValueError("bundled color cube renderings do not distinguish Natural and Bright")
@@ -51,7 +61,8 @@ def verify() -> dict:
         "width": frame.metadata["width"], "height": frame.metadata["height"],
         "baseline_exposure": frame.baseline_exposure, "natural_bright_max_difference": maximum_difference,
     }
-    return {"version": __version__, "status": "passed", "modes": modes, "demo": demo, "firmware_required": False}
+    return {"version": __version__, "status": "passed", "modes": modes, "cameras": cameras, "demo": demo,
+            "firmware_required": False}
 
 
 def main():

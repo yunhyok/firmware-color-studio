@@ -492,7 +492,12 @@ class MainWindow(QMainWindow):
         self._translate()
 
     def _sync_controls(self):
-        mode = list_modes(self.recipe["camera_id"])[self.recipe["mode"]]
+        modes = list_modes(self.recipe["camera_id"])
+        mode = modes[self.recipe["mode"]]
+        for name, pair in self.controls.items():         # a control no Custom Image of this camera has is left out
+            offered = any(info["controls"][name] for info in modes.values())
+            for widget in (self.control_labels[name], *pair):
+                widget.setVisible(offered)
         widgets = [self.name_edit, self.space, self.tone]
         widgets += [w for pair in self.controls.values() for w in pair]
         for widget in widgets:

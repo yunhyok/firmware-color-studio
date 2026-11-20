@@ -17,6 +17,11 @@ No original firmware image or decompiled manufacturer code is distributed.
 The original calibration row scales are from the metadata of a reference
 camera, not a RAW/JPEG fit. Users can import their own K-3 III DNG calibration.
 
+The PENTAX Q7 pack's numerical tables (`data/q7/q7-color-tables.json`) were read from
+firmware 1.01 for this project and for Yunhyok's
+[PENTAX Q7 firmware research](https://github.com/yunhyok/pentax-q7-firmware-analysis); the same
+terms apply. The manifest records the firmware and table hashes.
+
 ## ColorChecker reference measurements
 
 The JPEG chart feature uses the D50/2° numerical reference measurements published by X-Rite for the ColorChecker Classic before November 2014 and from November 2014 onward. ColorChecker is a trademark of its owner. The app includes the reference numbers in patch order. X-Rite chart artwork and example JPEGs are not bundled. [Manufacturer’s edition notes](https://www.xrite.com/en/service-support/new_color_specifications_for_colorchecker_sg_and_classic_charts) · [X-Rite reference data archive](https://doi.org/10.5281/zenodo.3245895)

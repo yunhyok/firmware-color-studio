@@ -6,9 +6,9 @@ The firmware modes follow the K-3 III formulas and numeric tables at research co
 
 ## Camera packs
 
-The private `_PACKS` registry in `profiles.py` maps stable camera IDs to independent manifest/data paths, labels, engines and enhanced-mode implementations. Recipes pin `camera_id`, `pack_version` and `schema_version`; unknown versions and parameters fail explicitly. The first pack is `pentax-k3iii`, version `2.20-1`.
+The private `_PACKS` registry in `profiles.py` maps stable camera IDs to independent manifest/data paths, labels, engines and enhanced-mode implementations. Recipes pin `camera_id`, `pack_version` and `schema_version`; unknown versions and parameters fail explicitly. The packs are `pentax-k3iii`, version `2.20-1`, and `pentax-q7`, version `1.01-1` ([Q7 pack](q7.md)); the camera menu of the GUI and `--camera` on the command line choose between them.
 
-Adding a camera requires its own sourced numerical model, manifest/default recipes, supported RAW identity and metadata/crop validation in `raw.py`, and comparison tests. Do not reuse K-3 III color matrices, black levels or firmware layouts merely because a camera is also PENTAX. The current GUI has one available pack; a camera picker becomes useful when a second validated pack exists. The packaged application never needs the manufacturer's firmware binary.
+Adding a camera requires its own sourced numerical model, manifest/default recipes, supported RAW identity and metadata/crop validation in `raw.py`, and comparison tests. Do not reuse K-3 III color matrices, black levels or firmware layouts merely because a camera is also PENTAX. The Q7 pack has its own engine (`q7_engine.py`) because its firmware combines the tables differently; it does not yet have RAW input, so `raw.py` still accepts K-3 Mark III files only. The packaged application never needs the manufacturer's firmware binary.
 
 ## Defaults and custom profiles
 
