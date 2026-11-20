@@ -19,7 +19,7 @@ record. It is updated at every milestone so that the work can be resumed from he
 
 ## Findings
 
-### Container and platform (verified by `tools/q7/look.py`, `arch.py`, `strs.py`)
+### Container and platform (verified by `tools/q7/look.py`, `arch.py`, `strs.py`, `layout.py`)
 
 - The file is **not encrypted**. It is not the Ricoh/Pentax LZ container that the K-3 III
   decoder (`inspect_firmware.py` in the research repository) reads.
@@ -45,19 +45,56 @@ record. It is updated at every milestone so that the work can be resumed from he
   (Natural, Vivid, Portrait, Landscape, Honoka, PopTune, Reversal, BleachBypass, CrossProcess,
   Monotone and scene modes).
 
+### ELF images and symbols (verified by `tools/q7/elfs.py`, `symbols.py`)
+
+- The file holds 13 ELF32 little-endian MIPS images. The ones that matter:
+
+  | File offset | Role | Load address | Stored / in memory |
+  |---|---|---|---|
+  | `0x200` | burner (`Zburn`), has `.symtab` | `0x80010000` | plain |
+  | `0x1026c0` | kernel, 4 segments | `0x80000780` | `0x12d0b8` plain |
+  | `0x2402c0` | application part A | `0x8012da80` | `0x20bef0` → `0x3f2300` **packed** |
+  | `0x44c204` | application part B | `0x8051fe00` | `0x182408` → `0x2d2e00` **packed** |
+  | `0x5ce660` | application part C (+ data at `0x80b62c00`) | `0x807f2c80` | `0x1800cc` → `0x36ff80`, data `0x2d82c` → `0x89780` **packed** |
+  | `0xf4aac0` | relocatable with `__ksymtab` (79,537 entries, names cut to 25 characters) | – | plain |
+
+- A complete sorted symbol table precedes it: 122,368 entries, u32 addresses at `0xafa368`,
+  u32 name offsets at `0xb71b68`, names from `0xbe96c0`. `tools/q7/symbols.py` reads it and
+  reports the segment of each address. Distribution: kernel 7,597, part A 21,169, part B 15,430,
+  part C 58,603 (+15,619 data), other RAM 3,945.
+- Colour symbols are in the **packed** parts, for example `cnarwBasicTone512Middle` `0x804b3a70`,
+  `arbGammaTable` `0x803944d4`, `g_gammaDefaultLut` `0x80bc8df0`. They cannot be read until the
+  packed segments are unpacked.
+
+### Packed segments (not solved)
+
+- The kernel unpacks them with `InflateElfStream` (`0x800e9cc4`) → `InflatingStreamCreate/Decode`
+  (`0x800f9ba8`) → an "inflate processor" object called through function tables
+  (`InflateProcessorCreate` `0x800fa13c`, `gsInflateProcessor`, `sInflateCguUnits`: probably a
+  hardware block of the COACH chip).
+- The stream is **not** RFC 1951 deflate in any simple form: raw deflate, zlib and gzip were tried
+  at every start offset 0–4095 of segment A, also with 16/32-bit byte swaps and bit reversal.
+- Segment data starts with what looks like a header and a table, for part A:
+  `00000002 000045ac 00002700 0084058c 00069801 0001a84c 00008841 0000080f 0002b48c 0002b38c …`.
+  Parts B and C start with `2, 0x4660, 0x2800` and `2, 0xab04, 0x2d00`.
+- `tools/q7/dis.py firmware.bin NAME` disassembles kernel functions by symbol name (needs
+  `pip install capstone`).
+
 ## Next steps
 
-1. Find the symbol table that pairs the names at `0xbc0000`+ with addresses, and the load
-   address of each code/data section.
-2. Identify the `0x240000`–`0x780000` region (compressed main program?) and unpack it.
-3. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others).
-4. Locate, by symbol, the Custom Image parameter tables: colour matrices, saturation/hue/key/
-   contrast tables, gamma and tone tables, YC conversion, chroma suppression.
-5. Reconstruct the calculation from those parameters to the ISP registers and write
+1. **Unpack the three packed parts.** Read the inflate processor code in the kernel (function
+   tables behind `InflatingStreamDecode`, `InflateProcessorCreate`) and look for a software
+   decoder; work out the header/table at the start of each packed segment.
+2. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); these are plain.
+3. With the unpacked image and `symbols.py`, read the Custom Image parameter tables: colour
+   matrices, saturation/hue/key/contrast tables, gamma and tone tables, YC conversion, chroma
+   suppression (`cnarwBasicTone*`, `arbGammaTable`, `ImageTuningRelay_*`, `CCmFilter::*`,
+   `MakeToneForContrastControl`, `cntCustomImageUnit*`).
+4. Reconstruct the calculation from those parameters to the ISP registers and write
    `engine`-compatible tables for a `pentax-q7` camera pack.
-6. App work: second entry in `profiles._PACKS`, camera picker in the GUI, Q7 DNG input in
+5. App work: second entry in `profiles._PACKS`, camera picker in the GUI, Q7 DNG input in
    `raw.py` (sensor geometry, levels, maker note), `UniqueCameraModel` `PENTAX Q7`, tests, docs.
-7. Validation that is possible without a camera: internal consistency only. Lightroom and
+6. Validation that is possible without a camera: internal consistency only. Lightroom and
    camera JPEG comparisons need Q7 RAW files from the user.
 
 ## Open questions for the user
