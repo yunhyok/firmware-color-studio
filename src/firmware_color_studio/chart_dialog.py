@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 
 from .app import ImageView, checked_output, write_output
 from .chart_detect import MultipleCharts, detect_chart, orient_outer_corners
-from .chart_fit import fit_chart, reference_srgb
+from .chart_fit import builtin_looks, fit_chart, reference_srgb
 from .chart_input import load_chart_jpeg, patch_centers, sample_chart
 from .display import rgb_image
 from .profiles import preview_inputs, render_dcp
@@ -142,6 +142,7 @@ class ChartDialog(QDialog):
         self.sources = set(parent.source_paths)
         self.display_space = parent.display_space
         self.source = self.image = self.patches = self.result = None
+        self.look = None                            # patches of a built-in look, in place of a JPEG
         self.corners = []
         self.outer_corners = []
         self.fallback = False
@@ -155,6 +156,14 @@ class ChartDialog(QDialog):
         self.filename = QLabel()
         self.filename.setTextFormat(Qt.TextFormat.PlainText)
         header.addWidget(self.filename, 1)
+        self.looks = QComboBox()
+        self.looks.addItem(self.t("내장 색감 고르기…", "Built-in looks…"))
+        self.looks.addItems(list(builtin_looks()))
+        self.looks.setToolTip(self.t(
+            "다른 카메라의 차트 사진에서 미리 재 둔 색감입니다. JPEG 없이 선택한 카메라용 DCP를 만듭니다.",
+            "Looks measured beforehand from other cameras' chart photographs. Makes a DCP for the selected camera without a JPEG."))
+        self.looks.activated.connect(self.choose_look)
+        header.addWidget(self.looks)
         header.addWidget(QLabel(self.t("차트 제조 시기", "Chart production date")))
         self.edition = QComboBox()
         self.edition.addItem(self.t("2014년 11월 이후", "Nov 2014 and later"), "2014+")
@@ -246,12 +255,37 @@ class ChartDialog(QDialog):
         if path:
             self.load_path(path)
 
+    def choose_look(self, index):
+        """Take the patches of a built-in look in place of a chart JPEG."""
+        if index < 1:
+            return
+        name = self.looks.itemText(index)
+        self.look, edition = builtin_looks()[name]
+        self.source = self.image = None
+        self.fallback = False
+        self.detection_status = ""
+        self.corners = []
+        self.outer_corners = []
+        self.filename.setText(self.t(f"내장 색감 · {name}", f"Built-in look · {name}"))
+        self.filename.setToolTip("")
+        self.edition.blockSignals(True)
+        self.edition.setCurrentIndex(self.edition.findData(edition))
+        self.edition.blockSignals(False)
+        self.edition.setEnabled(False)              # the chart these looks were measured from is known
+        chart = np.repeat(np.repeat(self.look.reshape(4, 6, 3), 96, axis=0), 96, axis=1)
+        self.view.set_image(rgb_image(chart, self.display_space))
+        self.name.setText(name)
+        self.estimate()
+
     def load_path(self, path):
         try:
             photo = load_chart_jpeg(path)
         except (OSError, ValueError) as error:
             self.warn(error)
             return False
+        self.look = None
+        self.looks.setCurrentIndex(0)
+        self.edition.setEnabled(True)
         self.fallback = False
         self.detection_status = ""
         self.source = Path(path)
@@ -341,6 +375,11 @@ class ChartDialog(QDialog):
         if self.result is not None:
             text = self.t("색감 추정을 마쳤습니다. 24개 번호와 아래 패치 차이를 확인한 뒤 DCP를 저장하세요.",
                           "Review the 24 numbered patches and fitted colors below, then save the DCP.")
+            if self.look is not None:
+                text = self.t("내장 색감입니다. 그 카메라가 ColorChecker를 찍은 JPEG 한 장에서 잰 값이며 제조사의 프로파일이 아닙니다. "
+                              "아래 패치 차이를 확인한 뒤 DCP를 저장하세요.",
+                              "A built-in look, measured from one JPEG that camera took of a ColorChecker; not the maker's "
+                              "profile. Review the fitted colors below, then save the DCP.")
             if not self.name.text().strip():
                 text += "\n" + self.t("프로파일 이름을 입력하면 저장할 수 있습니다.",
                                       "Enter a profile name to enable saving.")
@@ -413,10 +452,10 @@ class ChartDialog(QDialog):
 
     def estimate(self, *_):
         self._clear_fit()
-        if self.image is not None and len(self.corners) == 4:
+        if self.look is not None or (self.image is not None and len(self.corners) == 4):
             QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
             try:
-                patches = sample_chart(self.image, self.corners)
+                patches = self.look if self.look is not None else sample_chart(self.image, self.corners)
                 self.result = fit_chart(patches, _PREVIEW_NAME, camera_id=self.camera_id, edition=self.edition.currentData())
                 self.patches = patches
             except (ValueError, OSError) as error:
@@ -429,7 +468,8 @@ class ChartDialog(QDialog):
     def preview_raw(self, index):
         if index == 1 and self.raw is not None and self.result is not None:
             try:
-                rgb, baseline = preview_inputs(resize_rgb(self.raw.rgb, 720), self.raw.baseline_exposure, self.camera_id)
+                rgb, baseline = preview_inputs(resize_rgb(self.raw.rgb, 720), self.raw.baseline_exposure, self.camera_id,
+                                               self.raw.metadata["camera_id"])
                 fitted = render_dcp(rgb, self.result.dcp, baseline)
                 self.raw_view.set_image(rgb_image(fitted, self.display_space))
             except (ValueError, OSError) as error:
@@ -447,11 +487,11 @@ class ChartDialog(QDialog):
             return
         stem = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", name).strip(" .") or "Chart"
         # A prefix also keeps camera names such as CON from becoming Windows device paths.
-        suggested = self.source.with_name(f"Pentax - {stem}.dcp")
+        suggested = (self.source or Path.home() / "look").with_name(f"Pentax - {stem}.dcp")
         path, _ = QFileDialog.getSaveFileName(self, self.save_button.text(), str(suggested), "DNG camera profile (*.dcp)")
         if path:
             try:
-                checked = checked_output(path, ".dcp", self.sources | {self.source})
+                checked = checked_output(path, ".dcp", self.sources | ({self.source} if self.source else set()))
                 write_output(checked, named.dcp)
             except (OSError, ValueError) as error:
                 self.warn(error)

@@ -84,6 +84,7 @@ class CameraColour:
     csp_border: tuple = (56, 768, 856)
     chroma_fixed: bool = False
     chroma_offset: tuple = (0, 0)           # YCOF: added to Cb, Cr after chroma suppression; 10-bit scale (1.0 = 1024)
+    offset_first: bool = False              # Q7: chroma_offset is added before chroma suppression instead
     table: tuple | None = None              # Q7: (basic gamma, 4096 values; 9x9x9x3 table), codes 0..4095; replaces matrix and gamma
     name: str = ""
     space: str = "srgb"                     # colour space of the JPEG the camera would write
@@ -172,12 +173,14 @@ class CameraColour:
         else:
             rgb = self.gamma(np.minimum(matrix_output, 1.0) if extend else np.clip(matrix_output, 0.0, 1.0))
         ycc = rgb @ (self.yc.T / 256.0)
+        if self.offset_first:                   # Q7: the toning offset is part of the YC conversion
+            ycc = ycc + np.array([0.0, self.chroma_offset[0] / 1024.0, self.chroma_offset[1] / 1024.0])
         if self.chroma_fixed:
             ycc = np.concatenate([ycc[..., :1], np.zeros_like(ycc[..., 1:])], axis=-1)
         elif self.csp_enable:
             gain = self.chroma_gain(np.clip(ycc[..., 0], 0.0, 1.0))[..., None]
             ycc = np.concatenate([ycc[..., :1], ycc[..., 1:] * gain], axis=-1)
-        if any(self.chroma_offset):             # toning: a constant added to Cb and Cr
+        if any(self.chroma_offset) and not self.offset_first:      # toning: a constant added to Cb and Cr
             ycc = ycc + np.array([0.0, self.chroma_offset[0] / 1024.0, self.chroma_offset[1] / 1024.0])
         if extend:
             return np.minimum(ycc @ JFIF_DECODE.T, 1.0)

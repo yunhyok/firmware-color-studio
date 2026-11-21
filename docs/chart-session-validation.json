@@ -1,5 +1,5 @@
 {
- "studio_version": "0.3.0",
+ "studio_version": "0.4.0",
  "delta_e": "CIE 1976, D50, between encoded sRGB patch medians",
  "patch_sampling": "median of 81 samples in the inner 40 % of each patch (chart_input.sample_chart)",
  "pairs": {
@@ -77,56 +77,56 @@
    "profile": {
     "name": "Q7 Firmware Landscape (풍경)",
     "baseline_exposure_offset": 0.5,
-    "dcp_sha256": "3da03c932ab1a2b823df7946b63120ce5118ba5c35dd2313dc80e21eebd4d82e"
+    "dcp_sha256": "0f36a1aeb37a80ac57b291858d38f114ee440c4e749c03a7a61f502767a81d74"
    },
    "dcp_with_the_file_baseline_exposure": {
-    "mean_delta_e76": 1.49,
-    "colour_patches": 1.58,
+    "mean_delta_e76": 1.22,
+    "colour_patches": 1.22,
     "grey_patches": 1.22,
-    "grey_lightness_error": 0.91,
-    "maximum": 7.6,
-    "worst_patch": "yellow"
+    "grey_lightness_error": 0.9,
+    "maximum": 1.91,
+    "worst_patch": "orange"
    },
    "dcp_grey_matched": {
     "exposure_ev": 0.06,
-    "mean_delta_e76": 1.27,
-    "colour_patches": 1.44,
-    "grey_patches": 0.76,
-    "grey_lightness_error": 0.37,
-    "maximum": 8.25,
-    "worst_patch": "yellow"
+    "mean_delta_e76": 0.94,
+    "colour_patches": 1.01,
+    "grey_patches": 0.72,
+    "grey_lightness_error": 0.36,
+    "maximum": 2.0,
+    "worst_patch": "orange"
    },
    "other_custom_images_with_the_file_baseline_exposure": {
     "natural": {
-     "mean_delta_e76": 11.57,
-     "colour_patches": 14.68,
-     "grey_patches": 2.24,
+     "mean_delta_e76": 11.8,
+     "colour_patches": 14.98,
+     "grey_patches": 2.27,
      "grey_lightness_error": 1.53,
      "maximum": 29.71,
      "worst_patch": "blue"
     },
     "bright": {
-     "mean_delta_e76": 3.9,
-     "colour_patches": 4.76,
-     "grey_patches": 1.3,
-     "grey_lightness_error": 0.89,
+     "mean_delta_e76": 3.94,
+     "colour_patches": 4.82,
+     "grey_patches": 1.32,
+     "grey_lightness_error": 0.88,
      "maximum": 11.85,
      "worst_patch": "red"
     },
     "portrait": {
-     "mean_delta_e76": 5.24,
-     "colour_patches": 6.33,
-     "grey_patches": 1.99,
+     "mean_delta_e76": 5.2,
+     "colour_patches": 6.27,
+     "grey_patches": 1.98,
      "grey_lightness_error": 1.58,
      "maximum": 10.63,
      "worst_patch": "green"
     },
     "vibrant": {
-     "mean_delta_e76": 6.53,
-     "colour_patches": 8.03,
-     "grey_patches": 2.04,
-     "grey_lightness_error": 1.87,
-     "maximum": 14.36,
+     "mean_delta_e76": 6.88,
+     "colour_patches": 8.51,
+     "grey_patches": 2.0,
+     "grey_lightness_error": 1.86,
+     "maximum": 15.85,
      "worst_patch": "yellow green"
     }
    },
@@ -320,8 +320,8 @@
      ],
      "dcp": [
       195,
-      225,
-      70
+      224,
+      71
      ],
      "raw_white_balanced": [
       0.3988,
@@ -409,9 +409,9 @@
       53
      ],
      "dcp": [
-      245,
-      229,
-      17
+      239,
+      226,
+      52
      ],
      "raw_white_balanced": [
       0.7665,
@@ -463,9 +463,9 @@
       246
      ],
      "dcp": [
-      242,
       243,
-      244
+      243,
+      243
      ],
      "raw_white_balanced": [
       0.8272,
@@ -481,9 +481,9 @@
       229
      ],
      "dcp": [
-      219,
+      220,
       221,
-      226
+      224
      ],
      "raw_white_balanced": [
       0.5772,
@@ -565,37 +565,37 @@
     }
    ],
    "camera_model_at_sensor_level": {
-    "mean_delta_e76": 1.51,
-    "colour_patches": 1.6,
+    "mean_delta_e76": 1.25,
+    "colour_patches": 1.26,
     "grey_patches": 1.24,
-    "grey_lightness_error": 0.91,
-    "maximum": 7.55,
-    "worst_patch": "yellow"
+    "grey_lightness_error": 0.9,
+    "maximum": 2.24,
+    "worst_patch": "moderate red"
    },
    "without_the_table": {
     "what": "colour matrix, clip and gamma table applied directly (no 9 x 9 x 9 table)",
     "sensor_level": {
-     "mean_delta_e76": 3.22,
-     "colour_patches": 3.97,
-     "grey_patches": 0.98,
-     "grey_lightness_error": 0.61,
+     "mean_delta_e76": 3.0,
+     "colour_patches": 3.65,
+     "grey_patches": 1.05,
+     "grey_lightness_error": 0.6,
      "maximum": 12.39,
      "worst_patch": "magenta"
     },
     "fallback_gain_v256_grey_matched": {
      "exposure_ev": -0.94,
-     "mean_delta_e76": 3.94,
-     "colour_patches": 4.77,
-     "grey_patches": 1.45,
+     "mean_delta_e76": 3.84,
+     "colour_patches": 4.62,
+     "grey_patches": 1.51,
      "grey_lightness_error": 1.14,
      "maximum": 11.29,
      "worst_patch": "magenta"
     },
     "nominal_gain_v512_grey_matched": {
      "exposure_ev": 0.03,
-     "mean_delta_e76": 3.38,
-     "colour_patches": 4.23,
-     "grey_patches": 0.81,
+     "mean_delta_e76": 3.11,
+     "colour_patches": 3.85,
+     "grey_patches": 0.89,
      "grey_lightness_error": 0.36,
      "maximum": 12.42,
      "worst_patch": "magenta"
@@ -603,27 +603,27 @@
    },
    "table_grey_matched": {
     "exposure_ev": 0.06,
-    "mean_delta_e76": 1.31,
-    "colour_patches": 1.49,
-    "grey_patches": 0.77,
-    "grey_lightness_error": 0.38,
-    "maximum": 8.25,
-    "worst_patch": "yellow"
+    "mean_delta_e76": 0.99,
+    "colour_patches": 1.08,
+    "grey_patches": 0.73,
+    "grey_lightness_error": 0.37,
+    "maximum": 2.44,
+    "worst_patch": "moderate red"
    },
    "table_interpolated_trilinearly": {
     "sensor_level": {
-     "mean_delta_e76": 3.25,
-     "colour_patches": 3.11,
-     "grey_patches": 3.66,
-     "grey_lightness_error": 3.12,
+     "mean_delta_e76": 3.03,
+     "colour_patches": 2.84,
+     "grey_patches": 3.61,
+     "grey_lightness_error": 3.1,
      "maximum": 9.68,
      "worst_patch": "moderate red"
     },
     "grey_matched": {
      "exposure_ev": 0.15,
-     "mean_delta_e76": 2.8,
-     "colour_patches": 3.26,
-     "grey_patches": 1.42,
+     "mean_delta_e76": 2.27,
+     "colour_patches": 2.64,
+     "grey_patches": 1.16,
      "grey_lightness_error": 0.59,
      "maximum": 10.22,
      "worst_patch": "moderate red"
@@ -1345,20 +1345,20 @@
    ],
    "cameras": {
     "pentax-q7": {
-     "donor_exposure_removed_ev": 0.982,
+     "donor_exposure_removed_ev": 0.983,
      "fit_on_reference_colours": {
       "before": 21.58,
       "after": 7.78,
       "look_used": true
      },
-     "dcp_sha256": "c430702563eddaf4976f02dd6db07e741f7c021c56eb11a4efbb6b59e3e38870",
+     "dcp_sha256": "9418b3156e345af84928f7f1b9c12b3253391797471eada68ff17f27ae7c1eb7",
      "on_the_pentax_raw": {
       "generated_dcp": {
        "mean_delta_e76": 10.77,
        "colour_patches": 12.44,
        "grey_patches": 5.77,
-       "grey_lightness_error": 4.06,
-       "maximum": 24.71,
+       "grey_lightness_error": 4.07,
+       "maximum": 24.7,
        "worst_patch": "yellow green"
       },
       "generated_dcp_with_the_v0_2_2_anchor": {
@@ -1371,29 +1371,29 @@
       },
       "generated_dcp_grey_matched": {
        "exposure_ev": 0.3,
-       "mean_delta_e76": 11.05,
+       "mean_delta_e76": 11.04,
        "colour_patches": 13.4,
        "grey_patches": 3.99,
        "grey_lightness_error": 0.69,
-       "maximum": 30.0,
+       "maximum": 29.99,
        "worst_patch": "yellow green"
       },
       "pentax_natural": {
-       "mean_delta_e76": 14.23,
-       "colour_patches": 16.66,
-       "grey_patches": 6.96,
-       "grey_lightness_error": 5.15,
-       "maximum": 24.97,
-       "worst_patch": "yellow green"
+       "mean_delta_e76": 14.5,
+       "colour_patches": 17.0,
+       "grey_patches": 7.0,
+       "grey_lightness_error": 5.14,
+       "maximum": 25.06,
+       "worst_patch": "yellow"
       },
       "pentax_natural_grey_matched": {
        "exposure_ev": 0.32,
-       "mean_delta_e76": 12.65,
-       "colour_patches": 15.27,
-       "grey_patches": 4.79,
+       "mean_delta_e76": 14.08,
+       "colour_patches": 17.13,
+       "grey_patches": 4.93,
        "grey_lightness_error": 1.96,
-       "maximum": 24.05,
-       "worst_patch": "green"
+       "maximum": 36.15,
+       "worst_patch": "yellow"
       },
       "pentax_camera_jpeg": {
        "mean_delta_e76": 10.42,
@@ -1619,20 +1619,20 @@
    ],
    "cameras": {
     "pentax-q7": {
-     "donor_exposure_removed_ev": 1.049,
+     "donor_exposure_removed_ev": 1.05,
      "fit_on_reference_colours": {
       "before": 19.86,
       "after": 4.98,
       "look_used": true
      },
-     "dcp_sha256": "10b513d334b44a1f3785bb2324d616a9417316e4a89a31dbbaf4ad7d3bae9d22",
+     "dcp_sha256": "d39183fe36c2087e23fe8393f34e7e27f727103d37f92dedf5d52edb4dd6b3b1",
      "on_the_pentax_raw": {
       "generated_dcp": {
-       "mean_delta_e76": 7.68,
+       "mean_delta_e76": 7.69,
        "colour_patches": 8.59,
-       "grey_patches": 4.97,
+       "grey_patches": 4.98,
        "grey_lightness_error": 4.53,
-       "maximum": 17.93,
+       "maximum": 17.94,
        "worst_patch": "red"
       },
       "generated_dcp_with_the_v0_2_2_anchor": {
@@ -1645,29 +1645,29 @@
       },
       "generated_dcp_grey_matched": {
        "exposure_ev": 0.35,
-       "mean_delta_e76": 7.01,
-       "colour_patches": 8.72,
+       "mean_delta_e76": 7.0,
+       "colour_patches": 8.71,
        "grey_patches": 1.88,
        "grey_lightness_error": 0.71,
        "maximum": 16.79,
        "worst_patch": "red"
       },
       "pentax_natural": {
-       "mean_delta_e76": 10.58,
-       "colour_patches": 12.02,
+       "mean_delta_e76": 10.59,
+       "colour_patches": 12.03,
        "grey_patches": 6.26,
-       "grey_lightness_error": 5.94,
+       "grey_lightness_error": 5.93,
        "maximum": 18.28,
        "worst_patch": "red"
       },
       "pentax_natural_grey_matched": {
        "exposure_ev": 0.34,
-       "mean_delta_e76": 6.97,
-       "colour_patches": 8.5,
-       "grey_patches": 2.39,
+       "mean_delta_e76": 7.69,
+       "colour_patches": 9.44,
+       "grey_patches": 2.46,
        "grey_lightness_error": 1.59,
-       "maximum": 17.59,
-       "worst_patch": "red"
+       "maximum": 20.34,
+       "worst_patch": "yellow"
       },
       "pentax_camera_jpeg": {
        "mean_delta_e76": 13.74,
@@ -1899,13 +1899,13 @@
       "after": 4.8,
       "look_used": true
      },
-     "dcp_sha256": "e3bdc04910e902a34ce6d07cd96042ac96b6be183a420e4b11b64675531009c9",
+     "dcp_sha256": "bd3e7bde143c19564e6680a62326ae63212040c23c6709b59aea34b5cc88eb9b",
      "on_the_pentax_raw": {
       "generated_dcp": {
        "mean_delta_e76": 7.55,
        "colour_patches": 9.21,
        "grey_patches": 2.56,
-       "grey_lightness_error": 0.96,
+       "grey_lightness_error": 0.97,
        "maximum": 16.95,
        "worst_patch": "yellow"
       },
@@ -1923,22 +1923,22 @@
        "colour_patches": 9.43,
        "grey_patches": 2.56,
        "grey_lightness_error": 0.74,
-       "maximum": 17.37,
+       "maximum": 17.36,
        "worst_patch": "yellow"
       },
       "pentax_natural": {
-       "mean_delta_e76": 7.1,
-       "colour_patches": 8.25,
-       "grey_patches": 3.65,
+       "mean_delta_e76": 7.32,
+       "colour_patches": 8.53,
+       "grey_patches": 3.69,
        "grey_lightness_error": 2.45,
        "maximum": 12.74,
        "worst_patch": "green"
       },
       "pentax_natural_grey_matched": {
        "exposure_ev": 0.1,
-       "mean_delta_e76": 6.82,
-       "colour_patches": 8.12,
-       "grey_patches": 2.92,
+       "mean_delta_e76": 7.13,
+       "colour_patches": 8.51,
+       "grey_patches": 3.0,
        "grey_lightness_error": 1.33,
        "maximum": 12.77,
        "worst_patch": "green"
@@ -2167,20 +2167,20 @@
    ],
    "cameras": {
     "pentax-q7": {
-     "donor_exposure_removed_ev": 0.879,
+     "donor_exposure_removed_ev": 0.88,
      "fit_on_reference_colours": {
       "before": 17.12,
       "after": 5.28,
       "look_used": true
      },
-     "dcp_sha256": "38aba31a656c4e04d8026d3f32f54b658e1d4b327b2fe69b88d44fb45f78faa7",
+     "dcp_sha256": "d769fd71d4fecd17e0975d3a874b17e3d4fff49c01555f399190f9d118603db1",
      "on_the_pentax_raw": {
       "generated_dcp": {
        "mean_delta_e76": 7.19,
        "colour_patches": 8.68,
        "grey_patches": 2.7,
-       "grey_lightness_error": 2.32,
-       "maximum": 18.14,
+       "grey_lightness_error": 2.33,
+       "maximum": 18.13,
        "worst_patch": "yellow"
       },
       "generated_dcp_with_the_v0_2_2_anchor": {
@@ -2197,25 +2197,25 @@
        "colour_patches": 9.42,
        "grey_patches": 1.0,
        "grey_lightness_error": 0.73,
-       "maximum": 21.88,
+       "maximum": 21.87,
        "worst_patch": "yellow"
       },
       "pentax_natural": {
-       "mean_delta_e76": 9.2,
-       "colour_patches": 11.03,
-       "grey_patches": 3.71,
+       "mean_delta_e76": 9.46,
+       "colour_patches": 11.39,
+       "grey_patches": 3.68,
        "grey_lightness_error": 3.43,
        "maximum": 17.41,
        "worst_patch": "blue"
       },
       "pentax_natural_grey_matched": {
        "exposure_ev": 0.19,
-       "mean_delta_e76": 7.44,
-       "colour_patches": 9.37,
-       "grey_patches": 1.65,
+       "mean_delta_e76": 8.22,
+       "colour_patches": 10.42,
+       "grey_patches": 1.64,
        "grey_lightness_error": 1.33,
-       "maximum": 17.33,
-       "worst_patch": "red"
+       "maximum": 21.92,
+       "worst_patch": "yellow"
       },
       "pentax_camera_jpeg": {
        "mean_delta_e76": 11.38,
@@ -2447,7 +2447,7 @@
       "after": 7.08,
       "look_used": true
      },
-     "dcp_sha256": "955cfb4641fe708acd9aa07c9bf1b9b898be78c69971f2997ec0d5e0ccb2765e",
+     "dcp_sha256": "b38caa22baa513302412be2be8483b8eb8b4be143cd3378096a0ce2c2aebbf50",
      "on_the_pentax_raw": {
       "generated_dcp": {
        "mean_delta_e76": 8.47,
@@ -2471,22 +2471,22 @@
        "colour_patches": 8.83,
        "grey_patches": 4.83,
        "grey_lightness_error": 0.8,
-       "maximum": 19.58,
+       "maximum": 19.57,
        "worst_patch": "yellow"
       },
       "pentax_natural": {
-       "mean_delta_e76": 7.24,
-       "colour_patches": 7.66,
-       "grey_patches": 5.98,
+       "mean_delta_e76": 7.16,
+       "colour_patches": 7.51,
+       "grey_patches": 6.09,
        "grey_lightness_error": 3.04,
        "maximum": 14.05,
        "worst_patch": "purplish blue"
       },
       "pentax_natural_grey_matched": {
        "exposure_ev": -0.16,
-       "mean_delta_e76": 7.72,
-       "colour_patches": 8.28,
-       "grey_patches": 6.04,
+       "mean_delta_e76": 7.57,
+       "colour_patches": 8.05,
+       "grey_patches": 6.14,
        "grey_lightness_error": 2.57,
        "maximum": 13.07,
        "worst_patch": "purplish blue"
@@ -2721,7 +2721,7 @@
       "after": 7.69,
       "look_used": true
      },
-     "dcp_sha256": "c5307fed5d261024c28eb1f7ad373a430311b6039d91c93d4c930a7530b143f7",
+     "dcp_sha256": "b091b010a7872a69683f3a8f8d8284334e0bcb7517880d704f9ecd74c54eb021",
      "on_the_pentax_raw": {
       "generated_dcp": {
        "mean_delta_e76": 7.99,
@@ -2750,18 +2750,18 @@
       },
       "pentax_natural": {
        "mean_delta_e76": 7.28,
-       "colour_patches": 8.1,
-       "grey_patches": 4.81,
-       "grey_lightness_error": 2.19,
+       "colour_patches": 8.07,
+       "grey_patches": 4.88,
+       "grey_lightness_error": 2.18,
        "maximum": 14.69,
        "worst_patch": "cyan"
       },
       "pentax_natural_grey_matched": {
        "exposure_ev": -0.06,
-       "mean_delta_e76": 7.61,
-       "colour_patches": 8.51,
-       "grey_patches": 4.93,
-       "grey_lightness_error": 2.01,
+       "mean_delta_e76": 7.57,
+       "colour_patches": 8.43,
+       "grey_patches": 4.99,
+       "grey_lightness_error": 2.0,
        "maximum": 14.56,
        "worst_patch": "cyan"
       },
@@ -2836,6 +2836,934 @@
       }
      }
     }
+   }
+  }
+ },
+ "developments": {
+  "pentax-q7": {
+   "IMGP1142.JPG": {
+    "sha256": "1066c582762e131ea19ed8fb577a6f1450224bcefeda93426d29206c3639ec07",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "bright",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "Q7 Firmware Bright (선명하게) con+0",
+    "changed_from_factory": {
+     "contrast": 0
+    },
+    "mean_delta_e76": 1.22,
+    "colour_patches": 1.32,
+    "grey_patches": 0.94,
+    "grey_lightness_error": 0.76,
+    "maximum": 2.09,
+    "worst_patch": "orange",
+    "camera_model_without_highlight_chroma_suppression": {
+     "mean_delta_e76": 1.48,
+     "colour_patches": 1.65,
+     "grey_patches": 0.97,
+     "grey_lightness_error": 0.76,
+     "maximum": 7.85,
+     "worst_patch": "yellow"
+    }
+   },
+   "IMGP1143.JPG": {
+    "sha256": "7e08a0734cc747f949d972187eab3734b417a56adacdd2602c80775680f6ab9c",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "natural",
+    "settings": {
+     "saturation": -1,
+     "hue": -1,
+     "key": -1,
+     "contrast": 1,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "Q7 Firmware Natural (자연스럽게) sat-1 hue-1 key-1 con+1",
+    "changed_from_factory": {
+     "saturation": -1,
+     "hue": -1,
+     "key": -1,
+     "contrast": 1
+    },
+    "mean_delta_e76": 1.3,
+    "colour_patches": 1.27,
+    "grey_patches": 1.4,
+    "grey_lightness_error": 1.25,
+    "maximum": 2.26,
+    "worst_patch": "yellow",
+    "camera_model_without_highlight_chroma_suppression": {
+     "mean_delta_e76": 1.62,
+     "colour_patches": 1.66,
+     "grey_patches": 1.47,
+     "grey_lightness_error": 1.26,
+     "maximum": 8.63,
+     "worst_patch": "yellow"
+    }
+   },
+   "IMGP1144.JPG": {
+    "sha256": "5f76949bef40ac9eb5cd365db91e9cd981512aa2e7ecbafca9a360b0d8c462e0",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "portrait",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "Q7 Firmware Portrait (인물)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 1.26,
+    "colour_patches": 1.34,
+    "grey_patches": 1.04,
+    "grey_lightness_error": 0.91,
+    "maximum": 2.11,
+    "worst_patch": "yellow",
+    "camera_model_without_highlight_chroma_suppression": {
+     "mean_delta_e76": 1.5,
+     "colour_patches": 1.64,
+     "grey_patches": 1.1,
+     "grey_lightness_error": 0.91,
+     "maximum": 7.06,
+     "worst_patch": "yellow"
+    }
+   },
+   "IMGP1145.JPG": {
+    "sha256": "1395d965eb3c6d13b243fef73633c588c7dac991cd87bf0294f3a026c1e81fe0",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "landscape",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 1,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "Q7 Firmware Landscape (풍경)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 1.23,
+    "colour_patches": 1.31,
+    "grey_patches": 0.99,
+    "grey_lightness_error": 0.88,
+    "maximum": 2.24,
+    "worst_patch": "moderate red",
+    "camera_model_without_highlight_chroma_suppression": {
+     "mean_delta_e76": 1.51,
+     "colour_patches": 1.66,
+     "grey_patches": 1.07,
+     "grey_lightness_error": 0.88,
+     "maximum": 7.55,
+     "worst_patch": "yellow"
+    }
+   },
+   "IMGP1146.JPG": {
+    "sha256": "4bfeae9c197b498231f8456b90d7be11f9d4718980ad502d6a029459104dd312",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "vibrant",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "Q7 Firmware Vibrant (강렬 색감)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 1.3,
+    "colour_patches": 1.42,
+    "grey_patches": 0.97,
+    "grey_lightness_error": 0.82,
+    "maximum": 3.7,
+    "worst_patch": "yellow",
+    "camera_model_without_highlight_chroma_suppression": {
+     "mean_delta_e76": 1.82,
+     "colour_patches": 2.09,
+     "grey_patches": 1.04,
+     "grey_lightness_error": 0.81,
+     "maximum": 14.0,
+     "worst_patch": "yellow"
+    }
+   },
+   "IMGP1147.JPG": {
+    "sha256": "ce60c91f23cdf86cad370f8e1f22dbc7d501b923f5e82022dba6ccdd7e25c8fd",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "radiant",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 2,
+     "contrast": 3,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "Q7 Firmware Radiant (팝튠)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 1.34,
+    "colour_patches": 1.39,
+    "grey_patches": 1.17,
+    "grey_lightness_error": 0.9,
+    "maximum": 3.08,
+    "worst_patch": "orange",
+    "camera_model_without_highlight_chroma_suppression": {
+     "mean_delta_e76": 2.08,
+     "colour_patches": 2.32,
+     "grey_patches": 1.35,
+     "grey_lightness_error": 0.9,
+     "maximum": 10.75,
+     "worst_patch": "yellow"
+    }
+   },
+   "IMGP1148.JPG": {
+    "sha256": "6194b58201c5f555a6d311ec7645de7e47c6369908bd04d4c8f44f23cde4c6c2",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "muted",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 4,
+     "contrast": -3,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": 0,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "Q7 Firmware Muted (은은하게)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 0.97,
+    "colour_patches": 1.01,
+    "grey_patches": 0.85,
+    "grey_lightness_error": 0.73,
+    "maximum": 1.81,
+    "worst_patch": "magenta",
+    "camera_model_without_highlight_chroma_suppression": {
+     "mean_delta_e76": 2.19,
+     "colour_patches": 2.62,
+     "grey_patches": 0.9,
+     "grey_lightness_error": 0.73,
+     "maximum": 13.97,
+     "worst_patch": "yellow"
+    }
+   },
+   "IMGP1149.JPG": {
+    "sha256": "4c3e3e7cc896adc5a9afebad5f3c8fe69174dfa4e70a603a6555964facd2aeea",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "bleach-bypass",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": -4,
+     "contrast": 4,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": 1,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP + XMP",
+    "profile_name": "Q7 Firmware Bleach Bypass (블리치 바이패스) (Green)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 1.43,
+    "colour_patches": 1.42,
+    "grey_patches": 1.45,
+    "grey_lightness_error": 1.29,
+    "maximum": 2.08,
+    "worst_patch": "cyan"
+   },
+   "IMGP1150.JPG": {
+    "sha256": "4b20ed28403007f29ffd495975b195746855e3d1b3b4407b05e700b94e770113",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "reversal-film",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     1.59375,
+     1.0,
+     1.898438
+    ],
+    "white_balance_differs_from_the_shot": true,
+    "profile": "DCP",
+    "profile_name": "Q7 Firmware Reversal Film (리버설 필름)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 1.37,
+    "colour_patches": 1.5,
+    "grey_patches": 0.98,
+    "grey_lightness_error": 0.93,
+    "maximum": 3.04,
+    "worst_patch": "yellow",
+    "camera_model_without_highlight_chroma_suppression": {
+     "mean_delta_e76": 2.13,
+     "colour_patches": 2.49,
+     "grey_patches": 1.03,
+     "grey_lightness_error": 0.92,
+     "maximum": 12.24,
+     "worst_patch": "yellow"
+    }
+   },
+   "IMGP1151.JPG": {
+    "sha256": "3bcef12144c668032bb17eb1700e5074144902c15928f8d4f996ca8d709d44dd",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "monochrome",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "position taken from the JPEG stored in the DNG",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "Q7 Firmware Monochrome (모노톤)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 0.97,
+    "colour_patches": 0.99,
+    "grey_patches": 0.91,
+    "grey_lightness_error": 0.91,
+    "maximum": 1.42,
+    "worst_patch": "moderate red",
+    "camera_model_without_highlight_chroma_suppression": {
+     "mean_delta_e76": 0.97,
+     "colour_patches": 0.99,
+     "grey_patches": 0.9,
+     "grey_lightness_error": 0.9,
+     "maximum": 1.42,
+     "worst_patch": "moderate red"
+    }
+   },
+   "IMGP1152.JPG": {
+    "sha256": "3d0e7da977aab60a6661e72e2c48d791e933373710d534ca8599648fc71ca330",
+    "size": [
+     4000,
+     2664
+    ],
+    "custom_image": "cross-processing",
+    "settings": null,
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "position taken from the JPEG stored in the DNG",
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": null
+   }
+  },
+  "pentax-k3iii": {
+   "IMGP9422.JPG": {
+    "sha256": "cca876c11f43f828b01aa16b3e57c7efaae8020b6040c34b183328d729162f6c",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "bright",
+    "settings": {
+     "saturation": -4,
+     "hue": 0,
+     "key": 0,
+     "contrast": 1,
+     "highlight": 0,
+     "shadow": -2
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Bright (선명하게) sat-4 sha-2",
+    "changed_from_factory": {
+     "saturation": -4,
+     "shadow": -2
+    },
+    "mean_delta_e76": 1.74,
+    "colour_patches": 2.1,
+    "grey_patches": 0.66,
+    "grey_lightness_error": 0.08,
+    "maximum": 5.66,
+    "worst_patch": "orange yellow"
+   },
+   "IMGP9423.JPG": {
+    "sha256": "a8f684f3c7d9e81f52d5c413455c02b26fa696dfbde48b64a8e541c7cff35a51",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "natural",
+    "settings": {
+     "saturation": 4,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Natural (자연스럽게) sat+4",
+    "changed_from_factory": {
+     "saturation": 4
+    },
+    "mean_delta_e76": 3.19,
+    "colour_patches": 3.99,
+    "grey_patches": 0.78,
+    "grey_lightness_error": 0.15,
+    "maximum": 11.99,
+    "worst_patch": "orange yellow"
+   },
+   "IMGP9424.JPG": {
+    "sha256": "75c40d944fc7976791d42fc701fea559e19bfdb9fddcd40c528fd6954bc66edd",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "portrait",
+    "settings": {
+     "saturation": -1,
+     "hue": 1,
+     "key": 2,
+     "contrast": -1,
+     "highlight": -3,
+     "shadow": -1
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Portrait (인물) sat-1 hue+1 key+2 con-1 hig-3 sha-1",
+    "changed_from_factory": {
+     "saturation": -1,
+     "hue": 1,
+     "key": 2,
+     "contrast": -1,
+     "highlight": -3,
+     "shadow": -1
+    },
+    "mean_delta_e76": 1.53,
+    "colour_patches": 1.86,
+    "grey_patches": 0.56,
+    "grey_lightness_error": 0.23,
+    "maximum": 4.8,
+    "worst_patch": "orange yellow"
+   },
+   "IMGP9425.JPG": {
+    "sha256": "dd6fb7e3b4221b535c10afed059706ec45532f00b9d0d1576ab65ddd3e4d915a",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "landscape",
+    "settings": {
+     "saturation": -1,
+     "hue": 0,
+     "key": 0,
+     "contrast": 1,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Landscape (풍경) sat-1",
+    "changed_from_factory": {
+     "saturation": -1
+    },
+    "mean_delta_e76": 2.35,
+    "colour_patches": 2.87,
+    "grey_patches": 0.78,
+    "grey_lightness_error": 0.14,
+    "maximum": 9.51,
+    "worst_patch": "orange yellow"
+   },
+   "IMGP9426.JPG": {
+    "sha256": "83899ced31d13d20851464e4e55a039cd680031c46bce6be9021256a85398a0c",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "vibrant",
+    "settings": {
+     "saturation": -4,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Vibrant (강렬 색감) sat-4",
+    "changed_from_factory": {
+     "saturation": -4
+    },
+    "mean_delta_e76": 1.83,
+    "colour_patches": 2.23,
+    "grey_patches": 0.61,
+    "grey_lightness_error": 0.19,
+    "maximum": 6.25,
+    "worst_patch": "orange yellow"
+   },
+   "IMGP9427.JPG": {
+    "sha256": "85bb9271fbe5e73a6e4bf9b1a6a11654617ea4c0369aca9c78c4951c3ebd68b0",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "satobi",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 2,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware SATOBI (사토비)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 1.61,
+    "colour_patches": 2.0,
+    "grey_patches": 0.43,
+    "grey_lightness_error": 0.12,
+    "maximum": 5.7,
+    "worst_patch": "orange yellow"
+   },
+   "IMGP9428.JPG": {
+    "sha256": "01abe9ca5af91f5b265fab861d07dcae21b26e3d9261f0d9e39dcb6c58f14ac2",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "radiant",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 2,
+     "contrast": 3,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Radiant (팝튠)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 2.61,
+    "colour_patches": 3.18,
+    "grey_patches": 0.9,
+    "grey_lightness_error": 0.15,
+    "maximum": 10.19,
+    "worst_patch": "orange yellow"
+   },
+   "IMGP9429.JPG": {
+    "sha256": "98a017eaf93063382dbd19de8cb4f2071ae27828f90ed0f2c87668d95a5ddaaa",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "muted",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 4,
+     "contrast": -3,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": 0,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Muted (은은하게)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 1.02,
+    "colour_patches": 1.21,
+    "grey_patches": 0.42,
+    "grey_lightness_error": 0.08,
+    "maximum": 3.22,
+    "worst_patch": "orange yellow"
+   },
+   "IMGP9430.JPG": {
+    "sha256": "23ae955975b45bcc4b9e4d4e65bac55f515eaece3fca7553c94d5dca201d2fc6",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "flat",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": -4,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Flat (플랫)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 1.87,
+    "colour_patches": 2.23,
+    "grey_patches": 0.77,
+    "grey_lightness_error": 0.12,
+    "maximum": 7.48,
+    "worst_patch": "yellow"
+   },
+   "IMGP9431.JPG": {
+    "sha256": "1df2f0a64dd71c18906dba8970f13cbb0046d202d84aa60466f3b02f68afcf6b",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "bleach-bypass",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": -4,
+     "contrast": 4,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": 1,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP + XMP",
+    "profile_name": "K-3 III Firmware Bleach Bypass (블리치 바이패스) (Green)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 2.09,
+    "colour_patches": 2.42,
+    "grey_patches": 1.11,
+    "grey_lightness_error": 0.6,
+    "maximum": 5.58,
+    "worst_patch": "yellow"
+   },
+   "IMGP9432.JPG": {
+    "sha256": "b465b1919fe4409d96bce5b31d51e0ea18d29d8bdccb7e915309cab87ed64336",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "reversal-film",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "found automatically",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Reversal Film (리버설 필름)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 2.22,
+    "colour_patches": 2.7,
+    "grey_patches": 0.8,
+    "grey_lightness_error": 0.19,
+    "maximum": 9.56,
+    "worst_patch": "orange"
+   },
+   "IMGP9433.JPG": {
+    "sha256": "f933e7bc1a290af208205d4ef0a9b6746a7d6e5fbf81a59c7f65180014653421",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "gold",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "position taken from the JPEG stored in the DNG",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP + XMP",
+    "profile_name": "K-3 III Firmware Gold (골드)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 2.36,
+    "colour_patches": 2.85,
+    "grey_patches": 0.91,
+    "grey_lightness_error": 0.15,
+    "maximum": 9.26,
+    "worst_patch": "orange yellow"
+   },
+   "IMGP9434.JPG": {
+    "sha256": "3eba3277132360e919a8569f5b7ed15d3d147dc5620210001e654088d6ba3149",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "monochrome",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "position taken from the JPEG stored in the DNG",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": "DCP",
+    "profile_name": "K-3 III Firmware Monochrome (모노톤)",
+    "changed_from_factory": {},
+    "mean_delta_e76": 0.2,
+    "colour_patches": 0.23,
+    "grey_patches": 0.13,
+    "grey_lightness_error": 0.13,
+    "maximum": 0.68,
+    "worst_patch": "orange"
+   },
+   "IMGP9435.JPG": {
+    "sha256": "bde060e76d7076c5e2975c931d6fa5e11a19d75ea0ec1abe7a94f2d055ba6382",
+    "size": [
+     4752,
+     3168
+    ],
+    "custom_image": "cross-processing",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 0,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "toning": null,
+    "color_space": "srgb",
+    "chart": "position taken from the JPEG stored in the DNG",
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469
+    ],
+    "white_balance_differs_from_the_shot": false,
+    "profile": null
    }
   }
  }

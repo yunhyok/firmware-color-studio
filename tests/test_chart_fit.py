@@ -67,3 +67,18 @@ def test_wrong_orientation_flat_exposure_and_bad_inputs_are_rejected():
         chart_fit.fit_chart(ref, "Test", edition="SG")
     with pytest.raises(ValueError, match="ProfileName"):
         chart_fit.fit_chart(ref, "Bad\0name")
+
+
+def test_builtin_looks_fit_every_camera():
+    looks = chart_fit.builtin_looks()
+    assert list(looks) == ["Kodak C875", "Sony DSC-P200", "Sony DSC-TX66", "Sony DSC-T100", "Konica Minolta DiMAGE X1",
+                           "Samsung EX1"]
+    for name, (patches, edition) in looks.items():
+        assert patches.shape == (24, 3) and 0 <= patches.min() and patches.max() <= 1 and edition == "2014+"
+    for camera_id, model in profiles.list_cameras().items():
+        fit = chart_fit.fit_look("Sony DSC-P200", camera_id=camera_id)
+        parsed = dcp.read_dcp(fit.dcp)
+        assert parsed["ProfileName"] == "Sony DSC-P200" and fit.fitted and fit.mean_delta_e < fit.baseline_mean_delta_e / 2
+        assert bytes(dcp._directory(fit.dcp)[dcp.TAGS["UniqueCameraModel"]][3]).rstrip(b"\0").decode() == model
+    with pytest.raises(ValueError, match="unknown look"):
+        chart_fit.fit_look("Sony DSC-P201")

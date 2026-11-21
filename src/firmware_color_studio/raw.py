@@ -238,12 +238,13 @@ def _q7_settings(note, fields, mode, warnings):
         warnings.append("Custom Image settings are outside the supported range")
     else:
         settings = {key: steps.get(key, 0) for key in _SETTINGS}        # the Q7 has no highlight and shadow settings
-    # Tag 0x007f holds the toning colour of Bleach Bypass; where the Q7 keeps Muted's is not known.
-    toning = first(0x7F, 3, (1,)) if mode == "bleach-bypass" else None
+    # Tag 0x007f holds the toning colour of Bleach Bypass and Muted (0 = off); other Custom Images have 65535.
+    toning = first(0x7F, 3, (1,)) if mode in _TONING_MODES else None
     return settings, toning if toning is not None and 0 <= toning <= 8 else None
 
 
-def _capture_info(note, fields, camera_id="pentax-k3iii"):
+def _check_capture(note, fields):
+    """Reject RAW captures this reader does not unpack: Pixel Shift, HDR, anything but a plain RAW."""
     # ExifTool Pentax tags 0x0008, 0x0085, 0x0243. HDR and Pixel Shift flags
     # are at byte 0. The remaining bytes can be nonzero in a normal capture.
     quality = note.scalar(fields, 0x0008, (3,))
@@ -256,6 +257,9 @@ def _capture_info(note, fields, camera_id="pentax-k3iii"):
     if quality != 4:
         raise ValueError("Unsupported Pentax RAW capture quality")
 
+
+def _capture_info(note, fields, camera_id="pentax-k3iii"):
+    """The Custom Image and its settings as the maker note of a RAW or a camera JPEG records them."""
     warnings = []
     mode = note.scalar(fields, 0x004F, (3,), optional=True)
     space = note.scalar(fields, 0x0037, (3,), optional=True)
@@ -432,6 +436,7 @@ def load_raw(path: str | Path) -> RawImage:
             if not 1 <= orientation <= 8:
                 raise ValueError("Invalid RAW Orientation")
             note, fields = _pentax_note(reader, first, is_dng, camera["model_id"])
+            _check_capture(note, fields)
             metadata, warnings = _capture_info(note, fields, camera["camera_id"])
             raw_values = _dng_fields(reader, first, sensor) if is_dng else _pef_fields(note, fields)
             active, crop, black, white, wb, baseline = raw_values

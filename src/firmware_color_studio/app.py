@@ -31,6 +31,9 @@ TEXT = {
     "open": ("RAW 열기", "Open RAW"), "empty": ("PEF·DNG 또는 차트 JPEG를 끌어 놓으세요", "Drop a PEF, DNG or chart JPEG here"),
     "no_recorded": ("이 RAW에는 지원하는 Custom Image 설정이 없습니다", "No supported Custom Image settings in this RAW."),
     "chart": ("차트 JPEG → DCP", "Chart JPEG → DCP"), "file": ("파일", "File"), "demo": ("데모 사진", "Demo photo"),
+    "looks": ("다른 카메라 색감", "Other cameras' looks"),
+    "looks_tip": ("Kodak, Sony, Konica Minolta, Samsung 카메라의 내장 색감으로 선택한 카메라용 DCP를 만듭니다",
+                  "Make a DCP for the selected camera from the built-in looks of Kodak, Sony, Konica Minolta and Samsung cameras"),
     "chart_tip": ("다른 카메라로 찍은 ColorChecker Classic JPEG의 색감을 선택한 카메라용 DCP로 만듭니다",
                   "Estimate a DCP for the selected camera from another camera's ColorChecker Classic JPEG"),
     "camera_tip": ("프로파일을 만들 카메라", "Camera the profiles are made for"),
@@ -234,6 +237,9 @@ class MainWindow(QMainWindow):
         self.chart_button = QPushButton()
         self.chart_button.clicked.connect(self.open_chart)
         top.addWidget(self.chart_button)
+        self.looks_button = QPushButton()
+        self.looks_button.clicked.connect(self.open_looks)
+        top.addWidget(self.looks_button)
         self.language = QComboBox()
         self.language.addItems(["한국어", "English"])
         self.language.setCurrentIndex(self.lang)
@@ -392,7 +398,7 @@ class MainWindow(QMainWindow):
         menu = self.file_menu = self.menuBar().addMenu("")
         for key, shortcut, callback in [
             ("open", "Ctrl+O", self.open_raw), ("load", "Ctrl+Shift+O", self.open_saved_recipe),
-            ("chart", "", self.open_chart),
+            ("chart", "", self.open_chart), ("looks", "", self.open_looks),
             ("save", "Ctrl+S", self.save_current_recipe), ("export", "Ctrl+E", self.export_profile),
             ("calibration", "", self.import_calibration), ("clear_calibration", "", self.clear_calibration),
             ("info", "F1", self.show_details),
@@ -437,7 +443,7 @@ class MainWindow(QMainWindow):
         self._set_recipe(default_recipe("natural", camera_id))
 
     def _translate(self):
-        for widget, key in [(self.open_button,"open"),(self.chart_button,"chart"),(self.profile_heading,"profiles"),(self.adjust_heading,"adjust"),
+        for widget, key in [(self.open_button,"open"),(self.chart_button,"chart"),(self.looks_button,"looks"),(self.profile_heading,"profiles"),(self.adjust_heading,"adjust"),
                             (self.reference_label,"baseline"),(self.name_label,"name"),(self.space_label,"color_space"),
                             (self.tone_label,"toning"),(self.factory_button,"factory"),(self.recorded_button,"recorded"),
                             (self.export_button,"export"),(self.save_button,"save"),(self.format_label,"format"),
@@ -445,6 +451,7 @@ class MainWindow(QMainWindow):
             widget.setText(self.tr_text(key))
         self.file_menu.setTitle(self.tr_text("file"))
         self.chart_button.setToolTip(self.tr_text("chart_tip"))
+        self.looks_button.setToolTip(self.tr_text("looks_tip"))
         self.camera.setToolTip(self.tr_text("camera_tip"))
         self._update_file_label()
         self.name_edit.setPlaceholderText(self.tr_text("name_hint"))
@@ -802,6 +809,17 @@ class MainWindow(QMainWindow):
         try:
             if dialog.load_path(path):
                 dialog.exec()
+        finally:
+            dialog.deleteLater()
+
+    def open_looks(self):
+        """The chart dialog on the first built-in look; no JPEG is needed."""
+        from .chart_dialog import ChartDialog
+        dialog = ChartDialog(self)
+        try:
+            dialog.looks.setCurrentIndex(1)
+            dialog.choose_look(1)
+            dialog.exec()
         finally:
             dialog.deleteLater()
 

@@ -321,11 +321,16 @@ class Q7Engine:
             raise ValueError("color space must be srgb or adobergb")
         s = self.settings(mode, **sliders)
         curve = np.array(self.gamma(mode, s["key"], s["contrast"]), dtype=np.float64)
+        # Highlight chroma suppression of the image processor.  The firmware gives the block the luma
+        # level 200 (of 255) for every sensitivity; that chroma then falls in a straight line to zero at
+        # white is read from eleven camera JPEGs (docs/q7.md), not from the firmware.
+        start = self.tables["chroma_suppression_param_u16"]["arcntChromaSuppression"]["values"][13] * 1023.0 / 255.0
         return model.CameraColour(
             cc0=np.array(self.color_matrix(mode, s["saturation"]), dtype=np.float64).reshape(3, 3), cc0_unit=256.0,
             curves=np.stack([curve] * 3), curve_max=float(self._output_max),
             yc=np.array(self.yc(mode, s["hue"], color_space == "adobergb"), dtype=np.float64).reshape(3, 3),
-            csp_enable=False, chroma_offset=self.chroma_offset(mode, toning, color_space),
+            csp_enable=True, csp_offset=(512.0,) * 4, csp_gain=(0.0, 0.0, 0.0, -512.0 * 8.0 / (1023.0 - start)),
+            csp_border=(0.0, 0.0, start), chroma_offset=self.chroma_offset(mode, toning, color_space), offset_first=True,
             table=(np.array(self.basic_gamma(), dtype=np.float64),
                    self.reproduction_table(mode, s["saturation"], s["key"], s["contrast"]).astype(np.float64)),
             name=mode, space=color_space)
