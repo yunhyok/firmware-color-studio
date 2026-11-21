@@ -20,7 +20,9 @@ camera, not a RAW/JPEG fit. Users can import their own K-3 III DNG calibration.
 The PENTAX Q7 pack's numerical tables (`data/q7/q7-color-tables.json`) were read from
 firmware 1.01 for this project and for Yunhyok's
 [PENTAX Q7 firmware research](https://github.com/yunhyok/pentax-q7-firmware-analysis); the same
-terms apply. The manifest records the firmware and table hashes.
+terms apply. The manifest records the firmware and table hashes. The meaning of the Q7 maker
+note tags that hold a shot's settings follows the tag table of
+[ExifTool](https://exiftool.org/TagNames/Pentax.html) by Phil Harvey; no ExifTool code is included.
 
 ## ColorChecker reference measurements
 
