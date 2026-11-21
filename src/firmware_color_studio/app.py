@@ -29,14 +29,13 @@ from .raw import load_raw, read_calibration, resize_rgb
 
 TEXT = {
     "open": ("RAW 열기", "Open RAW"), "empty": ("PEF·DNG 또는 차트 JPEG를 끌어 놓으세요", "Drop a PEF, DNG or chart JPEG here"),
+    "no_recorded": ("이 RAW에는 지원하는 Custom Image 설정이 없습니다", "No supported Custom Image settings in this RAW."),
     "chart": ("차트 JPEG → DCP", "Chart JPEG → DCP"), "file": ("파일", "File"), "demo": ("데모 사진", "Demo photo"),
     "chart_tip": ("다른 카메라로 찍은 ColorChecker Classic JPEG의 색감을 선택한 카메라용 DCP로 만듭니다",
                   "Estimate a DCP for the selected camera from another camera's ColorChecker Classic JPEG"),
     "camera_tip": ("프로파일을 만들 카메라", "Camera the profiles are made for"),
-    "cross_note": ("이 미리보기는 K-3 Mark III RAW를 두 카메라의 센서 행렬로 환산한 근사입니다",
-                   "This preview converts the K-3 Mark III RAW through both sensor matrices; it is approximate"),
-    "other_calibration": ("보정 행렬 가져오기는 아직 K-3 Mark III DNG만 지원합니다",
-                          "Calibration import supports K-3 Mark III DNG files only so far"),
+    "cross_note": ("이 미리보기는 다른 카메라의 RAW를 두 카메라의 센서 행렬로 환산한 근사입니다",
+                   "This preview converts another camera's RAW through both sensor matrices; it is approximate"),
     "profiles": ("카메라 프로파일", "Camera profiles"), "adjust": ("프로파일 조정", "Profile controls"),
     "baseline": ("비교 기준", "Reference"), "current": ("현재 프로파일", "Current profile"),
     "factory": ("출고값으로 복원", "Reset to factory"), "recorded": ("촬영 설정 가져오기", "Use shot settings"),
@@ -159,8 +158,8 @@ def checked_output(path, suffix, sources=()):
     return path
 
 
-def render_recipe(rgb, recipe, baseline, enhanced=False):
-    rgb, baseline = preview_inputs(rgb, baseline, recipe["camera_id"])
+def render_recipe(rgb, recipe, baseline, enhanced=False, source_id=CAMERA_ID):
+    rgb, baseline = preview_inputs(rgb, baseline, recipe["camera_id"], source_id)
     if enhanced or recipe["mode"] == "gold" or recipe.get("toning"):
         from .enhanced import build_enhanced, render_enhanced
         bundle = build_enhanced(recipe)
@@ -468,7 +467,7 @@ class MainWindow(QMainWindow):
 
     def _update_rendition(self):
         text = self.tr_text("dcp_note" if self.output_format.currentData() == "dcp" else "xmp_note")
-        if self.raw is not None and self.recipe["camera_id"] != CAMERA_ID:
+        if self.raw is not None and self.recipe["camera_id"] != self.raw.metadata["camera_id"]:
             text += "\n" + self.tr_text("cross_note")
         self.rendition.setText(text)
 
@@ -482,7 +481,7 @@ class MainWindow(QMainWindow):
             # The app opened this bundled photograph itself.
             name = f'{self.tr_text("demo")} · {name}'
         text = f"{name}  ·  {info['model']}  ·  {info['width']} × {info['height']}"
-        if self.recipe["camera_id"] != CAMERA_ID:
+        if self.recipe["camera_id"] != info["camera_id"]:
             text += f"  →  {self._camera_text()}"
         self.file_label.setText(text)
 
@@ -612,8 +611,9 @@ class MainWindow(QMainWindow):
             if size not in cache:
                 cache[size] = resize_rgb(frame.rgb, size)
             rgb = cache[size]
-            before, _ = render_recipe(rgb, reference, frame.baseline_exposure)
-            after, report = render_recipe(rgb, recipe, frame.baseline_exposure, output_format == "xmp")
+            source = frame.metadata["camera_id"]
+            before, _ = render_recipe(rgb, reference, frame.baseline_exposure, source_id=source)
+            after, report = render_recipe(rgb, recipe, frame.baseline_exposure, output_format == "xmp", source)
             return before, after, report, size
         self._start_job("preview", work)
 
@@ -632,7 +632,7 @@ class MainWindow(QMainWindow):
                     break
                 recipe = default_recipe(mode, camera_id)
                 recipe.update(calibration=calibration, color_space=space)
-                previews[mode], _ = render_recipe(rgb, recipe, frame.baseline_exposure)
+                previews[mode], _ = render_recipe(rgb, recipe, frame.baseline_exposure, source_id=frame.metadata["camera_id"])
             return previews
         self._start_job("thumbs", work)
 
@@ -661,6 +661,10 @@ class MainWindow(QMainWindow):
         elif kind == "raw":
             self.raw = result
             self.preview_cache = {}
+            camera_id = result.metadata["camera_id"]
+            if camera_id != self.recipe["camera_id"] and Path(result.metadata["path"]) != DEMO_RAW:
+                self._set_recipe(default_recipe("natural", camera_id))      # profiles are for the camera that took the RAW
+            self._update_rendition()
             self.generation["thumbs"] += 1
             self._update_file_label()
             self.recorded_button.setEnabled(bool(result.metadata.get("settings")))
@@ -710,13 +714,13 @@ class MainWindow(QMainWindow):
         if self.raw is None:
             return
         info = self.raw.metadata
-        mode = info.get("mode")
-        if mode not in list_modes() or not info.get("settings"):
-            QMessageBox.information(self, self.tr_text("info"), "No supported Custom Image settings in this RAW.")
+        mode, camera_id = info.get("mode"), info["camera_id"]
+        if mode not in list_modes(camera_id) or not info.get("settings"):
+            QMessageBox.information(self, self.tr_text("info"), self.tr_text("no_recorded"))
             return
-        recipe = default_recipe(mode)                   # the settings are those of the K-3 Mark III that took the RAW
+        recipe = default_recipe(mode, camera_id)        # the settings are those of the camera that took the RAW
         recipe.update(settings=info["settings"], color_space=info.get("color_space", "srgb"), toning=info.get("toning") or 0,
-                      calibration=self.recipe.get("calibration") if self.recipe["camera_id"] == CAMERA_ID else None)
+                      calibration=self.recipe.get("calibration") if self.recipe["camera_id"] == camera_id else None)
         try:
             self._set_recipe(recipe)
         except ValueError as error:
@@ -770,14 +774,11 @@ class MainWindow(QMainWindow):
         self._start_job("export", work)
 
     def import_calibration(self):
-        if self.recipe["camera_id"] != CAMERA_ID:
-            QMessageBox.information(self, self.tr_text("info"), self.tr_text("other_calibration"))
-            return
         path, _ = QFileDialog.getOpenFileName(self, self.tr_text("calibration"), "", "DNG (*.dng *.DNG)")
         if path:
             try:
                 recipe = copy.deepcopy(self.recipe)
-                recipe["calibration"] = read_calibration(path)
+                recipe["calibration"] = read_calibration(path, recipe["camera_id"])
                 self.source_paths.add(Path(path))
                 self._set_recipe(recipe)
             except (OSError, ValueError) as error:

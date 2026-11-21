@@ -18,6 +18,7 @@ GROUPS = [
     ("ycbcr_s16", "h", 9, r"^arcnwYCbCrConversionMatrixDefault$"),
     ("chroma_offsets_s16", "h", 9, r"^(cnars(Cb|Cr)(Offset|Addition)(AdobeRGB)?|cnarsCbCrOAdditionNon)$"),
     ("tone_constants_u16", "H", 1, r"^cnwBasicTone(SaturationPointMin|SaturationPointOutput|BaseNumber)$"),
+    ("composition_rate_u16", "H", 97, r"^cnwHighlightShadowCompositionRate2048$"),
     ("custom_image_records_u8", "B", 28, r"^cntCustomImageUnit[A-Za-z0-9]+$"),
     ("chroma_suppression_u16", "H", 2048, r"^arwCChromaSuppressionRatioLut$"),
 ]
@@ -46,7 +47,7 @@ def main():
         address = image.address[symbol] + offset
         out["anonymous"][label] = {"after": symbol, "offset": offset, "address": f"{address:#010x}",
                                    "values": list(image.read(address, fmt, count))}
-    with open(sys.argv[3], "x", encoding="utf-8") as output:
+    with open(sys.argv[3], "x", encoding="utf-8", newline="\n") as output:   # the same bytes on every platform
         json.dump(out, output, indent=1, sort_keys=True)
         output.write("\n")
     print({group: len(out[group]) for group, *_ in GROUPS})

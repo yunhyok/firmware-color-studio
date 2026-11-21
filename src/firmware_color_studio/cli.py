@@ -96,8 +96,7 @@ def main():
     preview.add_argument("output", type=Path)
     preview.add_argument("--recipe", type=Path)
     preview.add_argument("--mode", default="natural")
-    preview.add_argument("--camera", choices=list(list_cameras()), default=CAMERA_ID,
-                         help="camera of --mode; the RAW itself must be from a K-3 Mark III")
+    preview.add_argument("--camera", choices=list(list_cameras()), help="camera of --mode (default: the RAW's camera)")
     preview.add_argument("--size", type=int, default=1000)
     args = parser.parse_args()
     try:
@@ -156,8 +155,9 @@ def main():
                 raise FileExistsError(args.output)
             application = QGuiApplication.instance() or QGuiApplication([])
             frame = load_raw(args.raw)
-            recipe = load_recipe(args.recipe) if args.recipe else default_recipe(args.mode, args.camera)
-            rgb, baseline = preview_inputs(resize_rgb(frame.rgb, args.size), frame.baseline_exposure, recipe["camera_id"])
+            source = frame.metadata["camera_id"]
+            recipe = load_recipe(args.recipe) if args.recipe else default_recipe(args.mode, args.camera or source)
+            rgb, baseline = preview_inputs(resize_rgb(frame.rgb, args.size), frame.baseline_exposure, recipe["camera_id"], source)
             if recipe["toning"] or recipe["mode"] == "gold":
                 from .enhanced import build_enhanced, render_enhanced
                 pixels = render_enhanced(rgb, build_enhanced(recipe), baseline)

@@ -1,14 +1,14 @@
 {
   "base_profile_label": "Base (기본 프로파일)",
-  "baseline_exposure_offset": 0.0,
-  "baseline_exposure_offset_note": "Not calibrated: no Q7 DNG and camera JPEG pair has been compared yet. The K-3 Mark III pack uses 0.5 from such a comparison.",
+  "baseline_exposure_offset": 0.5,
+  "baseline_exposure_offset_note": "Measured on a Q7 DNG and the camera JPEG stored in it (firmware 1.01, ISO 100, Landscape): the model meets the JPEG's six grey patches at +0.03 to +0.06 EV over the sensor level, and the DNG carries BaselineExposure -0.5, as K-3 Mark III files do. See docs/q7-validation.json.",
   "camera_id": "pentax-q7",
   "camera_model": "PENTAX Q7",
   "default_profiles": {},
   "files": {
     "q7-color-tables.json": {
-      "bytes": 106762,
-      "sha256": "aeb2d0dab16fb3c7ed482f4b59a03317b968c68503f9fee56b798d8919e5acf4",
+      "bytes": 107840,
+      "sha256": "25aed1dbd0f833f0f3bdbd373c609d419ff6eb971300d54de96adcdf4020a76e",
       "source": "analysis/color-engine-tables.json"
     }
   },

@@ -126,6 +126,44 @@ def test_dng_crop_cfa_white_balance_and_baseline_are_independent(tmp_path, monke
     np.testing.assert_array_equal(brighter.rgb, image.rgb)
 
 
+def _q7_note(override=None):
+    tags = {
+        0x0005: _long(0x12F7A), 0x0008: _short(4), 0x0037: _short(0), 0x004F: _short(8),
+        0x001F: _short(5), 0x0020: _short(4), 0x0067: _short(2), 0x006C: (8, 2, struct.pack("<2h", -2, 0)),
+        0x007F: _short(3), 0x0085: _bytes(bytes(4)),
+    }
+    tags.update(override or {})
+    return b"PENTAX \0II" + _ifd(tags, "<", offset=10)
+
+
+_Q7 = {256: _long(4064), 257: _long(3000), 258: _short(12), 272: _bytes(b"PENTAX Q7\0", 2),
+       305: _bytes(b"PENTAX Q7     Ver 1.01\0", 2), 50708: _bytes(b"PENTAX Q7\0", 2)}
+
+
+def test_q7_dng_reads_its_own_geometry_and_setting_tags(tmp_path, monkeypatch):
+    path = _dng(tmp_path / "q7.dng", {**_Q7, 50740: _bytes(_q7_note())})
+    mosaic = _Mosaic()
+    mosaic.sizes = SimpleNamespace(top_margin=3, left_margin=2, raw_width=4064, raw_height=3000)
+    monkeypatch.setattr(raw.rawpy, "imread", lambda _: nullcontext(mosaic))
+    image = raw.load_raw(path)
+    assert (image.metadata["camera_id"], image.metadata["model"]) == ("pentax-q7", "PENTAX Q7")
+    assert (image.metadata["mode"], image.metadata["toning"]) == ("bleach-bypass", 3)
+    # Tag values 5, 2, 4 are the menu steps -3, +2, +1; the key tag holds the step itself.
+    assert image.metadata["settings"] == {"saturation": -3, "hue": 2, "key": -2, "contrast": 1, "highlight": 0, "shadow": 0}
+    assert image.warnings == [] and image.baseline_exposure == -0.75
+    np.testing.assert_array_equal(raw.read_calibration(path, "pentax-q7"), [np.eye(3), np.eye(3) * 2])
+    with pytest.raises(ValueError, match="same-camera"):
+        raw.read_calibration(path)                               # not a K-3 Mark III file
+
+    unknown = raw.load_raw(_dng(path, {**_Q7, 50740: _bytes(_q7_note({0x0067: _short(99), 0x004F: _short(6)}))}))
+    assert unknown.metadata["settings"] is None and unknown.metadata["mode"] == "muted"
+    assert unknown.warnings == ["Custom Image settings are missing", "Custom Image toning is missing or unrecognized"]
+    for override, message in (({258: _short(14)}, "storage geometry"), ({50740: _bytes(_note())}, "different camera"),
+                              ({305: _bytes(b"PENTAX K-3 Mark III Ver. 2.20\0", 2)}, "native")):
+        with pytest.raises(ValueError, match=message):
+            raw.load_raw(_dng(path, {**_Q7, 50740: _bytes(_q7_note()), **override}))
+
+
 def test_pef_uses_both_greens_and_firmware_gain():
     note = raw._Tiff(BytesIO(_note()), length=len(_note()))
     note.endian(b"MM")

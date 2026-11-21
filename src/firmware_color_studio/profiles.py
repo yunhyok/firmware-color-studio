@@ -90,9 +90,9 @@ def convert_camera_rgb(rgb, source_id, target_id):
 def preview_inputs(rgb, baseline_exposure, camera_id, source_id=CAMERA_ID):
     """Camera RGB and preview EV of a `source_id` RAW for rendering with a profile of `camera_id`.
 
-    RAW input is K-3 Mark III only so far.  For another camera the scene is passed
-    through both sensor matrices and the tone curve receives the level the source
-    pack would give it, so that the same scene has the same exposure in both.
+    For a profile of another camera than the one that took the RAW, the scene is
+    passed through both sensor matrices and the tone curve receives the level the
+    source pack would give it, so that the same scene has the same exposure in both.
     """
     if camera_id == source_id:
         return rgb, baseline_exposure

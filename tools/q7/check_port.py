@@ -65,8 +65,8 @@ failures += report("MakeColorMatrix (six colour matrices, CM, FC1, chroma offset
 bad = total = 0
 for mode, entry in engine.modes.items():
     rule = entry["sliders"]
-    cases = [(key, contrast, 0x2000, 0, 1) for key in (range(-4, 5) if rule["key"] == "slider" else (0,))
-             for contrast in (range(-4, 5) if rule["contrast"] == "slider" else (0,))]
+    cases = [(key, contrast, 0x2000, ratio, 1) for key in (range(-4, 5) if rule["key"] == "slider" else (0,))
+             for contrast in (range(-4, 5) if rule["contrast"] == "slider" else (0,)) for ratio in (0x2000, 0)]
     if mode in ("natural", "reversal-film"):
         cases += [(0, 0, exposure, ratio, step) for exposure in (0x400, 0x800, 0x1000, 0x16A0, 0x1800, 0x2ABC, 0x2D41, 0x4000,
                                                                 0x5A82, 0x8000, 0x10000)
@@ -82,4 +82,28 @@ for mode, entry in engine.modes.items():
             bad += 1
             print("MISMATCH gamma", mode, key, contrast, hex(exposure), hex(ratio), step)
 failures += report("CalcGammaCorrectionTable and ...Reversal (4096 entries each)", bad, total)
+
+# The basic gamma table and the 9 x 9 x 9 table built from it, at the nominal run-time gains.
+bad = total = 0
+basic, lut = emulator.alloc(0x2100), emulator.alloc(0x19C0)
+unused = [emulator.alloc(0x10, b"\xff\xff") for _ in range(2)]        # tables B and C: Cross Processing only
+for mode, entry in engine.modes.items():
+    rule = entry["sliders"]
+    cases = [(saturation, 0, 0) for saturation in (range(-4, 5) if rule["saturation"] == "slider" else (0,))]
+    cases += [(0, key, contrast) for key in (range(-4, 5) if rule["key"] == "slider" else ())
+              for contrast in (range(-4, 5) if rule["contrast"] == "slider" else ()) if key or contrast]
+    routine = "GammaCorrectionService_CalcGammaCorrectionTable" + ("Reversal" if entry["gamma"] == "reversal" else "")
+    for saturation, key, contrast in cases:
+        setup(mode=entry["id"], saturation=saturation + 4, key=key + 4, contrast=contrast + 4, filter=entry["filter_effect"],
+              ratio=0x2000)
+        emulator.call("ColorMatchingService_MakeColorMatrix", settings, 0, out_a, out_b, out6)
+        emulator.call(routine, settings, 0, table)
+        emulator.call("GammaCorrectionService_CalcBasicGammaCorrectionTable", settings, basic)
+        emulator.call("ColorMatchingService_MakeColorReproductionLutParam", settings, 0, lut, out6, table, *unused, basic)
+        total += 1
+        if (list(emulator.read(basic, "4096H")) != engine.basic_gamma()
+                or list(emulator.read(lut + 0x18, "2187H")) != engine.reproduction_table(mode, saturation, key, contrast).ravel().tolist()):
+            bad += 1
+            print("MISMATCH table", mode, saturation, key, contrast)
+failures += report("CalcBasicGammaCorrectionTable (4096 entries) and MakeColorReproductionLutParam (729 points)", bad, total)
 sys.exit(1 if failures else 0)
