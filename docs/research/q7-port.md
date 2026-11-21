@@ -4,7 +4,7 @@ Goal: add **PENTAX Q7** as a second, selectable camera in Firmware Color Studio,
 derived from its firmware in the same way as the K-3 Mark III pack. This file is the working
 record. It is updated at every milestone so that the work can be resumed from here.
 
-**Status: the `pentax-q7` camera pack is in the app (camera menu, CLI `--camera`) and builds DCP and DCP + XMP profiles for ten Custom Images. Its integer calculations reproduce the emulated firmware exactly. Not done: validation with Q7 photographs (exposure anchor, Lightroom, camera JPEG), Q7 RAW input, and the items under "Next steps".** User documentation: [../q7.md](../q7.md).
+**Status: the `pentax-q7` camera pack is in the app (camera menu, CLI `--camera`, Q7 DNG input) and builds DCP and DCP + XMP profiles for ten Custom Images. Its integer calculations, including the basic gamma and the 9 x 9 x 9 table, reproduce the emulated firmware exactly, and the Landscape profile matches the camera JPEG of one Q7 photograph to a mean Delta E76 of 1.5. Not done: Lightroom, other sensitivities and Custom Images on photographs, and the items under "Next steps".** User documentation: [../q7.md](../q7.md).
 
 ## How to resume
 
@@ -133,12 +133,14 @@ All are in unpacked part A. Values are in [`q7-color-tables.json`](q7-color-tabl
 | `cnarwBasicTone{128,256,512,1024,2048}{Low,Middle,High}` | 15 tone curves of 256 × u16: three contrast families × **five** columns (K-3 III has six) | `gamma.families` |
 | `cnarwReversalTone{128,181,256,362,512,724,1024}` | seven Reversal Film curves (K-3 III has nine) | `gamma.reversal_curves` |
 | `arcnlDNGColorMatrix1`, `2` | nine (numerator, 65536) pairs each | `dng_color_matrix_tables` |
+| `cnwHighlightShadowCompositionRate2048` `0x804b4a78` | 97 rates of 0..2048 that join two tone curves around the reference grey; used by the basic gamma | `gamma.transition_weights` (the same values) |
 
-### Colour arithmetic (read from the code; port verified by emulation: `tools/q7/q7port.py`, `check_port.py`)
+### Colour arithmetic (read from the code; port verified by emulation: `check_port.py`)
 
 `tools/q7/emu.py` runs routines of the unpacked image in a CPU emulator (unicorn, MIPS32 LE; kseg0
 addresses are mapped to physical memory). `tools/q7/check_port.py` runs the two firmware routines
-below for many settings and compares every output value with the Python port `tools/q7/q7port.py`:
+below for many settings and compares every output value with the Python port (the first port, a
+stand-alone script, has since become `q7_engine.py`; its counts were):
 
     MakeColorMatrix: 578/578 settings identical     (11 modes x saturation x hue x colour space x toning)
     CalcGammaCorrectionTable: 308/308 settings identical   (key x contrast x exposure gain x ratio x step)
@@ -189,9 +191,34 @@ seven curves (`cnarwReversalTone128`…`1024`, bounds `128 181 256 362 512 724 1
 `check_port.py` now compares the engine the app uses (`src/firmware_color_studio/q7_engine.py`):
 
     MakeColorMatrix (six colour matrices, CM, FC1, chroma offsets): 276/276 settings identical
-    CalcGammaCorrectionTable and ...Reversal (4096 entries each): 906/906 settings identical
+    CalcGammaCorrectionTable and ...Reversal (4096 entries each): 1636/1636 settings identical
+    CalcBasicGammaCorrectionTable (4096 entries) and MakeColorReproductionLutParam (729 points): 794/794 settings identical
 
-### Where the results go: a three-dimensional table (read from the code, not emulated)
+**The nominal ratio is `0x2000`, so `v = 512`.** `ImageQualityService_SetupGammaCorrectionAndColorMatchingService`
+copies the settings for a second set of tables (when byte `+0x1a0` is 1) and writes `0x2000` to both `+0x174` and
+`+0x178` of the copy (`0x80428ddc`...`0x80428de4`). With `+0x174 = 0x2000` the ratio is `0x400000 / 0x2000 = 512`,
+the constant the K-3 Mark III has in the same place of `_regular_curve`. The earlier default of this port was the
+routine's fallback for a zero word (256), which puts the reference grey at input 256 of 4096; with 512 it is at
+input 512, one eighth of the range. The photograph below confirms 512.
+
+**`GammaCorrectionService_CalcBasicGammaCorrectionTable` `0x8041d7e8`** (settings, output table of 4096 x u16).
+It reads only the run-time words (`+0x164`, `+0x174`, the coarse flag `+0x1a0`), not the Custom Image or its
+settings: emulated tables for all modes, keys, contrasts and saturations are equal. It is the K-3 Mark III's
+highlight and shadow contrast calculation with fixed amounts:
+
+- three tone curves with contrast amounts -7, -4 and -6 (that is contrast -2, highlight -3, shadow -2), each
+  mixed from the Low and Middle families and joined to the reference grey as in the regular table;
+- below the reference grey the middle curve is mixed with the -6 curve, above it with the -7 curve, by
+  `cnwHighlightShadowCompositionRate2048[32 x ratio - 32]` (97 entries of 0..2048; `ratio` is `x / v` above and
+  `v / x` below; beyond a factor of four the outer curve is used alone). These rates equal the K-3 Mark III's
+  transition weights value for value;
+- all 256 tone points are used, 16 table entries per point, scaled by `4095 / 16130` and limited to 4095 (the
+  regular table uses points 0..128 and a straight line above).
+
+Ported for the nominal gains (`v = 512`): `Q7Engine.basic_gamma`. Values: entry 512 is 1917 (the reference grey),
+entries 256, 1024, 2048 are 1299, 2530, 3181.
+
+### Where the results go: a three-dimensional table (ported and emulated)
 
 `ImageQualityService_SetupGammaCorrectionAndColorMatchingService` `0x804289b8` allocates four gamma
 tables and three descriptors and calls:
@@ -209,9 +236,56 @@ tables and three descriptors and calls:
   channel up in gamma table A (B, C for Cross Processing).
 
 So the camera's colour rendering is this table, addressed by the output of the basic gamma block and
-interpolated by the hardware. At the nodes it equals `gamma(chroma suppression(matrix x RGB))`, which is
-what `Q7Engine.camera()` describes; between nodes the camera can differ. The interpolation method of
-the hardware is not known. The gamma routines do not read the colour space setting.
+interpolated by the hardware. At the nodes it equals `gamma(chroma suppression(matrix x RGB))`. The gamma
+routines do not read the colour space setting.
+
+Details found when porting (`Q7Engine.reproduction_table`, `table_inputs`):
+
+- Arguments: settings, unused, output, six matrices, gamma tables A, B, C, basic gamma table D. The output
+  holds 729 RGB triples of u16 from offset `0x18`, red outermost: `0x18 + 486 R + 54 G + 6 B`.
+- The node inputs are found by one pass over table D: each entry gives at most one node, and the ninth is
+  set to 4095. With the nominal table D they are `0, 75, 179, 337, 591, 1060, 1845, 2876, 4095`.
+- Every division rounds towards zero. The chroma ratio index is `2 x (256 - G)` limited to 0..2047 with G
+  the matrix output's green, so a strongly negative green (a saturated red or blue) is desaturated most.
+- Selection among the six matrices: index `4 (G < B) + 2 (R < B) + (R < G)` into the pointers
+  `[0, 1, -, 2, 5, -, 4, 3]`. All six are equal in firmware 1.01.
+
+`color_model.CameraColour._table_codes` looks a colour up as the image processor would: basic gamma per
+channel, position between the levels `0, 512, ... 3584, 4095`, tetrahedral interpolation (the cube cut along
+its grey diagonal). The interpolation rule is not in the firmware; see the photograph.
+
+### A Q7 photograph (2026-11-22): what the camera does with the tables
+
+`20261122-IMGP1138.DNG`: ColorChecker Classic (Passport), firmware 1.01, ISO 100, 1/100 s, f/1.9, Landscape at
+factory settings (saturation 0, contrast +1, sharpness +1), sRGB, aspect ratio 3:2, daylight from a window. The
+DNG holds the camera's JPEG of the shot (SubIFD1, 1920 x 1280). Patches: median of 81 samples per patch, the
+raw ones from the white-balanced mosaic at half resolution. Numbers: [../chart-session-validation.json](../chart-session-validation.json),
+script `tools/chart_session.py`.
+
+- **File structure.** 4064 x 3000 samples of 12 bit, uncompressed; `ActiveArea 0 0 3000 4000`; `BlackLevel 0`,
+  `WhiteLevel 4062` (the maker note has `BlackPoint 32`: the black level is already subtracted);
+  `DefaultCropOrigin 0 168`, `DefaultCropSize 4000 2664` for the 3:2 setting; `BaselineExposure -32768/65535`.
+- **DNG tags against the firmware.** `ColorMatrix1` and `2` equal `arcnlDNGColorMatrix1` and `2`. Maker note
+  tag `0x021c` (ExifTool `ColorMatrixA2`) is `arcnsSRGBAdobeRGB` (`5857 2334 0 / 0 8192 0 / 0 335 7856`). Tag
+  `0x021d` (`ColorMatrixB2`, `13952 -4416 -1344 / -1472 13792 -4128 / 128 -2816 10880`, rows sum to 8192) is
+  none of the exported matrices and not the colour matrix of the shot; what it is was not found. The maker
+  note model number is 77690, the number in the firmware trailer. Settings are in tags `0x004f` (Custom Image
+  3), `0x001f` saturation 1, `0x0020` contrast 4, `0x0021` sharpness 4, `0x0067` hue 1, `0x006c` key `0 0`:
+  with ExifTool's value table (1 = 0, 4 = +1) these are the factory Landscape record.
+- **Exposure.** The six greys are at `0.831 0.590 0.383 0.206 0.096 0.035` of the white level after white
+  balance. With `v = 512` the tables meet the JPEG's greys at +0.03 EV (matrix and gamma alone) or +0.06 EV
+  (with the table) of that level; with `v = 256` only at -0.94 EV, and with a grey error of 1.14 L* in place
+  of 0.36. So the gamma input is the sensor level, `v = 512`, and the DNG's `BaselineExposure` of -0.5 is
+  cancelled by `BaselineExposureOffset` +0.5 in the pack, as in the K-3 Mark III pack.
+- **Interpolation.** Mean Delta E76 over the 24 patches at the sensor level: 3.22 with matrix, clip and gamma
+  applied directly; 3.25 with the table interpolated trilinearly (greys off by 3.1 L*); **1.51 with the table
+  interpolated tetrahedrally** (greys 0.9 L*; 1.31 at +0.06 EV). The direct calculation cuts the weakest channel
+  of saturated colours to zero where the camera does not (yellow green: blue 40 against the JPEG's 73; magenta:
+  green 70 against 93); the table gives 71 and 90. On the grey axis a trilinear rule would mix in the
+  neighbouring coloured nodes, which the JPEG does not show.
+- **The exported profile.** The Landscape DCP rendered with the file's `BaselineExposure`: 1.49 (colours 1.58,
+  greys 1.22, largest 7.60 at yellow, where the JPEG has blue 53 and the model 17). DCPs of other Custom Images
+  on the same file: Bright 3.90, Portrait 5.24, Vibrant 6.53, Natural 11.57.
 
 ### Custom Image records and DNG matrices
 
@@ -228,20 +302,18 @@ There are also records for scene modes (`DramaticArt`, `Gokusai`, `BlueSky`, …
 
 ## Next steps
 
-1. **Exposure anchor (needs a Q7 DNG and the camera JPEG of the same shot).** Set
-   `baseline_exposure_offset` in `data/q7/manifest.json` from a comparison, as the K-3 III pack did
-   (+0.5 EV); it is 0 now. Related open point: how the run-time gains (settings `+0x164`, `+0x174`,
-   `+0x178`) and the sensor's white level relate to the 0..4095 input of the gamma table.
-2. **Q7 RAW input** in `raw.py` (model identity, CFA pattern, levels, crop, maker note with the shot's
-   Custom Image), then calibration import from a Q7 DNG. Needs sample files.
-3. **Compare with Lightroom and camera JPEGs** once files exist, as `docs/validation.md` does for the
-   K-3 III; this also measures the effect of the camera's 9 x 9 x 9 table interpolation.
-4. Optional: model the table itself (port `MakeColorReproductionLutParam` and
-   `CalcBasicGammaCorrectionTable`, emulate to verify) and interpolate it, if step 3 shows a visible
-   difference. Cross Processing, monochrome filter effect and monochrome toning could be added the same way.
-5. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); not needed so far.
+Done on 2026-11-22 with the photograph above: the exposure anchor (+0.5 EV), Q7 DNG input with the shot's
+settings and calibration import, the comparison with the camera JPEG, and the model of the table.
 
-## Open questions for the user
-
-- A Q7 DNG and the camera JPEG of the same shot (ideally with a grey card or colour chart) are needed
-  for steps 1 to 3. Without them the Q7 profiles are unverified against the camera's output.
+1. **Lightroom.** Render the Q7 DNG with the exported profiles in Lightroom Classic and compare with Studio's
+   renderer and the camera JPEG, as `docs/validation.md` does for the K-3 III.
+2. **Run-time gains.** Find what writes settings `+0x164` and `+0x174` in shooting (sensitivity, highlight and
+   shadow correction) and port the rest of `CalcBasicGammaCorrectionTable` for other values. A DNG at a high
+   sensitivity or with highlight correction on, with its JPEG, would show whether `BaselineExposure` follows.
+3. **More photographs.** Other Custom Images and non-zero settings (hue and key in particular: their maker note
+   values come from ExifTool's table and were seen only at zero), AdobeRGB, and a full-size camera JPEG.
+4. The yellow patch (Delta E 7.6): the JPEG keeps more blue than the table. Check a full-size JPEG before
+   looking for another stage.
+5. Where the maker note records the toning colour of Muted; what maker note tag `0x021d` is.
+6. Optional: Cross Processing, monochrome filter effect and monochrome toning.
+7. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); not needed so far.

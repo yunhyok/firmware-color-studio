@@ -39,12 +39,15 @@ def test_standalone_profile_reproduces_a_look_on_chart_and_unseen_colours():
         np.testing.assert_allclose(parsed[f"ColorMatrix{i}"], expected, atol=0.5e-6)
     offset = parsed["BaselineExposureOffset"]
     assert np.all(np.diff(parsed["curve_y"]) >= 0)
-    # The exported gain maps the factory Natural middle-gray sensor exposure to Y=.18.
-    raw_gray = 0.18 / 2**offset
+    # The exported gain puts the four middle greys at the sensor level where the factory Natural
+    # renders them as light as the donor did: the donor's exposure of the chart is not its look.
+    forward = color_model.SRGB_TO_PCS @ engine.common_matrix()
+    greys = np.linalg.solve(forward, chart_fit._reference_xyz("2014+")[19:23].T).T / 2**offset
     natural, _ = profiles.build_profile(profiles.default_recipe("natural"))
-    gray = profiles.render_dcp([raw_gray] * 3, natural)
-    gray_y = color_model.srgb_decode(gray) @ color_model.SRGB_TO_PCS[1]
-    assert gray_y == pytest.approx(.18, abs=2e-7)
+    lightness = chart_fit._lab(profiles.render_dcp(greys, natural))[:, 0].mean()
+    assert lightness == pytest.approx(chart_fit._lab(target[19:23])[:, 0].mean(), abs=.01)
+    # This donor is about half a stop brighter than Natural, which Natural's own anchor would have kept.
+    assert chart_fit._camera_exposure_offset(profiles.CAMERA_ID) - offset == pytest.approx(.5, abs=.15)
     # Independent colours, absent from the fit, driven by the same donor transform.
     unseen = np.random.default_rng(161).uniform(.17, .85, (256, 3))
     sensor = np.linalg.solve(engine.common_matrix(), color_model.srgb_decode(unseen).T).T / 2**offset

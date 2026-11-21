@@ -92,6 +92,24 @@ def _camera_exposure_offset(camera_id):
     return round(float(np.log2(0.18 / ((low + high) * 0.5))), 6)
 
 
+def _donor_exposure(camera_id, sensor, lightness, limit):
+    """EV by which the donor exposed the chart above this camera's Natural, from the four middle greys.
+
+    One JPEG cannot tell a donor's look from how its camera happened to expose the chart, and
+    a RAW of the same scene carries that exposure a second time.  The level of the greys is
+    therefore taken from Natural; the shape of the tone curve stays the donor's.
+    """
+    natural, _ = profiles.build_profile(profiles.default_recipe("natural", camera_id))
+    low, high = -3.0, limit                       # the profile's own exposure must stay positive
+    for _ in range(24):
+        middle = (low + high) * 0.5
+        if _lab(profiles.render_dcp(sensor, natural, middle))[:, 0].mean() < lightness.mean():
+            low = middle
+        else:
+            high = middle
+    return (low + high) * 0.5
+
+
 def _fit_look(source, target):
     """Fit eight periodic hue knots shared across exposure, with a neutral anchor."""
     hue, sat, value = color.rgb_to_hsv(source).T
@@ -145,6 +163,8 @@ def fit_chart(patches, name, *, camera_id=profiles.CAMERA_ID, edition="2014+"):
     forward = color.SRGB_TO_PCS @ pack.engine.common_matrix()
     offset = _camera_exposure_offset(camera_id)
     # Convert nominal reflectances into camera inputs *before* the DCP exposure ramp.
+    sensor = np.linalg.solve(forward, source_xyz.T).T / 2**offset
+    offset = round(offset - _donor_exposure(camera_id, sensor[19:23], target_lab[19:23, 0], offset), 6)
     sensor = np.linalg.solve(forward, source_xyz.T).T / 2**offset
     source_working = color.dng_working_rgb(sensor, forward, offset)
     # Slightly mix with an identity ramp to keep clipped neutral samples invertible.

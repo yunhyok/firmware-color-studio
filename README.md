@@ -11,7 +11,7 @@
 **펌웨어 카메라 모드와 RAW 비교**
 
 1. Releases의 `FirmwareColorStudio-…-windows-x64-setup.exe`를 실행합니다. Python이나 카메라 펌웨어 파일을 따로 설치할 필요가 없습니다.
-2. 파일을 지정하지 않고 시작하면 CC0 컬러 큐브 DNG를 자동으로 엽니다. 다른 K-3 III PEF/DNG를 열거나 끌어 놓을 수 있습니다. 왼쪽에서 프로파일을 선택하면 비교 기준과 현재 설정을 나란히 표시합니다.
+2. 파일을 지정하지 않고 시작하면 CC0 컬러 큐브 DNG를 자동으로 엽니다. 다른 K-3 III PEF/DNG나 Q7 DNG를 열거나 끌어 놓을 수 있습니다. 왼쪽에서 프로파일을 선택하면 비교 기준과 현재 설정을 나란히 표시합니다.
 3. 채도, 색상, 밝기(Key), 대비, 하이라이트/섀도 대비를 −4…+4에서 조정합니다. **촬영 설정 가져오기**는 RAW의 지원되는 Custom Image 설정을 가져옵니다. **출고값으로 복원**은 선택 모드의 기본값으로 돌아갑니다.
 4. 일반 모드는 DCP를 내보냅니다. Gold 또는 조색을 선택하면 **DCP + XMP (ZIP)**으로 전환되고, 일반 모드로 돌아오면 DCP로 복귀합니다. 직접 고른 ZIP 형식은 유지됩니다. 레시피 JSON은 나중에 열어 수정할 수 있습니다.
 5. Lightroom의 현상 모듈에서 프로파일 탐색기의 **프로파일 가져오기**로 DCP 또는 ZIP을 가져옵니다. 수동 설치 시 DCP는 `%APPDATA%\Adobe\CameraRaw\CameraProfiles`, XMP는 `%APPDATA%\Adobe\CameraRaw\Settings`에 넣고 Lightroom을 다시 실행합니다. XMP에는 짝이 되는 base DCP가 필요합니다. ZIP 안의 파일 이름은 프로파일마다 달라 여러 묶음을 같은 폴더에 풀어도 서로 덮어쓰지 않습니다. [Adobe 안내](https://helpx.adobe.com/lightroom-classic/help/develop-module-options.html)
@@ -29,13 +29,13 @@
 
 상단의 카메라 메뉴에서 **PENTAX Q7**을 고르면 Q7 펌웨어 1.01의 Custom Image 10종으로 바뀝니다: Natural, Bright, Portrait, Landscape, Vibrant, Radiant, Muted, Bleach Bypass, Reversal Film, Monochrome. 조절 항목은 펌웨어를 따릅니다. Q7에는 하이라이트/섀도 대비가 없고, Muted와 Bleach Bypass는 색상 대신 조색을 씁니다. 내보낸 DCP의 카메라 이름은 `PENTAX Q7`이므로 Lightroom에서 Q7 DNG에만 나타납니다.
 
-- 색 행렬·감마·YC 계산은 Q7 펌웨어 루틴을 CPU 에뮬레이터로 실행한 결과와 모든 설정에서 일치합니다.
-- **Q7로 찍은 사진으로는 아직 확인하지 못했습니다.** 카메라 JPEG이나 Lightroom 결과와 비교한 적이 없고, 전체 밝기 기준(`BaselineExposureOffset`)은 보정 전 값 0입니다. Q7 DNG와 같은 컷의 카메라 JPEG이 있으면 맞출 수 있습니다.
-- RAW 열기는 K-3 Mark III 파일만 지원합니다. Q7을 고른 상태의 미리보기는 K-3 Mark III RAW를 두 카메라의 센서 행렬로 환산한 근사입니다. [Q7 지원 범위와 한계](docs/q7.md)
+- 색 행렬·감마·YC 계산과 카메라가 실제로 보간하는 9×9×9 3차원 표는 Q7 펌웨어 루틴을 CPU 에뮬레이터로 실행한 결과와 모든 설정에서 일치합니다.
+- ColorChecker를 찍은 Q7 DNG 한 장(ISO 100, Landscape 출고값)에서 Landscape 프로파일과 DNG에 들어 있는 카메라 JPEG의 24패치 평균 색차는 ΔE76 1.5입니다. 전체 밝기 기준(`BaselineExposureOffset` +0.5 EV)도 이 사진으로 맞췄습니다. 다른 Custom Image·감도와 Lightroom 출력은 사진으로 비교하지 않았습니다.
+- Q7 DNG를 열면 카메라가 Q7로 바뀌고, 촬영 설정 가져오기와 DNG 보정 행렬 가져오기도 Q7 파일에서 동작합니다. 다른 카메라의 RAW를 연 상태의 미리보기는 두 카메라의 센서 행렬로 환산한 근사입니다. [Q7 지원 범위와 한계](docs/q7.md)
 
 ## 지원 범위
 
-- 일반 컬러 K-3 III의 14-bit 단일 프레임 Bayer PEF 및 원본 DNG를 지원합니다. Pixel Shift, HDR, K-3 III Monochrome과 변환된 DNG의 미리보기는 지원하지 않습니다.
+- 일반 컬러 K-3 III의 14-bit 단일 프레임 Bayer PEF 및 원본 DNG, Q7의 원본 DNG를 지원합니다. Pixel Shift, HDR, K-3 III Monochrome과 변환된 DNG의 미리보기는 지원하지 않습니다.
 - 미리보기는 RAW의 블랙 레벨, 화이트 레벨, 촬영 화이트밸런스, Bayer 패턴, 기본 크롭과 방향을 반영하는 ½ 해상도 색 비교입니다. 조정 중에는 긴 변 480px, 멈추면 1000px로 갱신합니다. 모니터 ICC를 적용합니다.
 - PEF는 Adobe 변환 메타데이터에서 확인한 기준 노출 −0.3 EV와 화이트 레벨 상한 16,315를 미리보기에 적용합니다. 같은 촬영의 원본 PEF와 무손실 변환 DNG를 Lightroom에서 내보내 비교했습니다. 카메라 원본 DNG는 파일의 기준 노출과 화이트 레벨을 읽습니다. [PEF 보정 근거](docs/pef-fidelity.md)
 - 샤프니스, 노이즈 감소, 렌즈 보정 및 Lightroom 전체 현상 파이프라인을 복제하지 않습니다. 따라서 카메라 JPEG 또는 Lightroom 출력과 픽셀 단위로 같다는 뜻은 아닙니다.
@@ -54,7 +54,7 @@ python -m venv .venv
 ./tools/build_windows.ps1
 ```
 
-CLI는 `fcs verify --report result.json`, `fcs recipe recipe.json --camera pentax-q7 --mode bright`(출고값 레시피 쓰기), `fcs export recipe.json output.dcp`, `fcs export recipe.json output.zip --enhanced`, `fcs preview input.DNG output.png --mode natural`을 제공합니다. `--camera`는 `pentax-k3iii`(기본) 또는 `pentax-q7`입니다. CLI 출력 파일은 기존 파일을 덮어쓰지 않습니다.
+CLI는 `fcs verify --report result.json`, `fcs recipe recipe.json --camera pentax-q7 --mode bright`(출고값 레시피 쓰기), `fcs export recipe.json output.dcp`, `fcs export recipe.json output.zip --enhanced`, `fcs preview input.DNG output.png --mode natural`을 제공합니다. `--camera`는 `pentax-k3iii`(기본) 또는 `pentax-q7`이며, `fcs preview`는 생략하면 RAW를 찍은 카메라를 씁니다. CLI 출력 파일은 기존 파일을 덮어쓰지 않습니다.
 
 차트 사진에는 `fcs chart-fit`을 사용합니다. [자동 인식과 수동 좌표 사용 예제](docs/chart-profiles.md#cli)
 
