@@ -96,7 +96,7 @@ def test_failed_raw_load_keeps_the_displayed_image(application, monkeypatch):
         assert window.raw is shown
         assert window.preview_cache
         loaded = SimpleNamespace(rgb=shown.rgb, warnings=["note"], metadata={
-            "path": "next.dng", "model": "PENTAX K-3 Mark III", "width": 2, "height": 2})
+            "path": "next.dng", "model": "PENTAX K-3 Mark III", "camera_id": "pentax-k3iii", "width": 2, "height": 2})
         previews, thumbs = window.generation["preview"], window.generation["thumbs"]
         window.load_raw_path("next.dng")
         window._job_done("raw", window.generation["raw"], loaded, None)
@@ -227,7 +227,7 @@ def test_menu_title_and_demo_label_follow_the_language(application):
         window.language.setCurrentIndex(0)
         assert window.file_menu.title() == "파일"
         window.raw = SimpleNamespace(rgb=None, warnings=[], metadata={
-            "path": str(DEMO_RAW), "model": "PENTAX K-3 Mark III", "width": 3096, "height": 2064})
+            "path": str(DEMO_RAW), "model": "PENTAX K-3 Mark III", "camera_id": "pentax-k3iii", "width": 3096, "height": 2064})
         window.language.setCurrentIndex(1)
         assert window.file_menu.title() == "File"
         assert window.file_label.text().startswith("Demo photo · color-cube.dng")

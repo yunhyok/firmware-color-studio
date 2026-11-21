@@ -22,16 +22,20 @@ from PySide6.QtWidgets import (
 from . import __version__
 from .cli import DEMO_RAW
 from .display import monitor_space, rgb_image
-from .profiles import (build_profile, default_recipe, list_modes, load_recipe,
-                       render_dcp, save_recipe, validate_recipe)
+from .profiles import (CAMERA_ID, build_profile, camera_info, default_recipe, list_cameras, list_modes, load_recipe,
+                       preview_inputs, render_dcp, save_recipe, validate_recipe)
 from .raw import load_raw, read_calibration, resize_rgb
 
 
 TEXT = {
     "open": ("RAW 열기", "Open RAW"), "empty": ("PEF·DNG 또는 차트 JPEG를 끌어 놓으세요", "Drop a PEF, DNG or chart JPEG here"),
+    "no_recorded": ("이 RAW에는 지원하는 Custom Image 설정이 없습니다", "No supported Custom Image settings in this RAW."),
     "chart": ("차트 JPEG → DCP", "Chart JPEG → DCP"), "file": ("파일", "File"), "demo": ("데모 사진", "Demo photo"),
-    "chart_tip": ("다른 카메라로 찍은 ColorChecker Classic JPEG의 색감을 K-3 III용 DCP로 만듭니다",
-                  "Estimate a K-3 III DCP from another camera's ColorChecker Classic JPEG"),
+    "chart_tip": ("다른 카메라로 찍은 ColorChecker Classic JPEG의 색감을 선택한 카메라용 DCP로 만듭니다",
+                  "Estimate a DCP for the selected camera from another camera's ColorChecker Classic JPEG"),
+    "camera_tip": ("프로파일을 만들 카메라", "Camera the profiles are made for"),
+    "cross_note": ("이 미리보기는 다른 카메라의 RAW를 두 카메라의 센서 행렬로 환산한 근사입니다",
+                   "This preview converts another camera's RAW through both sensor matrices; it is approximate"),
     "profiles": ("카메라 프로파일", "Camera profiles"), "adjust": ("프로파일 조정", "Profile controls"),
     "baseline": ("비교 기준", "Reference"), "current": ("현재 프로파일", "Current profile"),
     "factory": ("출고값으로 복원", "Reset to factory"), "recorded": ("촬영 설정 가져오기", "Use shot settings"),
@@ -154,7 +158,8 @@ def checked_output(path, suffix, sources=()):
     return path
 
 
-def render_recipe(rgb, recipe, baseline, enhanced=False):
+def render_recipe(rgb, recipe, baseline, enhanced=False, source_id=CAMERA_ID):
+    rgb, baseline = preview_inputs(rgb, baseline, recipe["camera_id"], source_id)
     if enhanced or recipe["mode"] == "gold" or recipe.get("toning"):
         from .enhanced import build_enhanced, render_enhanced
         bundle = build_enhanced(recipe)
@@ -168,7 +173,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.preferences = QSettings("Yunhyok", "FirmwareColorStudio")
         self.lang = int(self.preferences.value("language", 0))
-        self.recipe = default_recipe()
+        camera_id = self.preferences.value("camera", CAMERA_ID)
+        self.recipe = default_recipe("natural", camera_id if camera_id in list_cameras() else CAMERA_ID)
         self.raw = None
         self.source_paths = set()
         self.preview_cache = {}
@@ -216,6 +222,11 @@ class MainWindow(QMainWindow):
         self.brand.setObjectName("brand")
         top.addWidget(self.brand)
         top.addStretch()
+        self.camera = QComboBox()
+        for camera_id, model in list_cameras().items():
+            self.camera.addItem(model, camera_id)
+        self.camera.currentIndexChanged.connect(self._camera_changed)
+        top.addWidget(self.camera)
         self.open_button = QPushButton()
         self.open_button.setObjectName("primary")
         self.open_button.clicked.connect(self.open_raw)
@@ -229,7 +240,7 @@ class MainWindow(QMainWindow):
         self.language.currentIndexChanged.connect(self._language_changed)
         top.addWidget(self.language)
         layout.addLayout(top)
-        self.file_label = QLabel("PENTAX K-3 Mark III · Firmware 2.20")
+        self.file_label = QLabel(self._camera_text())
         self.file_label.setObjectName("muted")
         self.file_label.setTextFormat(Qt.TextFormat.PlainText)
         layout.addWidget(self.file_label)
@@ -250,13 +261,6 @@ class MainWindow(QMainWindow):
         self.mode_list.setWordWrap(True)
         self.mode_list.setUniformItemSizes(True)
         self.mode_list.setTextElideMode(Qt.TextElideMode.ElideNone)
-        for mode, info in list_modes().items():
-            item = QListWidgetItem(info["label"].replace(" (", "\n("))
-            item.setToolTip(info["label"])
-            item.setSizeHint(QSize(126, 130))
-            item.setData(Qt.ItemDataRole.UserRole, mode)
-            self.mode_list.addItem(item)
-        self.mode_list.setCurrentRow(0)
         self.mode_list.currentItemChanged.connect(self._mode_changed)
         left_layout.addWidget(self.mode_list)
         splitter.addWidget(left)
@@ -267,9 +271,8 @@ class MainWindow(QMainWindow):
         self.reference_label = QLabel()
         heading.addWidget(self.reference_label)
         self.reference = QComboBox()
-        for mode, info in list_modes().items():
-            self.reference.addItem(info["label"], mode)
         self.reference.currentIndexChanged.connect(self._request_preview)
+        self._fill_modes()
         heading.addWidget(self.reference)
         heading.addStretch()
         self.current_label = QLabel()
@@ -401,6 +404,38 @@ class MainWindow(QMainWindow):
             menu.addAction(action)
             self.actions[key] = action
 
+    def _camera_text(self):
+        info = camera_info(self.recipe["camera_id"])
+        return f'{info["model"]} · Firmware {info["firmware_version"]}'
+
+    def _fill_modes(self):
+        """Custom Images of the recipe's camera in the profile list and the reference menu."""
+        widgets = (self.mode_list, self.reference, self.camera)
+        for widget in widgets:
+            widget.blockSignals(True)
+        self.camera.setCurrentIndex(self.camera.findData(self.recipe["camera_id"]))
+        self.mode_list.clear()
+        self.reference.clear()
+        for mode, info in list_modes(self.recipe["camera_id"]).items():
+            item = QListWidgetItem(info["label"].replace(" (", "\n("))
+            item.setToolTip(info["label"])
+            item.setSizeHint(QSize(126, 130))
+            item.setData(Qt.ItemDataRole.UserRole, mode)
+            self.mode_list.addItem(item)
+            self.reference.addItem(info["label"], mode)
+            if mode == self.recipe["mode"]:
+                self.mode_list.setCurrentItem(item)
+        for widget in widgets:
+            widget.blockSignals(False)
+
+    def _camera_changed(self, *_):
+        camera_id = self.camera.currentData()
+        if camera_id == self.recipe["camera_id"]:
+            return
+        self.preferences.setValue("camera", camera_id)
+        # A body calibration belongs to the camera it was read from.
+        self._set_recipe(default_recipe("natural", camera_id))
+
     def _translate(self):
         for widget, key in [(self.open_button,"open"),(self.chart_button,"chart"),(self.profile_heading,"profiles"),(self.adjust_heading,"adjust"),
                             (self.reference_label,"baseline"),(self.name_label,"name"),(self.space_label,"color_space"),
@@ -410,6 +445,7 @@ class MainWindow(QMainWindow):
             widget.setText(self.tr_text(key))
         self.file_menu.setTitle(self.tr_text("file"))
         self.chart_button.setToolTip(self.tr_text("chart_tip"))
+        self.camera.setToolTip(self.tr_text("camera_tip"))
         self._update_file_label()
         self.name_edit.setPlaceholderText(self.tr_text("name_hint"))
         for name, label in self.control_labels.items():
@@ -427,17 +463,27 @@ class MainWindow(QMainWindow):
             self.after.setText(self.tr_text("empty"))
         self._update_calibration_label()
         self._sync_format()
-        self.rendition.setText(self.tr_text("dcp_note" if self.output_format.currentData() == "dcp" else "xmp_note"))
+        self._update_rendition()
+
+    def _update_rendition(self):
+        text = self.tr_text("dcp_note" if self.output_format.currentData() == "dcp" else "xmp_note")
+        if self.raw is not None and self.recipe["camera_id"] != self.raw.metadata["camera_id"]:
+            text += "\n" + self.tr_text("cross_note")
+        self.rendition.setText(text)
 
     def _update_file_label(self):
         if self.raw is None:
+            self.file_label.setText(self._camera_text())
             return
         info = self.raw.metadata
         name = Path(info["path"]).name
         if Path(info["path"]) == DEMO_RAW:
             # The app opened this bundled photograph itself.
             name = f'{self.tr_text("demo")} · {name}'
-        self.file_label.setText(f"{name}  ·  {info['model']}  ·  {info['width']} × {info['height']}")
+        text = f"{name}  ·  {info['model']}  ·  {info['width']} × {info['height']}"
+        if self.recipe["camera_id"] != info["camera_id"]:
+            text += f"  →  {self._camera_text()}"
+        self.file_label.setText(text)
 
     def _language_changed(self, value):
         self.lang = value
@@ -445,7 +491,12 @@ class MainWindow(QMainWindow):
         self._translate()
 
     def _sync_controls(self):
-        mode = list_modes()[self.recipe["mode"]]
+        modes = list_modes(self.recipe["camera_id"])
+        mode = modes[self.recipe["mode"]]
+        for name, pair in self.controls.items():         # a control no Custom Image of this camera has is left out
+            offered = any(info["controls"][name] for info in modes.values())
+            for widget in (self.control_labels[name], *pair):
+                widget.setVisible(offered)
         widgets = [self.name_edit, self.space, self.tone]
         widgets += [w for pair in self.controls.values() for w in pair]
         for widget in widgets:
@@ -476,7 +527,7 @@ class MainWindow(QMainWindow):
             # Gold or toning selected XMP; the user's own choice of XMP is kept.
             self.format_forced = False
             self.output_format.setCurrentIndex(0)
-        self.current_label.setText(list_modes()[self.recipe["mode"]]["label"])
+        self.current_label.setText(list_modes(self.recipe["camera_id"])[self.recipe["mode"]]["label"])
 
     def _settings_changed(self, *_):
         previous_space = self.recipe["color_space"]
@@ -495,7 +546,7 @@ class MainWindow(QMainWindow):
             return
         calibration = self.recipe.get("calibration")
         color_space = self.recipe["color_space"]
-        self.recipe = default_recipe(current.data(Qt.ItemDataRole.UserRole))
+        self.recipe = default_recipe(current.data(Qt.ItemDataRole.UserRole), self.recipe["camera_id"])
         self.recipe.update(calibration=calibration, color_space=color_space)
         self._sync_controls()
         self._sync_format()
@@ -505,8 +556,12 @@ class MainWindow(QMainWindow):
         self._mode_changed(self.mode_list.currentItem())
 
     def _set_recipe(self, recipe):
-        previous = (self.recipe["color_space"], self.recipe["calibration"])
+        previous = (self.recipe["camera_id"], self.recipe["color_space"], self.recipe["calibration"])
         self.recipe = validate_recipe(recipe)
+        if self.recipe["camera_id"] != previous[0]:
+            self._fill_modes()
+            self._update_file_label()
+            self._update_rendition()
         self.mode_list.blockSignals(True)
         for i in range(self.mode_list.count()):
             if self.mode_list.item(i).data(Qt.ItemDataRole.UserRole) == self.recipe["mode"]:
@@ -516,7 +571,7 @@ class MainWindow(QMainWindow):
         self._sync_controls()
         self._sync_format()
         self._request_preview()
-        if previous != (self.recipe["color_space"], self.recipe["calibration"]):
+        if previous != (self.recipe["camera_id"], self.recipe["color_space"], self.recipe["calibration"]):
             self.generation["thumbs"] += 1
             self._thumbnails()
 
@@ -547,7 +602,7 @@ class MainWindow(QMainWindow):
         self.preview_running, self.preview_pending = True, False
         recipe = copy.deepcopy(self.recipe)
         frame = self.raw
-        reference = default_recipe(self.reference.currentData())
+        reference = default_recipe(self.reference.currentData(), recipe["camera_id"])
         reference.update(calibration=recipe.get("calibration"), color_space=recipe["color_space"])
         output_format = self.output_format.currentData()
         size, cache = self.preview_size, self.preview_cache
@@ -556,8 +611,9 @@ class MainWindow(QMainWindow):
             if size not in cache:
                 cache[size] = resize_rgb(frame.rgb, size)
             rgb = cache[size]
-            before, _ = render_recipe(rgb, reference, frame.baseline_exposure)
-            after, report = render_recipe(rgb, recipe, frame.baseline_exposure, output_format == "xmp")
+            source = frame.metadata["camera_id"]
+            before, _ = render_recipe(rgb, reference, frame.baseline_exposure, source_id=source)
+            after, report = render_recipe(rgb, recipe, frame.baseline_exposure, output_format == "xmp", source)
             return before, after, report, size
         self._start_job("preview", work)
 
@@ -567,16 +623,16 @@ class MainWindow(QMainWindow):
             return
         generation = self.generation["thumbs"]
         calibration = copy.deepcopy(self.recipe.get("calibration"))
-        space = self.recipe["color_space"]
+        space, camera_id = self.recipe["color_space"], self.recipe["camera_id"]
         def work():
             rgb = resize_rgb(frame.rgb, 160)
             previews = {}
-            for mode in list_modes():
+            for mode in list_modes(camera_id):
                 if self.closing or self.generation["thumbs"] != generation:
                     break
-                recipe = default_recipe(mode)
+                recipe = default_recipe(mode, camera_id)
                 recipe.update(calibration=calibration, color_space=space)
-                previews[mode], _ = render_recipe(rgb, recipe, frame.baseline_exposure)
+                previews[mode], _ = render_recipe(rgb, recipe, frame.baseline_exposure, source_id=frame.metadata["camera_id"])
             return previews
         self._start_job("thumbs", work)
 
@@ -605,6 +661,10 @@ class MainWindow(QMainWindow):
         elif kind == "raw":
             self.raw = result
             self.preview_cache = {}
+            camera_id = result.metadata["camera_id"]
+            if camera_id != self.recipe["camera_id"] and Path(result.metadata["path"]) != DEMO_RAW:
+                self._set_recipe(default_recipe("natural", camera_id))      # profiles are for the camera that took the RAW
+            self._update_rendition()
             self.generation["thumbs"] += 1
             self._update_file_label()
             self.recorded_button.setEnabled(bool(result.metadata.get("settings")))
@@ -615,7 +675,7 @@ class MainWindow(QMainWindow):
             before, after, self.last_report, size = result
             self.before.set_image(rgb_image(before, self.display_space))
             self.after.set_image(rgb_image(after, self.display_space))
-            self.rendition.setText(self.tr_text("dcp_note" if self.output_format.currentData() == "dcp" else "xmp_note"))
+            self._update_rendition()
             warnings = list(self.raw.warnings)
             if self.recipe["mode"] in ("bleach-bypass", "harubeni") and self.recipe.get("toning", 0) == 0:
                 warnings.append("조색 끔 · Toning off")
@@ -654,13 +714,13 @@ class MainWindow(QMainWindow):
         if self.raw is None:
             return
         info = self.raw.metadata
-        mode = info.get("mode")
-        if mode not in list_modes() or not info.get("settings"):
-            QMessageBox.information(self, self.tr_text("info"), "No supported Custom Image settings in this RAW.")
+        mode, camera_id = info.get("mode"), info["camera_id"]
+        if mode not in list_modes(camera_id) or not info.get("settings"):
+            QMessageBox.information(self, self.tr_text("info"), self.tr_text("no_recorded"))
             return
-        recipe = default_recipe(mode)
-        recipe.update(settings=info["settings"], color_space=info.get("color_space", "srgb"),
-                      toning=info.get("toning") or 0, calibration=self.recipe.get("calibration"))
+        recipe = default_recipe(mode, camera_id)        # the settings are those of the camera that took the RAW
+        recipe.update(settings=info["settings"], color_space=info.get("color_space", "srgb"), toning=info.get("toning") or 0,
+                      calibration=self.recipe.get("calibration") if self.recipe["camera_id"] == camera_id else None)
         try:
             self._set_recipe(recipe)
         except ValueError as error:
@@ -718,7 +778,7 @@ class MainWindow(QMainWindow):
         if path:
             try:
                 recipe = copy.deepcopy(self.recipe)
-                recipe["calibration"] = read_calibration(path)
+                recipe["calibration"] = read_calibration(path, recipe["camera_id"])
                 self.source_paths.add(Path(path))
                 self._set_recipe(recipe)
             except (OSError, ValueError) as error:
@@ -748,7 +808,7 @@ class MainWindow(QMainWindow):
     def show_details(self):
         box = QMessageBox(self)
         box.setWindowTitle(self.tr_text("info"))
-        box.setText(f"Firmware Color Studio {__version__}\nPENTAX K-3 Mark III · Firmware 2.20\nhttps://github.com/yunhyok/firmware-color-studio")
+        box.setText(f"Firmware Color Studio {__version__}\n{self._camera_text()}\nhttps://github.com/yunhyok/firmware-color-studio")
         box.setInformativeText(self.tr_text("limits"))
         box.setDetailedText(json.dumps({"recipe": self.recipe, "profile": self.last_report,
                                        "raw": self.raw.metadata if self.raw else None,

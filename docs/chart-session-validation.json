@@ -1,0 +1,2842 @@
+{
+ "studio_version": "0.3.0",
+ "delta_e": "CIE 1976, D50, between encoded sRGB patch medians",
+ "patch_sampling": "median of 81 samples in the inner 40 % of each patch (chart_input.sample_chart)",
+ "pairs": {
+  "pentax-q7": {
+   "raw": {
+    "file": "20261122-IMGP1138.DNG",
+    "sha256": "b5a768850c2d591d7a0373d6da65e2ddb1f7494fe388696748e9a489e8eebc3e",
+    "model": "PENTAX Q7",
+    "format": "DNG",
+    "baseline_exposure": -0.500008,
+    "white_level": 4062,
+    "black_level": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "white_balance": [
+     1.582031,
+     1.0,
+     1.949219,
+     1.0
+    ],
+    "half_resolution": [
+     2000,
+     1332
+    ]
+   },
+   "camera_jpeg": {
+    "source": "JPEG stored in the DNG (SubIFD1 PreviewImage)",
+    "size": [
+     1920,
+     1280
+    ],
+    "chart_detected_automatically": true,
+    "patch_centres_1_6_24_19": [
+     [
+      521.9,
+      414.4
+     ],
+     [
+      1375.2,
+      414.6
+     ],
+     [
+      1382.8,
+      939.8
+     ],
+     [
+      528.9,
+      928.7
+     ]
+    ]
+   },
+   "recipe": {
+    "mode": "landscape",
+    "settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 1,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "source": "the shot's settings in the maker note",
+    "factory_settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 1,
+     "highlight": 0,
+     "shadow": 0
+    }
+   },
+   "profile": {
+    "name": "Q7 Firmware Landscape (풍경)",
+    "baseline_exposure_offset": 0.5,
+    "dcp_sha256": "3da03c932ab1a2b823df7946b63120ce5118ba5c35dd2313dc80e21eebd4d82e"
+   },
+   "dcp_with_the_file_baseline_exposure": {
+    "mean_delta_e76": 1.49,
+    "colour_patches": 1.58,
+    "grey_patches": 1.22,
+    "grey_lightness_error": 0.91,
+    "maximum": 7.6,
+    "worst_patch": "yellow"
+   },
+   "dcp_grey_matched": {
+    "exposure_ev": 0.06,
+    "mean_delta_e76": 1.27,
+    "colour_patches": 1.44,
+    "grey_patches": 0.76,
+    "grey_lightness_error": 0.37,
+    "maximum": 8.25,
+    "worst_patch": "yellow"
+   },
+   "other_custom_images_with_the_file_baseline_exposure": {
+    "natural": {
+     "mean_delta_e76": 11.57,
+     "colour_patches": 14.68,
+     "grey_patches": 2.24,
+     "grey_lightness_error": 1.53,
+     "maximum": 29.71,
+     "worst_patch": "blue"
+    },
+    "bright": {
+     "mean_delta_e76": 3.9,
+     "colour_patches": 4.76,
+     "grey_patches": 1.3,
+     "grey_lightness_error": 0.89,
+     "maximum": 11.85,
+     "worst_patch": "red"
+    },
+    "portrait": {
+     "mean_delta_e76": 5.24,
+     "colour_patches": 6.33,
+     "grey_patches": 1.99,
+     "grey_lightness_error": 1.58,
+     "maximum": 10.63,
+     "worst_patch": "green"
+    },
+    "vibrant": {
+     "mean_delta_e76": 6.53,
+     "colour_patches": 8.03,
+     "grey_patches": 2.04,
+     "grey_lightness_error": 1.87,
+     "maximum": 14.36,
+     "worst_patch": "yellow green"
+    }
+   },
+   "patches": [
+    {
+     "name": "dark skin",
+     "camera_jpeg": [
+      149,
+      95,
+      69
+     ],
+     "dcp": [
+      146,
+      93,
+      67
+     ],
+     "raw_white_balanced": [
+      0.1523,
+      0.1041,
+      0.0849
+     ]
+    },
+    {
+     "name": "light skin",
+     "camera_jpeg": [
+      232,
+      180,
+      156
+     ],
+     "dcp": [
+      227,
+      178,
+      153
+     ],
+     "raw_white_balanced": [
+      0.534,
+      0.3589,
+      0.3052
+     ]
+    },
+    {
+     "name": "blue sky",
+     "camera_jpeg": [
+      119,
+      152,
+      206
+     ],
+     "dcp": [
+      115,
+      149,
+      202
+     ],
+     "raw_white_balanced": [
+      0.1737,
+      0.2331,
+      0.3383
+     ]
+    },
+    {
+     "name": "foliage",
+     "camera_jpeg": [
+      119,
+      145,
+      73
+     ],
+     "dcp": [
+      116,
+      143,
+      70
+     ],
+     "raw_white_balanced": [
+      0.1301,
+      0.1484,
+      0.1046
+     ]
+    },
+    {
+     "name": "blue flower",
+     "camera_jpeg": [
+      173,
+      157,
+      220
+     ],
+     "dcp": [
+      170,
+      154,
+      218
+     ],
+     "raw_white_balanced": [
+      0.2777,
+      0.2861,
+      0.4256
+     ]
+    },
+    {
+     "name": "bluish green",
+     "camera_jpeg": [
+      124,
+      222,
+      221
+     ],
+     "dcp": [
+      121,
+      220,
+      219
+     ],
+     "raw_white_balanced": [
+      0.2637,
+      0.4791,
+      0.5015
+     ]
+    },
+    {
+     "name": "orange",
+     "camera_jpeg": [
+      239,
+      154,
+      8
+     ],
+     "dcp": [
+      234,
+      153,
+      7
+     ],
+     "raw_white_balanced": [
+      0.5429,
+      0.2659,
+      0.1243
+     ]
+    },
+    {
+     "name": "purplish blue",
+     "camera_jpeg": [
+      79,
+      93,
+      215
+     ],
+     "dcp": [
+      76,
+      90,
+      210
+     ],
+     "raw_white_balanced": [
+      0.1145,
+      0.1601,
+      0.3373
+     ]
+    },
+    {
+     "name": "moderate red",
+     "camera_jpeg": [
+      236,
+      83,
+      101
+     ],
+     "dcp": [
+      232,
+      82,
+      101
+     ],
+     "raw_white_balanced": [
+      0.5168,
+      0.1997,
+      0.1699
+     ]
+    },
+    {
+     "name": "purple",
+     "camera_jpeg": [
+      131,
+      45,
+      146
+     ],
+     "dcp": [
+      128,
+      46,
+      144
+     ],
+     "raw_white_balanced": [
+      0.1262,
+      0.0838,
+      0.1363
+     ]
+    },
+    {
+     "name": "yellow green",
+     "camera_jpeg": [
+      198,
+      226,
+      73
+     ],
+     "dcp": [
+      195,
+      225,
+      70
+     ],
+     "raw_white_balanced": [
+      0.3988,
+      0.4685,
+      0.2371
+     ]
+    },
+    {
+     "name": "orange yellow",
+     "camera_jpeg": [
+      242,
+      201,
+      24
+     ],
+     "dcp": [
+      239,
+      200,
+      22
+     ],
+     "raw_white_balanced": [
+      0.6243,
+      0.3908,
+      0.167
+     ]
+    },
+    {
+     "name": "blue",
+     "camera_jpeg": [
+      32,
+      38,
+      184
+     ],
+     "dcp": [
+      33,
+      38,
+      183
+     ],
+     "raw_white_balanced": [
+      0.0537,
+      0.0831,
+      0.2092
+     ]
+    },
+    {
+     "name": "green",
+     "camera_jpeg": [
+      94,
+      192,
+      92
+     ],
+     "dcp": [
+      92,
+      189,
+      89
+     ],
+     "raw_white_balanced": [
+      0.1414,
+      0.2504,
+      0.1632
+     ]
+    },
+    {
+     "name": "red",
+     "camera_jpeg": [
+      220,
+      41,
+      34
+     ],
+     "dcp": [
+      218,
+      41,
+      34
+     ],
+     "raw_white_balanced": [
+      0.4019,
+      0.1241,
+      0.0869
+     ]
+    },
+    {
+     "name": "yellow",
+     "camera_jpeg": [
+      240,
+      229,
+      53
+     ],
+     "dcp": [
+      245,
+      229,
+      17
+     ],
+     "raw_white_balanced": [
+      0.7665,
+      0.5819,
+      0.2313
+     ]
+    },
+    {
+     "name": "magenta",
+     "camera_jpeg": [
+      225,
+      93,
+      187
+     ],
+     "dcp": [
+      222,
+      90,
+      184
+     ],
+     "raw_white_balanced": [
+      0.4822,
+      0.2175,
+      0.2994
+     ]
+    },
+    {
+     "name": "cyan",
+     "camera_jpeg": [
+      33,
+      170,
+      216
+     ],
+     "dcp": [
+      31,
+      166,
+      213
+     ],
+     "raw_white_balanced": [
+      0.1071,
+      0.2555,
+      0.3873
+     ]
+    },
+    {
+     "name": "white",
+     "camera_jpeg": [
+      246,
+      246,
+      246
+     ],
+     "dcp": [
+      242,
+      243,
+      244
+     ],
+     "raw_white_balanced": [
+      0.8272,
+      0.8306,
+      0.8388
+     ]
+    },
+    {
+     "name": "neutral 8",
+     "camera_jpeg": [
+      224,
+      224,
+      229
+     ],
+     "dcp": [
+      219,
+      221,
+      226
+     ],
+     "raw_white_balanced": [
+      0.5772,
+      0.5902,
+      0.6142
+     ]
+    },
+    {
+     "name": "neutral 6.5",
+     "camera_jpeg": [
+      196,
+      199,
+      206
+     ],
+     "dcp": [
+      193,
+      195,
+      202
+     ],
+     "raw_white_balanced": [
+      0.3708,
+      0.3827,
+      0.3997
+     ]
+    },
+    {
+     "name": "neutral 5",
+     "camera_jpeg": [
+      154,
+      156,
+      163
+     ],
+     "dcp": [
+      151,
+      154,
+      160
+     ],
+     "raw_white_balanced": [
+      0.1998,
+      0.2057,
+      0.2135
+     ]
+    },
+    {
+     "name": "neutral 3.5",
+     "camera_jpeg": [
+      96,
+      98,
+      110
+     ],
+     "dcp": [
+      93,
+      97,
+      109
+     ],
+     "raw_white_balanced": [
+      0.0915,
+      0.0959,
+      0.1032
+     ]
+    },
+    {
+     "name": "black",
+     "camera_jpeg": [
+      43,
+      43,
+      49
+     ],
+     "dcp": [
+      42,
+      43,
+      47
+     ],
+     "raw_white_balanced": [
+      0.0347,
+      0.0353,
+      0.0374
+     ]
+    }
+   ],
+   "camera_model_at_sensor_level": {
+    "mean_delta_e76": 1.51,
+    "colour_patches": 1.6,
+    "grey_patches": 1.24,
+    "grey_lightness_error": 0.91,
+    "maximum": 7.55,
+    "worst_patch": "yellow"
+   },
+   "without_the_table": {
+    "what": "colour matrix, clip and gamma table applied directly (no 9 x 9 x 9 table)",
+    "sensor_level": {
+     "mean_delta_e76": 3.22,
+     "colour_patches": 3.97,
+     "grey_patches": 0.98,
+     "grey_lightness_error": 0.61,
+     "maximum": 12.39,
+     "worst_patch": "magenta"
+    },
+    "fallback_gain_v256_grey_matched": {
+     "exposure_ev": -0.94,
+     "mean_delta_e76": 3.94,
+     "colour_patches": 4.77,
+     "grey_patches": 1.45,
+     "grey_lightness_error": 1.14,
+     "maximum": 11.29,
+     "worst_patch": "magenta"
+    },
+    "nominal_gain_v512_grey_matched": {
+     "exposure_ev": 0.03,
+     "mean_delta_e76": 3.38,
+     "colour_patches": 4.23,
+     "grey_patches": 0.81,
+     "grey_lightness_error": 0.36,
+     "maximum": 12.42,
+     "worst_patch": "magenta"
+    }
+   },
+   "table_grey_matched": {
+    "exposure_ev": 0.06,
+    "mean_delta_e76": 1.31,
+    "colour_patches": 1.49,
+    "grey_patches": 0.77,
+    "grey_lightness_error": 0.38,
+    "maximum": 8.25,
+    "worst_patch": "yellow"
+   },
+   "table_interpolated_trilinearly": {
+    "sensor_level": {
+     "mean_delta_e76": 3.25,
+     "colour_patches": 3.11,
+     "grey_patches": 3.66,
+     "grey_lightness_error": 3.12,
+     "maximum": 9.68,
+     "worst_patch": "moderate red"
+    },
+    "grey_matched": {
+     "exposure_ev": 0.15,
+     "mean_delta_e76": 2.8,
+     "colour_patches": 3.26,
+     "grey_patches": 1.42,
+     "grey_lightness_error": 0.59,
+     "maximum": 10.22,
+     "worst_patch": "moderate red"
+    }
+   }
+  },
+  "pentax-k3iii": {
+   "raw": {
+    "file": "20261121-IMGP9361.DNG",
+    "sha256": "6e9724ceba1f81aa5d0c6d25f04768317363315b435c52fd0b132ef9af4d467a",
+    "model": "PENTAX K-3 Mark III",
+    "format": "DNG",
+    "baseline_exposure": -0.671082,
+    "white_level": 16379,
+    "black_level": [
+     64,
+     64,
+     64,
+     64
+    ],
+    "white_balance": [
+     2.21875,
+     1.0,
+     1.855469,
+     1.0
+    ],
+    "half_resolution": [
+     3096,
+     2064
+    ]
+   },
+   "camera_jpeg": {
+    "source": "JPEG stored in the DNG (SubIFD1 PreviewImage)",
+    "size": [
+     6192,
+     4128
+    ],
+    "chart_detected_automatically": true,
+    "patch_centres_1_6_24_19": [
+     [
+      1760.1,
+      1516.6
+     ],
+     [
+      4442.5,
+      1338.9
+     ],
+     [
+      4590.8,
+      2941.4
+     ],
+     [
+      1842.7,
+      3111.3
+     ]
+    ]
+   },
+   "recipe": {
+    "mode": "landscape",
+    "settings": {
+     "saturation": -1,
+     "hue": 0,
+     "key": 0,
+     "contrast": 1,
+     "highlight": 0,
+     "shadow": 0
+    },
+    "source": "the shot's settings in the maker note",
+    "factory_settings": {
+     "saturation": 0,
+     "hue": 0,
+     "key": 0,
+     "contrast": 1,
+     "highlight": 0,
+     "shadow": 0
+    }
+   },
+   "profile": {
+    "name": "K-3 III Firmware Landscape (풍경) sat-1",
+    "baseline_exposure_offset": 0.5,
+    "dcp_sha256": "364b4a1ef32beafdb87458752e52c86eedaef533ce1da1afb18ebafb4f594253"
+   },
+   "dcp_with_the_file_baseline_exposure": {
+    "mean_delta_e76": 2.25,
+    "colour_patches": 2.8,
+    "grey_patches": 0.61,
+    "grey_lightness_error": 0.15,
+    "maximum": 9.59,
+    "worst_patch": "orange yellow"
+   },
+   "dcp_grey_matched": {
+    "exposure_ev": 0.0,
+    "mean_delta_e76": 2.25,
+    "colour_patches": 2.8,
+    "grey_patches": 0.61,
+    "grey_lightness_error": 0.15,
+    "maximum": 9.59,
+    "worst_patch": "orange yellow"
+   },
+   "other_custom_images_with_the_file_baseline_exposure": {
+    "natural": {
+     "mean_delta_e76": 9.59,
+     "colour_patches": 12.51,
+     "grey_patches": 0.83,
+     "grey_lightness_error": 0.65,
+     "maximum": 29.97,
+     "worst_patch": "blue"
+    },
+    "bright": {
+     "mean_delta_e76": 3.1,
+     "colour_patches": 3.92,
+     "grey_patches": 0.62,
+     "grey_lightness_error": 0.16,
+     "maximum": 9.66,
+     "worst_patch": "orange yellow"
+    },
+    "portrait": {
+     "mean_delta_e76": 9.67,
+     "colour_patches": 12.62,
+     "grey_patches": 0.82,
+     "grey_lightness_error": 0.63,
+     "maximum": 34.91,
+     "worst_patch": "yellow"
+    },
+    "vibrant": {
+     "mean_delta_e76": 8.12,
+     "colour_patches": 10.53,
+     "grey_patches": 0.9,
+     "grey_lightness_error": 0.6,
+     "maximum": 21.68,
+     "worst_patch": "purplish blue"
+    }
+   },
+   "patches": [
+    {
+     "name": "dark skin",
+     "camera_jpeg": [
+      163,
+      116,
+      86
+     ],
+     "dcp": [
+      164,
+      117,
+      86
+     ],
+     "raw_white_balanced": [
+      0.2206,
+      0.1383,
+      0.1085
+     ]
+    },
+    {
+     "name": "light skin",
+     "camera_jpeg": [
+      240,
+      198,
+      182
+     ],
+     "dcp": [
+      239,
+      203,
+      189
+     ],
+     "raw_white_balanced": [
+      0.727,
+      0.4564,
+      0.3887
+     ]
+    },
+    {
+     "name": "blue sky",
+     "camera_jpeg": [
+      139,
+      167,
+      211
+     ],
+     "dcp": [
+      139,
+      168,
+      214
+     ],
+     "raw_white_balanced": [
+      0.2326,
+      0.3189,
+      0.4499
+     ]
+    },
+    {
+     "name": "foliage",
+     "camera_jpeg": [
+      131,
+      158,
+      89
+     ],
+     "dcp": [
+      131,
+      159,
+      89
+     ],
+     "raw_white_balanced": [
+      0.1784,
+      0.205,
+      0.1351
+     ]
+    },
+    {
+     "name": "blue flower",
+     "camera_jpeg": [
+      189,
+      176,
+      229
+     ],
+     "dcp": [
+      190,
+      177,
+      231
+     ],
+     "raw_white_balanced": [
+      0.3821,
+      0.3942,
+      0.5758
+     ]
+    },
+    {
+     "name": "bluish green",
+     "camera_jpeg": [
+      158,
+      235,
+      229
+     ],
+     "dcp": [
+      160,
+      235,
+      231
+     ],
+     "raw_white_balanced": [
+      0.3911,
+      0.7295,
+      0.7284
+     ]
+    },
+    {
+     "name": "orange",
+     "camera_jpeg": [
+      241,
+      165,
+      30
+     ],
+     "dcp": [
+      249,
+      178,
+      0
+     ],
+     "raw_white_balanced": [
+      0.7716,
+      0.3131,
+      0.1268
+     ]
+    },
+    {
+     "name": "purplish blue",
+     "camera_jpeg": [
+      102,
+      110,
+      217
+     ],
+     "dcp": [
+      101,
+      112,
+      220
+     ],
+     "raw_white_balanced": [
+      0.149,
+      0.2192,
+      0.4482
+     ]
+    },
+    {
+     "name": "moderate red",
+     "camera_jpeg": [
+      239,
+      106,
+      123
+     ],
+     "dcp": [
+      244,
+      111,
+      130
+     ],
+     "raw_white_balanced": [
+      0.6502,
+      0.206,
+      0.1836
+     ]
+    },
+    {
+     "name": "purple",
+     "camera_jpeg": [
+      145,
+      60,
+      146
+     ],
+     "dcp": [
+      146,
+      56,
+      148
+     ],
+     "raw_white_balanced": [
+      0.169,
+      0.1011,
+      0.1679
+     ]
+    },
+    {
+     "name": "yellow green",
+     "camera_jpeg": [
+      207,
+      233,
+      95
+     ],
+     "dcp": [
+      213,
+      236,
+      103
+     ],
+     "raw_white_balanced": [
+      0.5476,
+      0.6319,
+      0.2858
+     ]
+    },
+    {
+     "name": "orange yellow",
+     "camera_jpeg": [
+      245,
+      203,
+      23
+     ],
+     "dcp": [
+      246,
+      218,
+      0
+     ],
+     "raw_white_balanced": [
+      0.9063,
+      0.5034,
+      0.18
+     ]
+    },
+    {
+     "name": "blue",
+     "camera_jpeg": [
+      47,
+      54,
+      193
+     ],
+     "dcp": [
+      46,
+      53,
+      195
+     ],
+     "raw_white_balanced": [
+      0.0704,
+      0.1228,
+      0.2988
+     ]
+    },
+    {
+     "name": "green",
+     "camera_jpeg": [
+      105,
+      201,
+      112
+     ],
+     "dcp": [
+      102,
+      203,
+      114
+     ],
+     "raw_white_balanced": [
+      0.1968,
+      0.3593,
+      0.2171
+     ]
+    },
+    {
+     "name": "red",
+     "camera_jpeg": [
+      227,
+      58,
+      59
+     ],
+     "dcp": [
+      228,
+      58,
+      60
+     ],
+     "raw_white_balanced": [
+      0.5039,
+      0.1194,
+      0.0863
+     ]
+    },
+    {
+     "name": "yellow",
+     "camera_jpeg": [
+      243,
+      230,
+      28
+     ],
+     "dcp": [
+      243,
+      240,
+      48
+     ],
+     "raw_white_balanced": [
+      1.0,
+      0.7249,
+      0.2394
+     ]
+    },
+    {
+     "name": "magenta",
+     "camera_jpeg": [
+      240,
+      103,
+      195
+     ],
+     "dcp": [
+      240,
+      101,
+      200
+     ],
+     "raw_white_balanced": [
+      0.6313,
+      0.2461,
+      0.3659
+     ]
+    },
+    {
+     "name": "cyan",
+     "camera_jpeg": [
+      28,
+      179,
+      222
+     ],
+     "dcp": [
+      0,
+      187,
+      229
+     ],
+     "raw_white_balanced": [
+      0.1437,
+      0.3835,
+      0.5587
+     ]
+    },
+    {
+     "name": "white",
+     "camera_jpeg": [
+      255,
+      255,
+      255
+     ],
+     "dcp": [
+      255,
+      255,
+      255
+     ],
+     "raw_white_balanced": [
+      1.0,
+      1.0,
+      1.0
+     ]
+    },
+    {
+     "name": "neutral 8",
+     "camera_jpeg": [
+      245,
+      245,
+      245
+     ],
+     "dcp": [
+      245,
+      245,
+      245
+     ],
+     "raw_white_balanced": [
+      0.8275,
+      0.8354,
+      0.8344
+     ]
+    },
+    {
+     "name": "neutral 6.5",
+     "camera_jpeg": [
+      212,
+      214,
+      213
+     ],
+     "dcp": [
+      212,
+      214,
+      215
+     ],
+     "raw_white_balanced": [
+      0.5169,
+      0.5253,
+      0.5297
+     ]
+    },
+    {
+     "name": "neutral 5",
+     "camera_jpeg": [
+      169,
+      169,
+      169
+     ],
+     "dcp": [
+      168,
+      170,
+      169
+     ],
+     "raw_white_balanced": [
+      0.2796,
+      0.2828,
+      0.2819
+     ]
+    },
+    {
+     "name": "neutral 3.5",
+     "camera_jpeg": [
+      113,
+      116,
+      119
+     ],
+     "dcp": [
+      112,
+      116,
+      119
+     ],
+     "raw_white_balanced": [
+      0.1301,
+      0.1347,
+      0.1382
+     ]
+    },
+    {
+     "name": "black",
+     "camera_jpeg": [
+      55,
+      55,
+      57
+     ],
+     "dcp": [
+      54,
+      54,
+      58
+     ],
+     "raw_white_balanced": [
+      0.0517,
+      0.0521,
+      0.0542
+     ]
+    }
+   ]
+  }
+ },
+ "donors": {
+  "20260111-102_4186.JPG": {
+   "sha256": "62ffbc73f8ca933fb9603bc9668b7feddef4b7ff479ca7d12bb05eeee46b9580",
+   "source": "camera JPEG",
+   "profile_name": "EASTMAN KODAK COMPANY KODAK C875 ZOOM DIGITAL CAMERA",
+   "size": [
+    3264,
+    2448
+   ],
+   "chart_detected_automatically": true,
+   "patch_centres_1_6_24_19": [
+    [
+     853.1,
+     924.4
+    ],
+    [
+     2251.1,
+     875.3
+    ],
+    [
+     2296.2,
+     1718.3
+    ],
+    [
+     861.2,
+     1774.5
+    ]
+   ],
+   "patches": [
+    [
+     157,
+     106,
+     91
+    ],
+    [
+     245,
+     202,
+     198
+    ],
+    [
+     107,
+     176,
+     229
+    ],
+    [
+     116,
+     160,
+     89
+    ],
+    [
+     176,
+     185,
+     243
+    ],
+    [
+     101,
+     245,
+     244
+    ],
+    [
+     250,
+     165,
+     37
+    ],
+    [
+     58,
+     120,
+     234
+    ],
+    [
+     249,
+     92,
+     142
+    ],
+    [
+     128,
+     68,
+     157
+    ],
+    [
+     210,
+     245,
+     76
+    ],
+    [
+     254,
+     222,
+     1
+    ],
+    [
+     3,
+     67,
+     206
+    ],
+    [
+     74,
+     209,
+     107
+    ],
+    [
+     239,
+     45,
+     72
+    ],
+    [
+     255,
+     247,
+     0
+    ],
+    [
+     244,
+     97,
+     219
+    ],
+    [
+     0,
+     193,
+     240
+    ],
+    [
+     250,
+     254,
+     255
+    ],
+    [
+     235,
+     243,
+     249
+    ],
+    [
+     204,
+     219,
+     228
+    ],
+    [
+     155,
+     169,
+     180
+    ],
+    [
+     95,
+     108,
+     122
+    ],
+    [
+     48,
+     52,
+     62
+    ]
+   ],
+   "cameras": {
+    "pentax-q7": {
+     "donor_exposure_removed_ev": 0.982,
+     "fit_on_reference_colours": {
+      "before": 21.58,
+      "after": 7.78,
+      "look_used": true
+     },
+     "dcp_sha256": "c430702563eddaf4976f02dd6db07e741f7c021c56eb11a4efbb6b59e3e38870",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 10.77,
+       "colour_patches": 12.44,
+       "grey_patches": 5.77,
+       "grey_lightness_error": 4.06,
+       "maximum": 24.71,
+       "worst_patch": "yellow green"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 21.27,
+       "colour_patches": 25.14,
+       "grey_patches": 9.67,
+       "grey_lightness_error": 8.56,
+       "maximum": 42.94,
+       "worst_patch": "yellow green"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": 0.3,
+       "mean_delta_e76": 11.05,
+       "colour_patches": 13.4,
+       "grey_patches": 3.99,
+       "grey_lightness_error": 0.69,
+       "maximum": 30.0,
+       "worst_patch": "yellow green"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 14.23,
+       "colour_patches": 16.66,
+       "grey_patches": 6.96,
+       "grey_lightness_error": 5.15,
+       "maximum": 24.97,
+       "worst_patch": "yellow green"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": 0.32,
+       "mean_delta_e76": 12.65,
+       "colour_patches": 15.27,
+       "grey_patches": 4.79,
+       "grey_lightness_error": 1.96,
+       "maximum": 24.05,
+       "worst_patch": "green"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 10.42,
+       "colour_patches": 11.98,
+       "grey_patches": 5.75,
+       "grey_lightness_error": 4.34,
+       "maximum": 18.38,
+       "worst_patch": "moderate red"
+      }
+     }
+    },
+    "pentax-k3iii": {
+     "donor_exposure_removed_ev": 0.95,
+     "fit_on_reference_colours": {
+      "before": 21.58,
+      "after": 7.78,
+      "look_used": true
+     },
+     "dcp_sha256": "6e5507154056ba6d28b3d89a75cb56e2a470031878bd5da4c7393618d9eebdb3",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 10.07,
+       "colour_patches": 11.52,
+       "grey_patches": 5.74,
+       "grey_lightness_error": 1.4,
+       "maximum": 22.36,
+       "worst_patch": "yellow green"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 26.77,
+       "colour_patches": 31.2,
+       "grey_patches": 13.45,
+       "grey_lightness_error": 12.03,
+       "maximum": 46.76,
+       "worst_patch": "yellow green"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": -0.06,
+       "mean_delta_e76": 9.61,
+       "colour_patches": 10.93,
+       "grey_patches": 5.66,
+       "grey_lightness_error": 1.12,
+       "maximum": 21.05,
+       "worst_patch": "yellow green"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 14.48,
+       "colour_patches": 17.33,
+       "grey_patches": 5.94,
+       "grey_lightness_error": 1.73,
+       "maximum": 30.8,
+       "worst_patch": "yellow"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": -0.17,
+       "mean_delta_e76": 13.73,
+       "colour_patches": 16.32,
+       "grey_patches": 5.95,
+       "grey_lightness_error": 1.53,
+       "maximum": 27.72,
+       "worst_patch": "yellow"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 9.05,
+       "colour_patches": 10.06,
+       "grey_patches": 6.01,
+       "grey_lightness_error": 1.49,
+       "maximum": 16.23,
+       "worst_patch": "bluish green"
+      }
+     }
+    }
+   }
+  },
+  "20261121-DSC00007.JPG": {
+   "sha256": "d9e3af404af6e7d3a0f809c4ce10180b365a643e6497771a2e5b104e17b27e46",
+   "source": "camera JPEG",
+   "profile_name": "SONY DSC-P200",
+   "size": [
+    3072,
+    2304
+   ],
+   "chart_detected_automatically": true,
+   "patch_centres_1_6_24_19": [
+    [
+     823.8,
+     881.9
+    ],
+    [
+     2209.2,
+     885.4
+    ],
+    [
+     2211.0,
+     1727.8
+    ],
+    [
+     830.9,
+     1713.8
+    ]
+   ],
+   "patches": [
+    [
+     160,
+     113,
+     99
+    ],
+    [
+     252,
+     202,
+     194
+    ],
+    [
+     145,
+     183,
+     228
+    ],
+    [
+     124,
+     153,
+     97
+    ],
+    [
+     194,
+     192,
+     249
+    ],
+    [
+     165,
+     251,
+     238
+    ],
+    [
+     255,
+     174,
+     77
+    ],
+    [
+     116,
+     153,
+     244
+    ],
+    [
+     255,
+     131,
+     147
+    ],
+    [
+     137,
+     89,
+     165
+    ],
+    [
+     205,
+     245,
+     125
+    ],
+    [
+     253,
+     218,
+     86
+    ],
+    [
+     63,
+     111,
+     214
+    ],
+    [
+     111,
+     205,
+     116
+    ],
+    [
+     253,
+     90,
+     83
+    ],
+    [
+     251,
+     252,
+     93
+    ],
+    [
+     255,
+     144,
+     224
+    ],
+    [
+     84,
+     207,
+     236
+    ],
+    [
+     255,
+     255,
+     255
+    ],
+    [
+     246,
+     245,
+     250
+    ],
+    [
+     215,
+     215,
+     224
+    ],
+    [
+     167,
+     167,
+     175
+    ],
+    [
+     110,
+     114,
+     123
+    ],
+    [
+     50,
+     51,
+     58
+    ]
+   ],
+   "cameras": {
+    "pentax-q7": {
+     "donor_exposure_removed_ev": 1.049,
+     "fit_on_reference_colours": {
+      "before": 19.86,
+      "after": 4.98,
+      "look_used": true
+     },
+     "dcp_sha256": "10b513d334b44a1f3785bb2324d616a9417316e4a89a31dbbaf4ad7d3bae9d22",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 7.68,
+       "colour_patches": 8.59,
+       "grey_patches": 4.97,
+       "grey_lightness_error": 4.53,
+       "maximum": 17.93,
+       "worst_patch": "red"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 18.11,
+       "colour_patches": 21.11,
+       "grey_patches": 9.11,
+       "grey_lightness_error": 8.82,
+       "maximum": 32.03,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": 0.35,
+       "mean_delta_e76": 7.01,
+       "colour_patches": 8.72,
+       "grey_patches": 1.88,
+       "grey_lightness_error": 0.71,
+       "maximum": 16.79,
+       "worst_patch": "red"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 10.58,
+       "colour_patches": 12.02,
+       "grey_patches": 6.26,
+       "grey_lightness_error": 5.94,
+       "maximum": 18.28,
+       "worst_patch": "red"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": 0.34,
+       "mean_delta_e76": 6.97,
+       "colour_patches": 8.5,
+       "grey_patches": 2.39,
+       "grey_lightness_error": 1.59,
+       "maximum": 17.59,
+       "worst_patch": "red"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 13.74,
+       "colour_patches": 16.57,
+       "grey_patches": 5.24,
+       "grey_lightness_error": 5.13,
+       "maximum": 41.88,
+       "worst_patch": "blue"
+      }
+     }
+    },
+    "pentax-k3iii": {
+     "donor_exposure_removed_ev": 1.014,
+     "fit_on_reference_colours": {
+      "before": 19.86,
+      "after": 4.98,
+      "look_used": true
+     },
+     "dcp_sha256": "dc381ffda23db958dd01c58cc815a9b01cf01ee35cf05ed6b156ad4cdfc05115",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 5.58,
+       "colour_patches": 6.35,
+       "grey_patches": 3.3,
+       "grey_lightness_error": 1.11,
+       "maximum": 17.01,
+       "worst_patch": "red"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 23.41,
+       "colour_patches": 27.07,
+       "grey_patches": 12.43,
+       "grey_lightness_error": 11.97,
+       "maximum": 35.42,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": -0.01,
+       "mean_delta_e76": 5.53,
+       "colour_patches": 6.29,
+       "grey_patches": 3.28,
+       "grey_lightness_error": 1.1,
+       "maximum": 16.99,
+       "worst_patch": "red"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 7.3,
+       "colour_patches": 8.64,
+       "grey_patches": 3.29,
+       "grey_lightness_error": 1.13,
+       "maximum": 20.98,
+       "worst_patch": "red"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": 0.03,
+       "mean_delta_e76": 7.28,
+       "colour_patches": 8.6,
+       "grey_patches": 3.34,
+       "grey_lightness_error": 1.13,
+       "maximum": 20.85,
+       "worst_patch": "red"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 9.65,
+       "colour_patches": 11.79,
+       "grey_patches": 3.23,
+       "grey_lightness_error": 0.66,
+       "maximum": 34.4,
+       "worst_patch": "blue"
+      }
+     }
+    }
+   }
+  },
+  "20261121-DSC00017.JPG": {
+   "sha256": "fcd923e161f3deb47597a9dbe2d8ab413587bd676fc220c258667c9d59f00ae4",
+   "source": "camera JPEG",
+   "profile_name": "SONY DSC-TX66",
+   "size": [
+    4896,
+    3672
+   ],
+   "chart_detected_automatically": true,
+   "patch_centres_1_6_24_19": [
+    [
+     1255.9,
+     1107.4
+    ],
+    [
+     3597.1,
+     1087.9
+    ],
+    [
+     3605.1,
+     2492.0
+    ],
+    [
+     1221.2,
+     2539.7
+    ]
+   ],
+   "patches": [
+    [
+     145,
+     104,
+     91
+    ],
+    [
+     228,
+     180,
+     172
+    ],
+    [
+     118,
+     166,
+     212
+    ],
+    [
+     108,
+     140,
+     98
+    ],
+    [
+     164,
+     172,
+     227
+    ],
+    [
+     118,
+     231,
+     225
+    ],
+    [
+     242,
+     146,
+     61
+    ],
+    [
+     96,
+     135,
+     226
+    ],
+    [
+     244,
+     108,
+     123
+    ],
+    [
+     124,
+     82,
+     148
+    ],
+    [
+     173,
+     219,
+     110
+    ],
+    [
+     240,
+     187,
+     67
+    ],
+    [
+     54,
+     96,
+     202
+    ],
+    [
+     64,
+     189,
+     115
+    ],
+    [
+     233,
+     63,
+     76
+    ],
+    [
+     240,
+     223,
+     60
+    ],
+    [
+     234,
+     122,
+     185
+    ],
+    [
+     41,
+     189,
+     229
+    ],
+    [
+     244,
+     248,
+     249
+    ],
+    [
+     219,
+     229,
+     233
+    ],
+    [
+     187,
+     197,
+     203
+    ],
+    [
+     147,
+     157,
+     160
+    ],
+    [
+     102,
+     111,
+     118
+    ],
+    [
+     52,
+     56,
+     62
+    ]
+   ],
+   "cameras": {
+    "pentax-q7": {
+     "donor_exposure_removed_ev": 0.748,
+     "fit_on_reference_colours": {
+      "before": 13.91,
+      "after": 4.8,
+      "look_used": true
+     },
+     "dcp_sha256": "e3bdc04910e902a34ce6d07cd96042ac96b6be183a420e4b11b64675531009c9",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 7.55,
+       "colour_patches": 9.21,
+       "grey_patches": 2.56,
+       "grey_lightness_error": 0.96,
+       "maximum": 16.95,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 14.93,
+       "colour_patches": 16.78,
+       "grey_patches": 9.39,
+       "grey_lightness_error": 9.03,
+       "maximum": 24.79,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": 0.05,
+       "mean_delta_e76": 7.71,
+       "colour_patches": 9.43,
+       "grey_patches": 2.56,
+       "grey_lightness_error": 0.74,
+       "maximum": 17.37,
+       "worst_patch": "yellow"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 7.1,
+       "colour_patches": 8.25,
+       "grey_patches": 3.65,
+       "grey_lightness_error": 2.45,
+       "maximum": 12.74,
+       "worst_patch": "green"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": 0.1,
+       "mean_delta_e76": 6.82,
+       "colour_patches": 8.12,
+       "grey_patches": 2.92,
+       "grey_lightness_error": 1.33,
+       "maximum": 12.77,
+       "worst_patch": "green"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 12.24,
+       "colour_patches": 14.99,
+       "grey_patches": 4.0,
+       "grey_lightness_error": 2.2,
+       "maximum": 35.7,
+       "worst_patch": "blue"
+      }
+     }
+    },
+    "pentax-k3iii": {
+     "donor_exposure_removed_ev": 0.721,
+     "fit_on_reference_colours": {
+      "before": 13.91,
+      "after": 4.8,
+      "look_used": true
+     },
+     "dcp_sha256": "7def06bc7bd28a51a6d90114b7a254b100fa0b5dbaa7f82b174cd68847ed0ae2",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 8.78,
+       "colour_patches": 9.84,
+       "grey_patches": 5.57,
+       "grey_lightness_error": 4.32,
+       "maximum": 14.6,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 18.93,
+       "colour_patches": 20.9,
+       "grey_patches": 13.01,
+       "grey_lightness_error": 12.49,
+       "maximum": 26.89,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": -0.3,
+       "mean_delta_e76": 6.08,
+       "colour_patches": 6.74,
+       "grey_patches": 4.08,
+       "grey_lightness_error": 1.85,
+       "maximum": 12.9,
+       "worst_patch": "red"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 8.37,
+       "colour_patches": 9.48,
+       "grey_patches": 5.06,
+       "grey_lightness_error": 3.57,
+       "maximum": 14.64,
+       "worst_patch": "yellow"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": -0.21,
+       "mean_delta_e76": 7.34,
+       "colour_patches": 8.31,
+       "grey_patches": 4.41,
+       "grey_lightness_error": 2.42,
+       "maximum": 14.08,
+       "worst_patch": "red"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 10.63,
+       "colour_patches": 12.33,
+       "grey_patches": 5.54,
+       "grey_lightness_error": 3.9,
+       "maximum": 28.35,
+       "worst_patch": "blue"
+      }
+     }
+    }
+   }
+  },
+  "20261121-DSC07687.JPG": {
+   "sha256": "61a08bdbdf1bbfcbfcb411c0dac73c157bd5a2707b95e4a8eab9dd153ef866ac",
+   "source": "camera JPEG",
+   "profile_name": "SONY DSC-T100",
+   "size": [
+    3264,
+    2448
+   ],
+   "chart_detected_automatically": true,
+   "patch_centres_1_6_24_19": [
+    [
+     909.9,
+     850.2
+    ],
+    [
+     2327.6,
+     801.1
+    ],
+    [
+     2367.4,
+     1651.6
+    ],
+    [
+     925.0,
+     1708.6
+    ]
+   ],
+   "patches": [
+    [
+     157,
+     112,
+     92
+    ],
+    [
+     252,
+     195,
+     183
+    ],
+    [
+     132,
+     177,
+     220
+    ],
+    [
+     119,
+     144,
+     94
+    ],
+    [
+     180,
+     187,
+     240
+    ],
+    [
+     144,
+     247,
+     243
+    ],
+    [
+     255,
+     168,
+     53
+    ],
+    [
+     101,
+     147,
+     234
+    ],
+    [
+     255,
+     120,
+     131
+    ],
+    [
+     123,
+     81,
+     151
+    ],
+    [
+     200,
+     234,
+     110
+    ],
+    [
+     255,
+     208,
+     56
+    ],
+    [
+     50,
+     107,
+     208
+    ],
+    [
+     92,
+     194,
+     117
+    ],
+    [
+     239,
+     70,
+     68
+    ],
+    [
+     255,
+     237,
+     42
+    ],
+    [
+     244,
+     134,
+     204
+    ],
+    [
+     53,
+     197,
+     241
+    ],
+    [
+     247,
+     248,
+     246
+    ],
+    [
+     231,
+     235,
+     238
+    ],
+    [
+     205,
+     209,
+     213
+    ],
+    [
+     159,
+     161,
+     165
+    ],
+    [
+     105,
+     109,
+     116
+    ],
+    [
+     47,
+     48,
+     54
+    ]
+   ],
+   "cameras": {
+    "pentax-q7": {
+     "donor_exposure_removed_ev": 0.879,
+     "fit_on_reference_colours": {
+      "before": 17.12,
+      "after": 5.28,
+      "look_used": true
+     },
+     "dcp_sha256": "38aba31a656c4e04d8026d3f32f54b658e1d4b327b2fe69b88d44fb45f78faa7",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 7.19,
+       "colour_patches": 8.68,
+       "grey_patches": 2.7,
+       "grey_lightness_error": 2.32,
+       "maximum": 18.14,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 17.9,
+       "colour_patches": 20.75,
+       "grey_patches": 9.36,
+       "grey_lightness_error": 9.3,
+       "maximum": 35.81,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": 0.17,
+       "mean_delta_e76": 7.32,
+       "colour_patches": 9.42,
+       "grey_patches": 1.0,
+       "grey_lightness_error": 0.73,
+       "maximum": 21.88,
+       "worst_patch": "yellow"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 9.2,
+       "colour_patches": 11.03,
+       "grey_patches": 3.71,
+       "grey_lightness_error": 3.43,
+       "maximum": 17.41,
+       "worst_patch": "blue"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": 0.19,
+       "mean_delta_e76": 7.44,
+       "colour_patches": 9.37,
+       "grey_patches": 1.65,
+       "grey_lightness_error": 1.33,
+       "maximum": 17.33,
+       "worst_patch": "red"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 11.38,
+       "colour_patches": 14.13,
+       "grey_patches": 3.14,
+       "grey_lightness_error": 2.63,
+       "maximum": 42.07,
+       "worst_patch": "blue"
+      }
+     }
+    },
+    "pentax-k3iii": {
+     "donor_exposure_removed_ev": 0.853,
+     "fit_on_reference_colours": {
+      "before": 17.12,
+      "after": 5.28,
+      "look_used": true
+     },
+     "dcp_sha256": "4068abadf07e40b05b8b19a6c3f3ef2c5230969261d2045b51b0adff00ca0d4b",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 7.89,
+       "colour_patches": 9.29,
+       "grey_patches": 3.68,
+       "grey_lightness_error": 2.98,
+       "maximum": 18.07,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 22.52,
+       "colour_patches": 25.71,
+       "grey_patches": 12.98,
+       "grey_lightness_error": 12.78,
+       "maximum": 38.46,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": -0.17,
+       "mean_delta_e76": 6.15,
+       "colour_patches": 7.27,
+       "grey_patches": 2.79,
+       "grey_lightness_error": 1.62,
+       "maximum": 14.56,
+       "worst_patch": "red"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 8.42,
+       "colour_patches": 10.08,
+       "grey_patches": 3.44,
+       "grey_lightness_error": 2.59,
+       "maximum": 23.49,
+       "worst_patch": "yellow"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": -0.16,
+       "mean_delta_e76": 8.05,
+       "colour_patches": 9.79,
+       "grey_patches": 2.8,
+       "grey_lightness_error": 1.56,
+       "maximum": 21.08,
+       "worst_patch": "red"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 8.3,
+       "colour_patches": 9.84,
+       "grey_patches": 3.69,
+       "grey_lightness_error": 2.86,
+       "maximum": 34.7,
+       "worst_patch": "blue"
+      }
+     }
+    }
+   }
+  },
+  "20261121-PICT0121.JPG": {
+   "sha256": "59c328da5cf778608714b789e4c3f9b0081b80bd113cee70ca913197ce87a917",
+   "source": "camera JPEG",
+   "profile_name": "KONICA MINOLTA DiMAGE X1",
+   "size": [
+    3264,
+    2448
+   ],
+   "chart_detected_automatically": true,
+   "patch_centres_1_6_24_19": [
+    [
+     848.3,
+     849.7
+    ],
+    [
+     2213.2,
+     889.0
+    ],
+    [
+     2200.1,
+     1727.5
+    ],
+    [
+     817.3,
+     1677.7
+    ]
+   ],
+   "patches": [
+    [
+     136,
+     92,
+     88
+    ],
+    [
+     230,
+     182,
+     189
+    ],
+    [
+     115,
+     153,
+     210
+    ],
+    [
+     100,
+     128,
+     89
+    ],
+    [
+     161,
+     163,
+     226
+    ],
+    [
+     135,
+     224,
+     231
+    ],
+    [
+     239,
+     151,
+     79
+    ],
+    [
+     82,
+     112,
+     215
+    ],
+    [
+     229,
+     95,
+     135
+    ],
+    [
+     99,
+     64,
+     134
+    ],
+    [
+     193,
+     223,
+     119
+    ],
+    [
+     240,
+     197,
+     80
+    ],
+    [
+     42,
+     72,
+     184
+    ],
+    [
+     88,
+     180,
+     117
+    ],
+    [
+     210,
+     60,
+     78
+    ],
+    [
+     245,
+     230,
+     82
+    ],
+    [
+     221,
+     103,
+     200
+    ],
+    [
+     40,
+     167,
+     220
+    ],
+    [
+     248,
+     249,
+     253
+    ],
+    [
+     228,
+     230,
+     241
+    ],
+    [
+     194,
+     198,
+     215
+    ],
+    [
+     141,
+     144,
+     163
+    ],
+    [
+     83,
+     88,
+     105
+    ],
+    [
+     37,
+     43,
+     50
+    ]
+   ],
+   "cameras": {
+    "pentax-q7": {
+     "donor_exposure_removed_ev": 0.592,
+     "fit_on_reference_colours": {
+      "before": 14.12,
+      "after": 7.08,
+      "look_used": true
+     },
+     "dcp_sha256": "955cfb4641fe708acd9aa07c9bf1b9b898be78c69971f2997ec0d5e0ccb2765e",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 8.47,
+       "colour_patches": 9.57,
+       "grey_patches": 5.15,
+       "grey_lightness_error": 1.38,
+       "maximum": 20.98,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 17.3,
+       "colour_patches": 19.47,
+       "grey_patches": 10.82,
+       "grey_lightness_error": 9.57,
+       "maximum": 32.34,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": -0.09,
+       "mean_delta_e76": 7.83,
+       "colour_patches": 8.83,
+       "grey_patches": 4.83,
+       "grey_lightness_error": 0.8,
+       "maximum": 19.58,
+       "worst_patch": "yellow"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 7.24,
+       "colour_patches": 7.66,
+       "grey_patches": 5.98,
+       "grey_lightness_error": 3.04,
+       "maximum": 14.05,
+       "worst_patch": "purplish blue"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": -0.16,
+       "mean_delta_e76": 7.72,
+       "colour_patches": 8.28,
+       "grey_patches": 6.04,
+       "grey_lightness_error": 2.57,
+       "maximum": 13.07,
+       "worst_patch": "purplish blue"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 12.4,
+       "colour_patches": 14.99,
+       "grey_patches": 4.62,
+       "grey_lightness_error": 2.08,
+       "maximum": 25.95,
+       "worst_patch": "red"
+      }
+     }
+    },
+    "pentax-k3iii": {
+     "donor_exposure_removed_ev": 0.568,
+     "fit_on_reference_colours": {
+      "before": 14.12,
+      "after": 7.08,
+      "look_used": true
+     },
+     "dcp_sha256": "d3686ad34baaed8475b09684245f620b2eac691ffb2f22a24ae556136efa5780",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 12.64,
+       "colour_patches": 13.8,
+       "grey_patches": 9.18,
+       "grey_lightness_error": 6.21,
+       "maximum": 22.37,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 22.58,
+       "colour_patches": 25.1,
+       "grey_patches": 15.02,
+       "grey_lightness_error": 13.35,
+       "maximum": 35.79,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": -0.45,
+       "mean_delta_e76": 7.13,
+       "colour_patches": 7.16,
+       "grey_patches": 7.05,
+       "grey_lightness_error": 1.64,
+       "maximum": 12.54,
+       "worst_patch": "red"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 10.34,
+       "colour_patches": 10.68,
+       "grey_patches": 9.33,
+       "grey_lightness_error": 6.25,
+       "maximum": 17.74,
+       "worst_patch": "purplish blue"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": -0.51,
+       "mean_delta_e76": 8.24,
+       "colour_patches": 8.63,
+       "grey_patches": 7.07,
+       "grey_lightness_error": 1.61,
+       "maximum": 14.23,
+       "worst_patch": "purple"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 12.91,
+       "colour_patches": 14.03,
+       "grey_patches": 9.53,
+       "grey_lightness_error": 6.52,
+       "maximum": 22.7,
+       "worst_patch": "orange"
+      }
+     }
+    }
+   }
+  },
+  "20100101-SAM_1737.SRW": {
+   "sha256": "832d2645baad8c003e49480dcd87d312d8e3e5b629c70a2c6e621c9b40fbbe57",
+   "source": "JPEG stored in the SRW (JpgFromRaw)",
+   "profile_name": "SAMSUNG EX1",
+   "size": [
+    3648,
+    2736
+   ],
+   "chart_detected_automatically": true,
+   "patch_centres_1_6_24_19": [
+    [
+     998.8,
+     925.7
+    ],
+    [
+     2489.0,
+     915.5
+    ],
+    [
+     2476.9,
+     1828.7
+    ],
+    [
+     972.2,
+     1818.7
+    ]
+   ],
+   "patches": [
+    [
+     149,
+     109,
+     101
+    ],
+    [
+     236,
+     191,
+     194
+    ],
+    [
+     120,
+     159,
+     216
+    ],
+    [
+     107,
+     137,
+     99
+    ],
+    [
+     172,
+     172,
+     232
+    ],
+    [
+     111,
+     227,
+     236
+    ],
+    [
+     242,
+     172,
+     76
+    ],
+    [
+     102,
+     127,
+     220
+    ],
+    [
+     238,
+     118,
+     143
+    ],
+    [
+     120,
+     69,
+     143
+    ],
+    [
+     185,
+     224,
+     107
+    ],
+    [
+     244,
+     209,
+     67
+    ],
+    [
+     61,
+     88,
+     193
+    ],
+    [
+     66,
+     180,
+     121
+    ],
+    [
+     224,
+     75,
+     90
+    ],
+    [
+     243,
+     232,
+     78
+    ],
+    [
+     232,
+     120,
+     202
+    ],
+    [
+     21,
+     166,
+     225
+    ],
+    [
+     247,
+     251,
+     254
+    ],
+    [
+     226,
+     233,
+     239
+    ],
+    [
+     193,
+     200,
+     215
+    ],
+    [
+     145,
+     149,
+     165
+    ],
+    [
+     93,
+     97,
+     113
+    ],
+    [
+     44,
+     44,
+     50
+    ]
+   ],
+   "cameras": {
+    "pentax-q7": {
+     "donor_exposure_removed_ev": 0.689,
+     "fit_on_reference_colours": {
+      "before": 15.5,
+      "after": 7.69,
+      "look_used": true
+     },
+     "dcp_sha256": "c5307fed5d261024c28eb1f7ad373a430311b6039d91c93d4c930a7530b143f7",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 7.99,
+       "colour_patches": 9.35,
+       "grey_patches": 3.91,
+       "grey_lightness_error": 0.81,
+       "maximum": 18.49,
+       "worst_patch": "yellow green"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 16.75,
+       "colour_patches": 18.88,
+       "grey_patches": 10.37,
+       "grey_lightness_error": 9.44,
+       "maximum": 29.77,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": 0.0,
+       "mean_delta_e76": 7.99,
+       "colour_patches": 9.35,
+       "grey_patches": 3.91,
+       "grey_lightness_error": 0.81,
+       "maximum": 18.49,
+       "worst_patch": "yellow green"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 7.28,
+       "colour_patches": 8.1,
+       "grey_patches": 4.81,
+       "grey_lightness_error": 2.19,
+       "maximum": 14.69,
+       "worst_patch": "cyan"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": -0.06,
+       "mean_delta_e76": 7.61,
+       "colour_patches": 8.51,
+       "grey_patches": 4.93,
+       "grey_lightness_error": 2.01,
+       "maximum": 14.56,
+       "worst_patch": "cyan"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 12.23,
+       "colour_patches": 15.22,
+       "grey_patches": 3.27,
+       "grey_lightness_error": 1.32,
+       "maximum": 32.92,
+       "worst_patch": "blue"
+      }
+     }
+    },
+    "pentax-k3iii": {
+     "donor_exposure_removed_ev": 0.662,
+     "fit_on_reference_colours": {
+      "before": 15.5,
+      "after": 7.69,
+      "look_used": true
+     },
+     "dcp_sha256": "e5b39926ec98fbc7c42f897de0a8ec6b4185b4ef40f561f11337b4ed83c054de",
+     "on_the_pentax_raw": {
+      "generated_dcp": {
+       "mean_delta_e76": 10.76,
+       "colour_patches": 11.78,
+       "grey_patches": 7.7,
+       "grey_lightness_error": 5.04,
+       "maximum": 18.59,
+       "worst_patch": "orange yellow"
+      },
+      "generated_dcp_with_the_v0_2_2_anchor": {
+       "mean_delta_e76": 22.01,
+       "colour_patches": 24.55,
+       "grey_patches": 14.38,
+       "grey_lightness_error": 13.06,
+       "maximum": 33.55,
+       "worst_patch": "yellow"
+      },
+      "generated_dcp_grey_matched": {
+       "exposure_ev": -0.35,
+       "mean_delta_e76": 7.34,
+       "colour_patches": 7.79,
+       "grey_patches": 5.96,
+       "grey_lightness_error": 1.62,
+       "maximum": 14.99,
+       "worst_patch": "orange"
+      },
+      "pentax_natural": {
+       "mean_delta_e76": 8.54,
+       "colour_patches": 8.84,
+       "grey_patches": 7.64,
+       "grey_lightness_error": 4.91,
+       "maximum": 16.79,
+       "worst_patch": "cyan"
+      },
+      "pentax_natural_grey_matched": {
+       "exposure_ev": -0.41,
+       "mean_delta_e76": 7.56,
+       "colour_patches": 8.14,
+       "grey_patches": 5.85,
+       "grey_lightness_error": 1.1,
+       "maximum": 14.46,
+       "worst_patch": "cyan"
+      },
+      "pentax_camera_jpeg": {
+       "mean_delta_e76": 11.63,
+       "colour_patches": 12.9,
+       "grey_patches": 7.83,
+       "grey_lightness_error": 5.19,
+       "maximum": 25.7,
+       "worst_patch": "blue"
+      }
+     }
+    }
+   }
+  }
+ }
+}

@@ -1,4 +1,4 @@
-"""Native Pentax K-3 Mark III Bayer RAW input for the firmware color pipeline."""
+"""Native Pentax K-3 Mark III (PEF, DNG) and Q7 (DNG) Bayer RAW input for the firmware color pipeline."""
 
 from __future__ import annotations
 
@@ -12,8 +12,13 @@ import numpy as np
 import rawpy
 
 
-_MODEL = "PENTAX K-3 Mark III"
-_SENSOR_SIZE = (6304, 4224)
+# TIFF Model -> what a native file of that camera looks like (maker note model id: ExifTool PentaxModelID).
+_CAMERAS = {
+    "PENTAX K-3 Mark III": {"camera_id": "pentax-k3iii", "sensor": (6304, 4224), "bits": 14, "model_id": 0x13254,
+                            "software": r"PENTAX K-3 Mark III Ver\. \d+\.\d+"},
+    "PENTAX Q7": {"camera_id": "pentax-q7", "sensor": (4064, 3000), "bits": 12, "model_id": 0x12F7A,
+                  "software": r"PENTAX Q7 +Ver \d+\.\d+"},
+}
 _ACTIVE_AREA = (34, 26, 4194, 6250)
 # Native DNG #4678 and the lossless conversion of the matching-geometry PEF
 # independently record this ActiveArea-relative crop.
@@ -30,7 +35,9 @@ _IMAGE_TONES = (
     "flat", "satobi", "harubeni", "katen", "kyushu", "fuyuno", "gold",
 )
 _SETTINGS = ("saturation", "hue", "key", "contrast", "highlight", "shadow")
-_TIFF_TYPES = {1: "B", 3: "H", 4: "I", 5: "II", 10: "ii", 13: "I"}
+# Menu steps of the Q7's Saturation, Contrast and Hue tags (ExifTool Pentax.pm, tags 0x001f, 0x0020, 0x0067).
+_Q7_STEPS = {0: -2, 1: 0, 2: 2, 3: -1, 4: 1, 5: -3, 6: 3, 7: -4, 8: 4, 65535: 0}
+_TIFF_TYPES = {1: "B", 3: "H", 4: "I", 5: "II", 8: "h", 10: "ii", 13: "I"}
 _TAG_NAMES = {
     0x007E: "Pentax WhiteLevel", 0x009D: "Pentax exposure gain", 0x0200: "Pentax BlackPoint",
     0x0201: "Pentax as-shot WhitePoint", 50714: "DNG BlackLevel", 50717: "DNG WhiteLevel",
@@ -173,15 +180,16 @@ def _directories(reader):
 def _identify(reader):
     directories = _directories(reader)
     first = next(directories)
-    model = reader.string(first, 272)
-    if model.casefold() != _MODEL.casefold():
-        raise ValueError(f"Unsupported camera model {model!r}; expected {_MODEL} color body")
+    name = reader.string(first, 272)
+    model = next((known for known in _CAMERAS if known.casefold() == name.casefold()), None)
+    if model is None:
+        raise ValueError(f"Unsupported camera model {name!r}; expected a {' or '.join(_CAMERAS)} color body")
     version = reader.blob(first, 50706, (1,), (4,), optional=True)
     if version is not None:
         if version[0] != 1:
             raise ValueError("Unsupported DNG version")
-        if reader.string(first, 50708).casefold() != _MODEL.casefold():
-            raise ValueError("DNG UniqueCameraModel differs from the K-3 Mark III color body")
+        if reader.string(first, 50708).casefold() != model.casefold():
+            raise ValueError(f"DNG UniqueCameraModel differs from the {model} color body")
 
     image_dirs = [first, *directories]
     photometrics = [reader.scalar(fields, 262, (3,), optional=True) for fields in image_dirs]
@@ -190,10 +198,10 @@ def _identify(reader):
     mosaics = [fields for fields, photo in zip(image_dirs, photometrics) if photo == 32803]
     if len(mosaics) != 1 or reader.scalar(mosaics[0], 277, (3,)) != 1:
         raise ValueError("Expected a single-sample Bayer RAW directory; multi-frame RAW is unsupported")
-    return first, mosaics[0], version is not None
+    return first, mosaics[0], version is not None, model
 
 
-def _pentax_note(reader, first, is_dng):
+def _pentax_note(reader, first, is_dng, model_id):
     tag = 50740 if is_dng else 37500
     source = first
     if tag not in source:
@@ -210,12 +218,32 @@ def _pentax_note(reader, first, is_dng):
         raise ValueError("Unsupported Pentax maker note header")
     note.endian(header[8:])
     fields, _ = note.ifd(10)
-    if note.scalar(fields, 0x0005, (4,)) != 0x13254:
+    if note.scalar(fields, 0x0005, (4,)) != model_id:
         raise ValueError("Pentax maker note belongs to a different camera")
     return note, fields
 
 
-def _capture_info(note, fields):
+def _q7_settings(note, fields, mode, warnings):
+    """Q7 maker note: one tag per setting; the first of a tag's values is the still image's."""
+    def first(tag, kind, counts):
+        values = note.numbers(fields, tag, (kind,), counts, optional=True)
+        return None if values is None else values[0]
+
+    steps = {key: _Q7_STEPS.get(first(tag, 3, (1, 2))) for key, tag in (("saturation", 0x1F), ("hue", 0x67), ("contrast", 0x20))}
+    steps["key"] = first(0x6C, 8, (2,))
+    settings = None
+    if any(value is None for value in steps.values()):
+        warnings.append("Custom Image settings are missing")
+    elif not -4 <= steps["key"] <= 4:
+        warnings.append("Custom Image settings are outside the supported range")
+    else:
+        settings = {key: steps.get(key, 0) for key in _SETTINGS}        # the Q7 has no highlight and shadow settings
+    # Tag 0x007f holds the toning colour of Bleach Bypass; where the Q7 keeps Muted's is not known.
+    toning = first(0x7F, 3, (1,)) if mode == "bleach-bypass" else None
+    return settings, toning if toning is not None and 0 <= toning <= 8 else None
+
+
+def _capture_info(note, fields, camera_id="pentax-k3iii"):
     # ExifTool Pentax tags 0x0008, 0x0085, 0x0243. HDR and Pixel Shift flags
     # are at byte 0. The remaining bytes can be nonzero in a normal capture.
     quality = note.scalar(fields, 0x0008, (3,))
@@ -241,7 +269,9 @@ def _capture_info(note, fields):
         warnings.append("Capture color space is missing or unrecognized; sRGB is used as the recipe default")
 
     settings = toning = None
-    if record is None:
+    if camera_id == "pentax-q7":
+        settings, toning = _q7_settings(note, fields, mode, warnings)
+    elif record is None:
         warnings.append("Custom Image settings are missing")
     else:
         # The record is little-endian independently of the maker note byte order
@@ -342,7 +372,7 @@ def _bayer_rgb(raw, active, crop, black, white, wb, black_by_phase):
     sizes = raw.sizes
     pattern = raw.raw_pattern
     if raw.color_desc != b"RGBG" or pattern is None or pattern.shape != (2, 2):
-        raise ValueError("Unsupported sensor pattern; expected a K-3 Mark III color Bayer array")
+        raise ValueError("Unsupported sensor pattern; expected a color Bayer array")
     top, left, bottom, right = active
     x, y, width, height = crop
     visible = raw.raw_image_visible
@@ -387,19 +417,22 @@ def load_raw(path: str | Path) -> RawImage:
     try:
         with path.open("rb") as stream:
             reader = _Tiff(stream)
-            first, sensor, is_dng = _identify(reader)
-            if is_dng and not re.fullmatch(r"PENTAX K-3 Mark III Ver\. \d+\.\d+", reader.string(first, 305)):
-                raise ValueError("DNG preview requires a native K-3 Mark III capture")
+            first, sensor, is_dng, model = _identify(reader)
+            camera = _CAMERAS[model]
+            if is_dng and not re.fullmatch(camera["software"], reader.string(first, 305)):
+                raise ValueError(f"DNG preview requires a native {model} capture")
+            if not is_dng and camera["camera_id"] != "pentax-k3iii":
+                raise ValueError(f"{model} preview requires a DNG")
             size = tuple(reader.scalar(sensor, tag) for tag in (256, 257))
-            if size != _SENSOR_SIZE or reader.scalar(sensor, 258, (3,)) != 14:
+            if size != camera["sensor"] or reader.scalar(sensor, 258, (3,)) != camera["bits"]:
                 raise ValueError("Unsupported RAW storage geometry or bit depth")
             orientation = reader.scalar(first, 274, (3,), optional=True)
             if orientation is None:
                 orientation = 1  # TIFF's default Orientation.
             if not 1 <= orientation <= 8:
                 raise ValueError("Invalid RAW Orientation")
-            note, fields = _pentax_note(reader, first, is_dng)
-            metadata, warnings = _capture_info(note, fields)
+            note, fields = _pentax_note(reader, first, is_dng, camera["model_id"])
+            metadata, warnings = _capture_info(note, fields, camera["camera_id"])
             raw_values = _dng_fields(reader, first, sensor) if is_dng else _pef_fields(note, fields)
             active, crop, black, white, wb, baseline = raw_values
             baseline_source = "DNG BaselineExposure"
@@ -424,7 +457,7 @@ def load_raw(path: str | Path) -> RawImage:
     except (OSError, rawpy.LibRawError, NotImplementedError) as exc:
         raise ValueError(f"Unable to read RAW {path.name}: {exc}") from exc
     metadata.update(
-        model=_MODEL, path=str(path), format="DNG" if is_dng else "PEF",
+        model=model, camera_id=camera["camera_id"], path=str(path), format="DNG" if is_dng else "PEF",
         width=rgb.shape[1], height=rgb.shape[0], orientation=orientation,
         active_area=list(active), crop_origin=list(crop[:2]), crop_size=list(crop[2:]),
         crop_source="DNG DefaultCrop" if is_dng else "K-3 Mark III full-frame RAW crop",
@@ -465,14 +498,14 @@ def resize_rgb(rgb: np.ndarray, max_edge: int) -> np.ndarray:
     return np.ascontiguousarray(_reduce_axis(_reduce_axis(rgb, new_width, 1), new_height, 0))
 
 
-def read_calibration(path: str | Path) -> list[list[list[float]]]:
+def read_calibration(path: str | Path, camera_id: str = "pentax-k3iii") -> list[list[list[float]]]:
     """Read explicitly selected same-camera DNG ColorMatrices in A, D65 order."""
     path = Path(path)
     try:
         with path.open("rb") as stream:
             reader = _Tiff(stream)
-            first, _, is_dng = _identify(reader)
-            if not is_dng:
+            first, _, is_dng, model = _identify(reader)
+            if not is_dng or _CAMERAS[model]["camera_id"] != camera_id:
                 raise ValueError("Calibration import requires a same-camera DNG")
             checks = ((50778, 50721), (50779, 50722))
             matrices = {}

@@ -10,9 +10,20 @@ The evidence below covers firmware settings, application behavior and Lightroom 
 
 ## Application
 
-The test suite covers recipe validation, source hashes, numeric output, DCP parsing/encoding, XMP binary encoding and interpolation, Gold response, RAW black/white levels, WB, CFA, crop, orientation, calibration identity and GUI export safety. Synthetic tests include unsupported/malformed input rejection. Real pre-existing K-3 III DNG and PEF files were decoded read-only and retained their original SHA-256 hashes.
+The test suite covers recipe validation, source hashes, numeric output, DCP parsing/encoding, XMP binary encoding and interpolation, Gold response, RAW black/white levels, WB, CFA, crop, orientation, calibration identity and GUI export safety. Synthetic tests include unsupported/malformed input rejection and a Q7 DNG with its own geometry and setting tags. Real pre-existing K-3 III DNG and PEF files and one Q7 DNG were decoded read-only and retained their original SHA-256 hashes.
 
 The developer checks reproduced an installed Adobe XMP table’s serialized bytes and MD5 fingerprint. The application decodes the bundled CC0 color cube DNG at startup when no input file is specified. The verify command checks the sample’s SHA-256 and renders Natural and Bright. [Sample and license](../src/firmware_color_studio/data/demo/README.md)
+
+## Camera JPEG comparison for v0.3.0
+
+One ColorChecker Classic was photographed with a K-3 Mark III (firmware 2.12, DNG) and a Q7 (firmware 1.01, DNG). Each DNG holds the camera's own JPEG of the shot. Studio read the mosaic, took the Custom Image and its settings from the maker note, built that profile and rendered the 24 patches with the file's `BaselineExposure`. The table gives CIE 1976 colour differences between the rendering and the camera JPEG. [Hashes, coordinates and measurements](chart-session-validation.json) · [script](../tools/chart_session.py)
+
+| DNG and profile | Mean ΔE76, 24 patches | 18 colours | 6 greys | Largest | Exposure at which the greys agree best |
+|---|---:|---:|---:|---:|---:|
+| K-3 Mark III, Landscape with saturation −1 | 2.25 | 2.80 | 0.61 | 9.59 (orange yellow) | 0.00 EV |
+| Q7, Landscape at factory settings | 1.49 | 1.58 | 1.22 | 7.60 (yellow) | +0.06 EV |
+
+On the K-3 Mark III file the profiles of other Custom Images differ from the JPEG by 3.10 (Bright) to 9.67 (Portrait); on the Q7 file by 3.90 to 11.57. The K-3 Mark III body ran firmware 2.12 and the pack follows 2.20; the grey patches show no exposure difference between them. Both JPEGs are the ones stored in the DNG (K-3 Mark III: full size; Q7: 1920 × 1280). This is one scene under one light, measured with Studio's DCP renderer; Lightroom was not run on these files. The same photographs test the chart profiles: [same-scene results](chart-profiles.md#same-scene).
 
 ## Lightroom Classic 16.0 boundary verification for v0.1.4
 

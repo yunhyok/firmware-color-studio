@@ -65,6 +65,10 @@ def adobe_decode(y):
 RGB_SPACES = {"srgb": (SRGB_TO_PCS, srgb_encode, srgb_decode), "adobergb": (ADOBE_RGB_TO_PCS, adobe_encode, adobe_decode)}
 
 
+# Levels of the Q7's basic gamma output (0..4095) at which its 9 x 9 x 9 table has points.
+_TABLE_LEVELS = np.array([0.0, 512.0, 1024.0, 1536.0, 2048.0, 2560.0, 3072.0, 3584.0, 4095.0])
+
+
 @dataclass
 class CameraColour:
     """Parameters of the colour stages for one Custom Image setting."""
@@ -80,6 +84,7 @@ class CameraColour:
     csp_border: tuple = (56, 768, 856)
     chroma_fixed: bool = False
     chroma_offset: tuple = (0, 0)           # YCOF: added to Cb, Cr after chroma suppression; 10-bit scale (1.0 = 1024)
+    table: tuple | None = None              # Q7: (basic gamma, 4096 values; 9x9x9x3 table), codes 0..4095; replaces matrix and gamma
     name: str = ""
     space: str = "srgb"                     # colour space of the JPEG the camera would write
     notes: dict = field(default_factory=dict)
@@ -160,7 +165,12 @@ class CameraColour:
         the result is the same for every colour the camera does not clip.
         """
         matrix_output = np.asarray(matrix_output, dtype=np.float64)
-        rgb = self.gamma(np.minimum(matrix_output, 1.0) if extend else np.clip(matrix_output, 0.0, 1.0))
+        if self.table is not None:
+            # The Q7 looks up camera RGB, not the matrix output, so the matrix is undone first;
+            # the table already holds the clip, and `extend` has no meaning for it.
+            rgb = self._table_codes(matrix_output @ np.linalg.inv(self.matrix).T)
+        else:
+            rgb = self.gamma(np.minimum(matrix_output, 1.0) if extend else np.clip(matrix_output, 0.0, 1.0))
         ycc = rgb @ (self.yc.T / 256.0)
         if self.chroma_fixed:
             ycc = np.concatenate([ycc[..., :1], np.zeros_like(ycc[..., 1:])], axis=-1)
@@ -174,6 +184,27 @@ class CameraColour:
         ycc = np.concatenate([np.clip(ycc[..., :1], 0.0, 1.0), np.clip(ycc[..., 1:], -0.5, 0.5)], axis=-1)
         return np.clip(ycc @ JFIF_DECODE.T, 0.0, 1.0)
 
+    def _table_codes(self, camera_rgb):
+        """Q7: camera RGB (1.0 = full scale) through the basic gamma and the 9 x 9 x 9 table.  Returns 0..1.
+
+        Tetrahedral interpolation (the cube is cut along its grey diagonal).  The firmware does
+        not show how the hardware interpolates; of this and trilinear interpolation, only this
+        one reproduces a Q7 camera JPEG (docs/q7.md).
+        """
+        basic, nodes = self.table
+        code = np.interp(np.clip(camera_rgb, 0.0, 1.0) * 4095.0, np.arange(4096.0), basic)
+        position = np.interp(code, _TABLE_LEVELS, np.arange(9.0))
+        index = np.minimum(position.astype(int), 7)
+        fraction = position - index
+        order = np.argsort(-fraction, axis=-1)                  # walk the axes from the largest fraction
+        steps = np.take_along_axis(fraction, order, axis=-1)
+        weights = np.concatenate([1.0 - steps[..., :1], steps[..., :2] - steps[..., 1:], steps[..., 2:]], axis=-1)
+        out = weights[..., :1] * nodes[index[..., 0], index[..., 1], index[..., 2]]
+        for k in range(3):
+            index = index + (np.arange(3) == order[..., k:k + 1])
+            out = out + weights[..., k + 1:k + 2] * nodes[index[..., 0], index[..., 1], index[..., 2]]
+        return out / 4095.0
+
     def render(self, camera_rgb):
         """White-balanced linear camera RGB (1.0 = full scale) -> JPEG RGB code values 0..1."""
         return self.encode(np.clip(np.asarray(camera_rgb, dtype=np.float64), 0.0, 1.0) @ self.matrix.T)
@@ -181,9 +212,9 @@ class CameraColour:
     # -- profile pieces ---------------------------------------------------------
 
     def tone_curve(self, points: int = 257):
-        """ProfileToneCurve: linear in -> linear out, both 0..1, from the green gamma curve."""
+        """ProfileToneCurve: linear in -> linear out, both 0..1, from the green gamma curve (Q7: the table's greys)."""
         x = np.linspace(0.0, 1.0, points)
-        y = self.decode(self.gamma(x, channel=1))
+        y = self.decode(self.gamma(x, channel=1) if self.table is None else self._table_codes(x[:, None] * np.ones(3))[:, 1])
         y[0], y[-1] = 0.0, 1.0
         y = np.maximum.accumulate(np.clip(y, 0.0, 1.0))
         return x, y
