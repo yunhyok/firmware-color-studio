@@ -8,12 +8,13 @@ import json
 import subprocess
 import sys
 import tempfile
+from io import BytesIO
 from pathlib import Path
 
 import numpy as np
 from PySide6.QtGui import QGuiApplication, QImage
 
-from firmware_color_studio import __version__, chart_detect, chart_fit, chart_input, color_model as color, dcp, profiles
+from firmware_color_studio import __version__, chart_detect, chart_fit, chart_input, color_model as color, dcp, profiles, raw
 from firmware_color_studio.raw import load_raw
 
 APP = QGuiApplication.instance() or QGuiApplication([])
@@ -23,6 +24,9 @@ NAMES = ["dark skin", "light skin", "blue sky", "foliage", "blue flower", "bluis
          "moderate red", "purple", "yellow green", "orange yellow", "blue", "green", "red", "yellow", "magenta", "cyan",
          "white", "neutral 8", "neutral 6.5", "neutral 5", "neutral 3.5", "black"]
 PAIRS = {"pentax-q7": "20261122-IMGP1138.DNG", "pentax-k3iii": "20261121-IMGP9361.DNG"}
+# The cameras' own developments of the two DNGs, one JPEG per Custom Image (in-camera RAW development).
+DEVELOPED = {"pentax-q7": [f"IMGP{n}.JPG" for n in range(1142, 1153)],
+             "pentax-k3iii": [f"IMGP{n}.JPG" for n in range(9422, 9436)]}
 DONORS = ["20260111-102_4186.JPG", "20261121-DSC00007.JPG", "20261121-DSC00017.JPG", "20261121-DSC07687.JPG",
           "20261121-PICT0121.JPG", "20100101-SAM_1737.SRW"]
 
@@ -62,6 +66,19 @@ def scores(predicted, target):
             "maximum": round(float(de.max()), 2), "worst_patch": NAMES[worst]}
 
 
+def jpeg_note(path, camera_id):
+    """Maker note of a camera JPEG: Custom Image and settings, and the white balance it was developed with."""
+    data = path.read_bytes()
+    start = data.index(b"Exif\0\0") + 6
+    reader = raw._Tiff(BytesIO(data[start:start + int.from_bytes(data[start - 8:start - 6], "big") - 8]))
+    first, _ = reader.ifd(reader.root())
+    model_id = next(camera["model_id"] for camera in raw._CAMERAS.values() if camera["camera_id"] == camera_id)
+    note, fields = raw._pentax_note(reader, first, False, model_id)
+    info, warnings = raw._capture_info(note, fields, camera_id)
+    red, green, _, blue = note.numbers(fields, 0x0201, (3,), (4,))
+    return info, warnings, np.array([red / green, 1.0, blue / green])
+
+
 def grey_matched(render, target):
     """Exposure (EV, step 0.01) at which the six grey patches agree best in lightness, and the scores there."""
     best = min((float(np.abs(lab(render(ev))[18:, 0] - lab(target)[18:, 0]).mean()), ev)
@@ -81,7 +98,7 @@ for camera_id, name in PAIRS.items():
     target = chart_input.sample_chart(jpeg, corners)
     scale = frame.rgb.shape[1] / jpeg.width()
     patches = raw_patches(frame.rgb, corners * scale)
-    frames[camera_id] = (frame, patches, target)
+    frames[camera_id] = (frame, patches, target, corners, jpeg.width())
     info = frame.metadata
     recipe = profiles.default_recipe(info["mode"], camera_id)
     recipe["settings"] = info["settings"]
@@ -163,7 +180,7 @@ for name in DONORS:
     entry = {"sha256": sha256(path), "source": source, "profile_name": label, "size": [photo.image.width(), photo.image.height()],
              "chart_detected_automatically": detected, "patch_centres_1_6_24_19": np.round(corners, 1).tolist(),
              "patches": np.round(target * 255).astype(int).tolist(), "cameras": {}}
-    for camera_id, (frame, patches, own_jpeg) in frames.items():
+    for camera_id, (frame, patches, own_jpeg, *_) in frames.items():
         fitted = chart_fit.fit_chart(target, label, camera_id=camera_id)
         natural, _ = profiles.build_profile(profiles.default_recipe("natural", camera_id))
         baseline = frame.metadata["baseline_exposure"]
@@ -193,5 +210,51 @@ for name in DONORS:
               f"  Natural {row['pentax_natural']['mean_delta_e76']:5.2f} ({row['pentax_natural_grey_matched']['mean_delta_e76']:5.2f})"
               f"  camera JPEG {row['pentax_camera_jpeg']['mean_delta_e76']:5.2f}")
     report["donors"][name] = entry
+
+report["developments"] = {}
+for camera_id, names in DEVELOPED.items():
+    frame, patches, _, corners, preview_width = frames[camera_id]
+    baseline = frame.metadata["baseline_exposure"]
+    shot = np.array(frame.metadata["white_balance"])[:3]
+    rows = report["developments"][camera_id] = {}
+    for name in names:
+        path = PHOTOS / name
+        info, warnings, balance = jpeg_note(path, camera_id)
+        photo = chart_input.load_chart_jpeg(path)
+        try:
+            target, located = chart_input.sample_chart(photo.image, chart_detect.detect_chart(photo.image)), "found automatically"
+        except ValueError:                       # no colours to find the chart by (monochrome, cross processing, Gold)
+            target = chart_input.sample_chart(photo.image, corners * photo.image.width() / preview_width)
+            located = "position taken from the JPEG stored in the DNG"
+        mode = info["mode"]
+        entry = {"sha256": sha256(path), "size": [photo.image.width(), photo.image.height()], "custom_image": mode,
+                 "settings": info["settings"], "toning": info["toning"], "color_space": info["color_space"], "chart": located,
+                 "white_balance": [round(float(v), 6) for v in balance],
+                 "white_balance_differs_from_the_shot": bool(np.abs(balance - shot).max() > 1e-6)}
+        rows[name] = entry
+        if mode not in profiles.list_modes(camera_id) or info["settings"] is None:
+            entry["profile"] = None
+            print(f"{name} {camera_id:13s} {mode}: no profile for this Custom Image")
+            continue
+        developed = np.minimum(patches * balance / shot, 1.0)       # the white balance of this development
+        recipe = profiles.default_recipe(mode, camera_id)
+        factory = dict(recipe["settings"])
+        recipe.update(settings=info["settings"], color_space=info["color_space"], toning=info["toning"] or 0)
+        enhanced = bool(recipe["toning"]) or mode == "gold"
+        if enhanced:
+            from firmware_color_studio.enhanced import build_enhanced, render_enhanced
+            rendered = render_enhanced(developed, build_enhanced(recipe), baseline)
+        else:
+            rendered = profiles.render_dcp(developed, profiles.build_profile(recipe)[0], baseline)
+        entry.update(profile="DCP + XMP" if enhanced else "DCP", profile_name=profiles.profile_name(recipe),
+                     changed_from_factory={key: value for key, value in info["settings"].items() if value != factory[key]},
+                     **scores(rendered, target))
+        if camera_id == "pentax-q7" and not enhanced:
+            # v0.3.0 had no highlight chroma suppression; this file's exposure cancels, so the model takes the patches as they are.
+            plain = profiles.camera_for_recipe(recipe)
+            plain.csp_enable = False
+            entry["camera_model_without_highlight_chroma_suppression"] = scores(plain.render(developed), target)
+        print(f"{name} {camera_id:13s} {mode:14s} mean {entry['mean_delta_e76']:5.2f}  colours {entry['colour_patches']:5.2f}  greys {entry['grey_patches']:5.2f}"
+              f"  max {entry['maximum']:5.2f} ({entry['worst_patch']})  {entry['changed_from_factory'] or ''}")
 
 OUTPUT.write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")

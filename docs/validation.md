@@ -23,7 +23,29 @@ One ColorChecker Classic was photographed with a K-3 Mark III (firmware 2.12, DN
 | K-3 Mark III, Landscape with saturation −1 | 2.25 | 2.80 | 0.61 | 9.59 (orange yellow) | 0.00 EV |
 | Q7, Landscape at factory settings | 1.49 | 1.58 | 1.22 | 7.60 (yellow) | +0.06 EV |
 
-On the K-3 Mark III file the profiles of other Custom Images differ from the JPEG by 3.10 (Bright) to 9.67 (Portrait); on the Q7 file by 3.90 to 11.57. The K-3 Mark III body ran firmware 2.12 and the pack follows 2.20; the grey patches show no exposure difference between them. Both JPEGs are the ones stored in the DNG (K-3 Mark III: full size; Q7: 1920 × 1280). This is one scene under one light, measured with Studio's DCP renderer; Lightroom was not run on these files. The same photographs test the chart profiles: [same-scene results](chart-profiles.md#same-scene).
+On the K-3 Mark III file the profiles of other Custom Images differ from the JPEG by 3.10 (Bright) to 9.67 (Portrait); on the Q7 file by 3.94 to 11.80. The Q7 row is the v0.4.0 model, which has the camera's highlight chroma suppression: 1.22 (colours 1.22, greys 1.22, largest 1.91). The K-3 Mark III body ran firmware 2.12 and the pack follows 2.20; the grey patches show no exposure difference between them. Both JPEGs are the ones stored in the DNG (K-3 Mark III: full size; Q7: 1920 × 1280). This is one scene under one light, measured with Studio's DCP renderer; Lightroom was not run on these files. The same photographs test the chart profiles: [same-scene results](chart-profiles.md#same-scene).
+
+## Camera developments for v0.4.0
+
+Both cameras then developed their DNG again, once per Custom Image (in-camera RAW development): 14 JPEGs from the K-3 Mark III, 11 from the Q7. Each JPEG records the Custom Image, its settings and the white balance it was developed with. Studio built the profile for the recorded settings, rendered the 24 patches of the DNG and compared them with the JPEG. Values are mean CIE 1976 differences over the 24 patches. [Measurements](chart-session-validation.json)
+
+| K-3 Mark III Custom Image | Settings changed from factory | Mean | 18 colours | 6 greys | Largest |
+|---|---|---:|---:|---:|---:|
+| Natural | saturation +4 | 3.19 | 3.99 | 0.78 | 11.99 |
+| Bright | saturation −4, shadow −2 | 1.74 | 2.10 | 0.66 | 5.66 |
+| Portrait | saturation −1, hue +1, key +2, contrast −1, highlight −3, shadow −1 | 1.53 | 1.86 | 0.56 | 4.80 |
+| Landscape | saturation −1 | 2.35 | 2.87 | 0.78 | 9.51 |
+| Vibrant | saturation −4 | 1.83 | 2.23 | 0.61 | 6.25 |
+| Radiant | – | 2.61 | 3.18 | 0.90 | 10.19 |
+| Muted | – | 1.02 | 1.21 | 0.42 | 3.22 |
+| Flat | – | 1.87 | 2.23 | 0.77 | 7.48 |
+| Bleach Bypass, toning Green (DCP + XMP) | – | 2.09 | 2.42 | 1.11 | 5.58 |
+| Reversal Film | – | 2.22 | 2.70 | 0.80 | 9.56 |
+| Monochrome | – | 0.20 | 0.23 | 0.13 | 0.68 |
+| SATOBI | – | 1.61 | 2.00 | 0.43 | 5.70 |
+| Gold (DCP + XMP) | – | 2.36 | 2.85 | 0.91 | 9.26 |
+
+The greys agree within 1.1 everywhere, so the tone settings, including key, highlight and shadow contrast, follow the camera. The largest difference is orange yellow in nine of the thirteen, and yellow or orange in the other colour modes. In bright, saturated yellows and oranges the camera's JPEG is darker and more saturated than the model; the cause was not found and the model was not changed. The ten Q7 developments are in [q7.md](q7.md#camera-developments): 0.97 to 1.43. Cross Processing has no profile in either pack.
 
 ## Lightroom Classic 16.0 boundary verification for v0.1.4
 

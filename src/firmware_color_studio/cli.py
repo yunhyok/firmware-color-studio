@@ -91,6 +91,10 @@ def main():
     chart.add_argument("--camera", choices=list(list_cameras()), default=CAMERA_ID, help="camera the DCP is for")
     chart.add_argument("--edition", choices=("2014+", "pre2014"), default="2014+",
                        help="Classic chart formulation, November 2014 and later or earlier")
+    look = commands.add_parser("look", help="write a built-in look of another camera as a DCP")
+    look.add_argument("name", help="one of the looks listed by `fcs look list`, or `list`")
+    look.add_argument("output", type=Path, nargs="?")
+    look.add_argument("--camera", choices=list(list_cameras()), default=CAMERA_ID, help="camera the DCP is for")
     preview = commands.add_parser("preview", help="render a half-resolution RAW color preview to PNG")
     preview.add_argument("raw", type=Path)
     preview.add_argument("output", type=Path)
@@ -130,6 +134,17 @@ def main():
                 stream.write(fitted.dcp)
             if sys.stdout is not None:
                 print(f"Mean patch Delta E76: {fitted.baseline_mean_delta_e:.2f} -> {fitted.mean_delta_e:.2f}")
+        elif args.command == "look":
+            from .chart_fit import builtin_looks, fit_look
+
+            if args.name == "list":
+                print("\n".join(builtin_looks()))
+            elif args.output is None or args.output.suffix.lower() != ".dcp":
+                raise ValueError("look output must be .dcp")
+            else:
+                fitted = fit_look(args.name, camera_id=args.camera)
+                with args.output.open("xb") as stream:
+                    stream.write(fitted.dcp)
         elif args.command == "recipe":
             with args.output.open("x", encoding="utf-8") as stream:
                 json.dump(default_recipe(args.mode, args.camera), stream, indent=2, ensure_ascii=False)

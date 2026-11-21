@@ -8,6 +8,8 @@
 
 **다른 카메라의 JPEG 색감을 가져오려면** 상단의 **차트 JPEG → DCP**를 누르거나 JPEG를 창에 끌어 놓으세요. Studio가 ColorChecker Classic의 위치와 방향을 찾아 24개 패치에 번호를 표시하고 색감을 추정합니다. 번호와 미리보기를 확인한 뒤 **DCP 저장**을 누르세요. 자동 인식에 실패했을 때만 바깥 네 모서리를 지정해 달라는 안내가 나타납니다. 모서리는 어떤 순서로 눌러도 인쇄된 색 배열로 방향을 맞추며, 네 번째 모서리를 누르면 색감 추정이 자동으로 끝납니다. [지원 차트·사용법·검증 결과](docs/chart-profiles.md)
 
+**차트 사진 없이 다른 카메라의 색감을 쓰려면** 상단의 **다른 카메라 색감**을 누르세요. Kodak C875, Sony DSC-P200·TX66·T100, Konica Minolta DiMAGE X1, Samsung EX1의 색감이 들어 있고, 고르면 선택한 카메라용 DCP를 만듭니다. 각 카메라가 같은 ColorChecker를 찍은 JPEG 한 장에서 잰 값이며 제조사의 프로파일이 아닙니다. [내장 색감](docs/chart-profiles.md#built-in-looks)
+
 **펌웨어 카메라 모드와 RAW 비교**
 
 1. Releases의 `FirmwareColorStudio-…-windows-x64-setup.exe`를 실행합니다. Python이나 카메라 펌웨어 파일을 따로 설치할 필요가 없습니다.
@@ -30,7 +32,7 @@
 상단의 카메라 메뉴에서 **PENTAX Q7**을 고르면 Q7 펌웨어 1.01의 Custom Image 10종으로 바뀝니다: Natural, Bright, Portrait, Landscape, Vibrant, Radiant, Muted, Bleach Bypass, Reversal Film, Monochrome. 조절 항목은 펌웨어를 따릅니다. Q7에는 하이라이트/섀도 대비가 없고, Muted와 Bleach Bypass는 색상 대신 조색을 씁니다. 내보낸 DCP의 카메라 이름은 `PENTAX Q7`이므로 Lightroom에서 Q7 DNG에만 나타납니다.
 
 - 색 행렬·감마·YC 계산과 카메라가 실제로 보간하는 9×9×9 3차원 표는 Q7 펌웨어 루틴을 CPU 에뮬레이터로 실행한 결과와 모든 설정에서 일치합니다.
-- ColorChecker를 찍은 Q7 DNG 한 장(ISO 100, Landscape 출고값)에서 Landscape 프로파일과 DNG에 들어 있는 카메라 JPEG의 24패치 평균 색차는 ΔE76 1.5입니다. 전체 밝기 기준(`BaselineExposureOffset` +0.5 EV)도 이 사진으로 맞췄습니다. 다른 Custom Image·감도와 Lightroom 출력은 사진으로 비교하지 않았습니다.
+- ColorChecker를 찍은 Q7 DNG 한 장을 카메라에서 Custom Image 10종으로 현상한 JPEG과 비교하면, 기록된 설정으로 만든 프로파일의 24패치 평균 색차는 ΔE76 1.0~1.4입니다. 전체 밝기 기준(`BaselineExposureOffset` +0.5 EV)도 이 사진으로 맞췄습니다. 다른 감도와 Lightroom 출력은 비교하지 않았습니다.
 - Q7 DNG를 열면 카메라가 Q7로 바뀌고, 촬영 설정 가져오기와 DNG 보정 행렬 가져오기도 Q7 파일에서 동작합니다. 다른 카메라의 RAW를 연 상태의 미리보기는 두 카메라의 센서 행렬로 환산한 근사입니다. [Q7 지원 범위와 한계](docs/q7.md)
 
 ## 지원 범위
@@ -56,7 +58,7 @@ python -m venv .venv
 
 CLI는 `fcs verify --report result.json`, `fcs recipe recipe.json --camera pentax-q7 --mode bright`(출고값 레시피 쓰기), `fcs export recipe.json output.dcp`, `fcs export recipe.json output.zip --enhanced`, `fcs preview input.DNG output.png --mode natural`을 제공합니다. `--camera`는 `pentax-k3iii`(기본) 또는 `pentax-q7`이며, `fcs preview`는 생략하면 RAW를 찍은 카메라를 씁니다. CLI 출력 파일은 기존 파일을 덮어쓰지 않습니다.
 
-차트 사진에는 `fcs chart-fit`을 사용합니다. [자동 인식과 수동 좌표 사용 예제](docs/chart-profiles.md#cli)
+차트 사진에는 `fcs chart-fit`을, 내장 색감에는 `fcs look`을 사용합니다. [자동 인식과 수동 좌표 사용 예제](docs/chart-profiles.md#cli)
 
 ## 출처와 라이선스
 

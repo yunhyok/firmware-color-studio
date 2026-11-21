@@ -44,7 +44,7 @@ def test_outer_corner_fallback_autofit_raw_preview_and_export(application, tmp_p
     assert rgb_image(tiles).convertToFormat(QImage.Format.Format_RGB888).save(str(jpeg), quality=98)
     source_bytes = jpeg.read_bytes()
     parent = app.MainWindow()
-    parent.raw = SimpleNamespace(rgb=np.full((10, 15, 3), .2), baseline_exposure=0.)
+    parent.raw = SimpleNamespace(rgb=np.full((10, 15, 3), .2), baseline_exposure=0., metadata={"camera_id": "pentax-k3iii"})
     dialog = chart_dialog.ChartDialog(parent)
     messages = []
     monkeypatch.setattr(QMessageBox, "warning", lambda *args: messages.append(args[-1]))
@@ -142,7 +142,7 @@ def test_automatic_success_has_no_manual_controls_or_hints(application, tmp_path
     monkeypatch.setattr(chart_dialog, "detect_chart", detect)
     parent = app.MainWindow()
     parent.lang = lang
-    parent.raw = SimpleNamespace(rgb=np.full((10, 15, 3), .2), baseline_exposure=0.)
+    parent.raw = SimpleNamespace(rgb=np.full((10, 15, 3), .2), baseline_exposure=0., metadata={"camera_id": "pentax-k3iii"})
     # Detection must receive native sRGB, independently of the display's profile.
     parent.display_space = QColorSpace(QColorSpace.NamedColorSpace.AdobeRgb)
     dialog = chart_dialog.ChartDialog(parent)
@@ -457,3 +457,31 @@ def test_korean_messages_cover_existing_error_texts():
     source = (package / "chart_input.py").read_text(encoding="utf-8") + (package / "chart_fit.py").read_text(encoding="utf-8")
     for english in chart_dialog._KOREAN:
         assert english in source
+
+
+def test_builtin_look_needs_no_jpeg_and_a_jpeg_replaces_it(application, tmp_path, monkeypatch):
+    parent = app.MainWindow()
+    parent.raw = SimpleNamespace(rgb=np.full((10, 15, 3), .2), baseline_exposure=0., metadata={"camera_id": "pentax-k3iii"})
+    dialog = chart_dialog.ChartDialog(parent)
+    monkeypatch.setattr(chart_dialog.QFileDialog, "getSaveFileName", lambda *args: (str(tmp_path / "look.dcp"), ""))
+    try:
+        assert dialog.looks.count() == 7 and not dialog.save_button.isEnabled()
+        dialog.choose_look(2)
+        assert dialog.name.text() == "Sony DSC-P200" and dialog.result is not None and dialog.save_button.isEnabled()
+        assert not dialog.edition.isEnabled() and not dialog.fallback and dialog.source is None
+        assert not dialog.swatches.pixmap().isNull() and dialog.tabs.isTabEnabled(1)
+        dialog.tabs.setCurrentIndex(1)
+        assert not dialog.raw_view.pixmap().isNull()
+        dialog.save()
+        assert read_dcp((tmp_path / "look.dcp").read_bytes())["ProfileName"] == "Sony DSC-P200"
+        # A chart JPEG takes over again.
+        jpeg = tmp_path / "Donor.jpg"
+        tiles = np.repeat(np.repeat(reference_srgb().reshape(4, 6, 3), 60, axis=0), 60, axis=1)
+        assert rgb_image(tiles).convertToFormat(QImage.Format.Format_RGB888).save(str(jpeg), quality=98)
+        monkeypatch.setattr(chart_dialog, "detect_chart", lambda image: np.array([(30, 30), (330, 30), (330, 210), (30, 210)], float))
+        assert dialog.load_path(jpeg)
+        assert dialog.look is None and dialog.looks.currentIndex() == 0 and dialog.edition.isEnabled()
+        assert dialog.name.text() == "Donor" and dialog.result is not None
+    finally:
+        dialog.close()
+        parent.close()

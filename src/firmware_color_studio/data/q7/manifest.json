@@ -7,8 +7,8 @@
   "default_profiles": {},
   "files": {
     "q7-color-tables.json": {
-      "bytes": 107840,
-      "sha256": "25aed1dbd0f833f0f3bdbd373c609d419ff6eb971300d54de96adcdf4020a76e",
+      "bytes": 108106,
+      "sha256": "48079adfd1feea4c782134fd43998b7ae6ddeffdb7d92d239d6669b0991ada17",
       "source": "analysis/color-engine-tables.json"
     }
   },

@@ -86,3 +86,19 @@ def test_chart_fit_automatically_detects_classic_jpeg(tmp_path):
     unfitted = tmp_path / "no-chart.dcp"
     assert subprocess.run([*command, "chart-fit", jpeg, unfitted], timeout=30).returncode == 1
     assert not unfitted.exists()
+
+
+def test_look_lists_and_exports_a_builtin_look(monkeypatch, tmp_path, capsys):
+    from firmware_color_studio.dcp import read_dcp
+
+    monkeypatch.setattr(sys, "argv", ["fcs", "look", "list"])
+    assert cli.main() == 0
+    assert capsys.readouterr().out.splitlines()[:2] == ["Kodak C875", "Sony DSC-P200"]
+    output = tmp_path / "x1.dcp"
+    monkeypatch.setattr(sys, "argv", ["fcs", "look", "Konica Minolta DiMAGE X1", str(output), "--camera", "pentax-q7"])
+    assert cli.main() == 0
+    data = output.read_bytes()
+    assert read_dcp(data)["ProfileName"] == "Konica Minolta DiMAGE X1" and b"PENTAX Q7\x00" in data
+    assert cli.main() == 1 and output.read_bytes() == data          # never overwrites
+    monkeypatch.setattr(sys, "argv", ["fcs", "look", "No such camera", str(tmp_path / "none.dcp")])
+    assert cli.main() == 1 and not (tmp_path / "none.dcp").exists()

@@ -8,6 +8,8 @@ Source: X-Rite, https://doi.org/10.5281/zenodo.3245895 .
 
 from dataclasses import dataclass
 from functools import lru_cache
+import json
+from pathlib import Path
 
 import numpy as np
 
@@ -36,6 +38,24 @@ _LAB_BEFORE_2014 = np.array([
     [96.539, -0.425, 1.186], [81.257, -0.638, -0.335], [66.766, -0.734, -0.504],
     [50.867, -0.153, -0.270], [35.656, -0.421, -1.231], [20.461, -0.079, -0.973],
 ])
+
+
+LOOKS = Path(__file__).parent / "data" / "looks" / "chart-looks.json"
+
+
+@lru_cache(maxsize=1)
+def builtin_looks() -> dict:
+    """Looks shipped with the app: name -> (24 encoded sRGB patches in 0..1, chart edition)."""
+    data = json.loads(LOOKS.read_text(encoding="utf-8"))
+    return {look["name"]: (np.array(look["patches"]) / 255.0, data["chart_edition"]) for look in data["looks"]}
+
+
+def fit_look(name, *, camera_id=profiles.CAMERA_ID):
+    """A built-in look as a profile of `camera_id`, named after the look."""
+    if name not in builtin_looks():
+        raise ValueError(f"unknown look: {name!r}")
+    patches, edition = builtin_looks()[name]
+    return fit_chart(patches, name, camera_id=camera_id, edition=edition)
 
 
 def _reference_xyz(edition):

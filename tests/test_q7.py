@@ -144,6 +144,24 @@ def test_camera_model_interpolates_the_table(engine):
     assert abs(want - gamma[middle]) > 2
 
 
+def test_highlight_chroma_suppression_and_toning_order(engine):
+    camera = engine.camera("natural")
+    # Chroma is whole up to luma 200 of 255 and falls in a straight line to nothing at white.
+    assert camera.csp_enable and camera.csp_border[2] == pytest.approx(200 * 1023 / 255)
+    luma = np.array([0.0, 100, 200, 227.5, 255]) / 255
+    assert np.allclose(camera.chroma_gain(luma), [1, 1, 1, 0.5, 0], atol=1e-9)
+    bright_yellow, mid_yellow = np.array([0.85, 0.75, 0.12]), np.array([0.30, 0.26, 0.04])
+    plain = engine.camera("natural")
+    plain.csp_enable = False
+    assert np.allclose(camera.render(mid_yellow), plain.render(mid_yellow))
+    assert camera.render(bright_yellow)[2] > plain.render(bright_yellow)[2] + 0.1          # blue comes back
+    # Toning is added before the suppression, so white keeps less of the tint than a mid grey.
+    toned = engine.camera("bleach-bypass", toning=1, **engine.factory_settings("bleach-bypass"))
+    assert toned.offset_first
+    white, grey = toned.render(np.full(3, 0.95)), toned.render(np.full(3, 0.2))
+    assert 0 < white[1] - white[0] < 0.5 * (grey[1] - grey[0])
+
+
 @pytest.mark.parametrize("mode", list(MODES))
 def test_profiles_build_and_render_like_the_camera_model(mode):
     recipe = profiles.default_recipe(mode, Q7)

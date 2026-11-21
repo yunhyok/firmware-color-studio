@@ -133,6 +133,7 @@ All are in unpacked part A. Values are in [`q7-color-tables.json`](q7-color-tabl
 | `cnarwBasicTone{128,256,512,1024,2048}{Low,Middle,High}` | 15 tone curves of 256 × u16: three contrast families × **five** columns (K-3 III has six) | `gamma.families` |
 | `cnarwReversalTone{128,181,256,362,512,724,1024}` | seven Reversal Film curves (K-3 III has nine) | `gamma.reversal_curves` |
 | `arcnlDNGColorMatrix1`, `2` | nine (numerator, 65536) pairs each | `dng_color_matrix_tables` |
+| `arcntChromaSuppression` `0x804d529c` | parameters of the image processor's chroma suppression block, the same for every sensitivity; contains the luma level 200 where highlight suppression begins | `chroma_suppress` (other form) |
 | `cnwHighlightShadowCompositionRate2048` `0x804b4a78` | 97 rates of 0..2048 that join two tone curves around the reference grey; used by the basic gamma | `gamma.transition_weights` (the same values) |
 
 ### Colour arithmetic (read from the code; port verified by emulation: `check_port.py`)
@@ -300,6 +301,38 @@ There are also records for scene modes (`DramaticArt`, `Gokusai`, `BlueSky`, …
 `12995 -5593 -1107 / -1879 10139 2027 / -64 1233 4919` (x 1e-4). The model string in the firmware is
 `PENTAX Q7`.
 
+### The camera's developments of that DNG (2026-11-22): highlight chroma suppression, toning order
+
+The Q7 developed the DNG again in the camera, once per Custom Image (`IMGP1142`...`IMGP1152.JPG`, 4000 x 2664,
+maker note header `PENTAX \0II` as in the DNG). The white balance gains in each JPEG (`0x0201`) equal the DNG's,
+except Reversal Film (below). Numbers: [../chart-session-validation.json](../chart-session-validation.json),
+section `developments`.
+
+- **A stage after the table.** With the v0.3.0 model the yellow patch was off by Delta E 7 to 14 in every colour
+  mode, and only it. In the 3D table all eight points around yellow hold blue 0, so the camera's blue (53 of 255 in
+  Landscape) comes from a later stage. Camera chroma over model chroma, for the 141 patches with chroma above 25:
+  about 1.00 (0.95..1.08) up to luma 200, then 0.83 at 210, 0.74..0.79 at 211..215, 0.57 at 225.
+- **The firmware side.** `ImageQualityService_SetupChromaSuppression` `0x80429108` sends descriptor `0xca` (0x3c
+  bytes) filled by `ResolutionControlService_SetupChromaSuppressionParam` `0x8041fda8` from `arcntChromaSuppression`
+  `0x804d529c`: 34-byte records indexed by `SvdToSvIndex(sensitivity)`, all 31 equal:
+  `3 | 256 0 512 256 | 256 182 512 256 | 0 512 256 24 | 200 2048 4096 0` (one byte, then u16). The record goes to
+  the descriptor at `+0x18`...`+0x38`. The value 200 is where the JPEGs show the suppression to begin; the meaning
+  of the other values was not worked out. `arwYChromaSuppressionRatioLut` `0x804a7470` (4096 x u16, 8192 down to
+  4096) has no reference in the code that could be found (no `lui`/`addiu` pair, no stored pointer); the 3D table
+  routine uses only `arwCChromaSuppressionRatioLut`.
+- **Model.** Chroma x `(255 - luma) / 55` above luma 200, in `CameraColour.chroma_gain` with the K-3 Mark III's
+  piecewise-linear form. Result over the ten developments: mean Delta E76 0.97..1.43, largest 3.70 (was 0.97..2.19
+  and 14.0).
+- **Toning order.** Bleach Bypass with green toning: the camera's white keeps 0.4 of the grey patches' tint; adding
+  the offset before the suppression gives that (`CameraColour.offset_first`). The offsets are in descriptor B (FC1),
+  that is in the YC conversion itself.
+- **Tags.** Natural developed with saturation -1, hue -1, key -1, contrast +1 has tag values 3, 3, `-1 0`, 4 and
+  fits at 1.30, confirming ExifTool's table for hue and key. `0x007f` is 0 for Muted, 1 for Bleach Bypass (green),
+  65535 elsewhere.
+- **Reversal Film develops with its own white balance:** `0x0201` is `13056 8192 8192 15552` against
+  `12960 8192 8192 15968` in the other ten. With the DNG's gains the greys are off (R, G +4, B -1 of 255); with the
+  JPEG's own gains the profile fits at 1.37. Where the firmware decides this was not looked for.
+
 ## Next steps
 
 Done on 2026-11-22 with the photograph above: the exposure anchor (+0.5 EV), Q7 DNG input with the shot's
@@ -312,8 +345,8 @@ settings and calibration import, the comparison with the camera JPEG, and the mo
    sensitivity or with highlight correction on, with its JPEG, would show whether `BaselineExposure` follows.
 3. **More photographs.** Other Custom Images and non-zero settings (hue and key in particular: their maker note
    values come from ExifTool's table and were seen only at zero), AdobeRGB, and a full-size camera JPEG.
-4. The yellow patch (Delta E 7.6): the JPEG keeps more blue than the table. Check a full-size JPEG before
-   looking for another stage.
-5. Where the maker note records the toning colour of Muted; what maker note tag `0x021d` is.
+4. The chroma suppression block: what its other parameters mean (`256 182 512`, `24`, `2048 4096`), whether it
+   also acts in deep shadows, and where Reversal Film gets its own white balance.
+5. What maker note tag `0x021d` is.
 6. Optional: Cross Processing, monochrome filter effect and monochrome toning.
 7. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); not needed so far.

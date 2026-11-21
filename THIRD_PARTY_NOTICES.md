@@ -24,6 +24,14 @@ terms apply. The manifest records the firmware and table hashes. The meaning of 
 note tags that hold a shot's settings follows the tag table of
 [ExifTool](https://exiftool.org/TagNames/Pentax.html) by Phil Harvey; no ExifTool code is included.
 
+## Built-in looks of other cameras
+
+`data/looks/chart-looks.json` holds, for six cameras (Kodak C875, Sony DSC-P200, DSC-TX66 and DSC-T100, Konica
+Minolta DiMAGE X1, Samsung EX1), the 24 patch colours measured in one JPEG that each camera took of a
+ColorChecker Classic. The photographs are Yunhyok's and are not distributed. The looks are estimates from those
+measurements, not profiles made or approved by the cameras' manufacturers; the names only say which camera took
+the photograph.
+
 ## ColorChecker reference measurements
 
 The JPEG chart feature uses the D50/2° numerical reference measurements published by X-Rite for the ColorChecker Classic before November 2014 and from November 2014 onward. ColorChecker is a trademark of its owner. The app includes the reference numbers in patch order. X-Rite chart artwork and example JPEGs are not bundled. [Manufacturer’s edition notes](https://www.xrite.com/en/service-support/new_color_specifications_for_colorchecker_sg_and_classic_charts) · [X-Rite reference data archive](https://doi.org/10.5281/zenodo.3245895)

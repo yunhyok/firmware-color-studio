@@ -2,6 +2,15 @@
 
 다른 카메라의 JPEG에 담긴 색감과 명암을 추정해 **PENTAX K-3 Mark III 또는 Q7용 단독 DCP**로 저장합니다. 어느 카메라용인지는 상단의 카메라 메뉴(CLI에서는 `--camera`)로 정합니다. 원본 카메라의 RAW나 같은 장면을 찍은 Pentax RAW를 준비할 필요가 없습니다. 편집한 JPEG를 넣으면 편집이 반영된 색을 목표로 삼습니다.
 
+<a name="built-in-looks"></a>
+## 내장 색감
+
+차트 사진이 없어도 쓸 수 있도록 여섯 대의 색감을 프로그램에 넣어 두었습니다: **Kodak C875, Sony DSC-P200, Sony DSC-TX66, Sony DSC-T100, Konica Minolta DiMAGE X1, Samsung EX1**. 상단의 **다른 카메라 색감**을 누르거나 차트 대화상자의 **내장 색감 고르기**에서 고르면, 선택한 카메라(K-3 Mark III 또는 Q7)에 맞춰 아래 "계산 방식"과 같은 피팅을 하고 비교표와 RAW 미리보기를 보여 줍니다. 이름을 확인하고 **DCP 저장**을 누르면 됩니다.
+
+- 들어 있는 것은 각 카메라가 같은 ColorChecker Classic(2014년 11월 이후 제조)을 찍은 JPEG 한 장에서 잰 24패치 값뿐입니다. 사진은 들어 있지 않습니다. [값](../src/firmware_color_studio/data/looks/chart-looks.json)
+- 제조사가 만든 프로파일이 아니고, 한 장면·한 조명에서 그 카메라가 낸 색을 추정한 것입니다. 얼마나 가까운지는 [같은 차트를 여덟 대의 카메라로 찍은 검증](#same-scene)의 표에 있습니다.
+- 명령줄에서는 `fcs look list`로 이름을 보고 `fcs look "Sony DSC-P200" P200.dcp --camera pentax-q7`로 저장합니다.
+
 ## 차트 선택과 저장
 
 1. **차트 JPEG → DCP**에서 JPEG를 엽니다. ColorChecker Classic 24 또는 ColorChecker Passport의 **6열 × 4행 Classic 면**을 사용하세요. 화면에 차트 전체가 보이고 패치에 반사광과 짙은 그림자가 적을수록 좋습니다. Digital SG, Video, Passport의 보정용 다른 면은 배열과 기준색이 다릅니다. [X-Rite 차트 구성](https://www.xritephoto.com/documents/literature/en/L11-293_ColorChecker_Targets_en.pdf)

@@ -157,7 +157,7 @@ def test_q7_dng_reads_its_own_geometry_and_setting_tags(tmp_path, monkeypatch):
 
     unknown = raw.load_raw(_dng(path, {**_Q7, 50740: _bytes(_q7_note({0x0067: _short(99), 0x004F: _short(6)}))}))
     assert unknown.metadata["settings"] is None and unknown.metadata["mode"] == "muted"
-    assert unknown.warnings == ["Custom Image settings are missing", "Custom Image toning is missing or unrecognized"]
+    assert unknown.metadata["toning"] == 3 and unknown.warnings == ["Custom Image settings are missing"]   # Muted uses the tag too
     for override, message in (({258: _short(14)}, "storage geometry"), ({50740: _bytes(_note())}, "different camera"),
                               ({305: _bytes(b"PENTAX K-3 Mark III Ver. 2.20\0", 2)}, "native")):
         with pytest.raises(ValueError, match=message):
