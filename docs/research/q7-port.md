@@ -331,7 +331,44 @@ section `developments`.
   65535 elsewhere.
 - **Reversal Film develops with its own white balance:** `0x0201` is `13056 8192 8192 15552` against
   `12960 8192 8192 15968` in the other ten. With the DNG's gains the greys are off (R, G +4, B -1 of 255); with the
-  JPEG's own gains the profile fits at 1.37. Where the firmware decides this was not looked for.
+  JPEG's own gains the profile fits at 1.37. The firmware side is in the next section.
+
+<a name="reversal-white-balance"></a>
+### White balance per Custom Image: Reversal Film is calculated as Daylight (read from the code)
+
+No photograph was needed for this; `tools/q7/white_balance.py` prints the tables and checks them.
+
+- `m_arpcPictureArrangeParameter` `0x804457a8` holds 42 pointers, one per picture mode id (0..10 are the Custom
+  Images; id 9 is Cross Processing, whose make-up matrix is Vivid's, hence "9 Vivid again" above). Each points to a
+  picture mode record: `+0` the `cntCustomImageUnit...` record, `+4` a white balance record of 32 bytes.
+- The record's fields are named by their getters (`ImageTuningRelay_GetDefalutWhiteBalanceModeLimitation` `+0`,
+  `...WhiteBalanceMode` `+4`, `...WhiteBalanceInnerModeLimitation` `+8`, `...WhiteBalanceInnerMode` `+0xc`,
+  `...SemiAutoSetting` `+0x10`, `...FineTuneSetting` `+0x14`, `...FineTuneStepA/B/G/M` `+0x18`...). The five records:
+  `cntWhiteBalanceRegular` 0, 0, **1, 0**; `cntWhiteBalanceReversal` 0, 0, **0, 1**; `cntWhiteBalanceCte` 1, 0x10, 0,
+  0x10; `cntWhiteBalanceSakuraHonoka` the same with fine tune steps 14 in place of 7; `cntWhiteBalanceForcableCte`
+  1, 0, 0, 0x10. Of the eleven Custom Images only Reversal has another record than Regular, which is what the
+  eleven JPEGs show.
+- `SetupWhiteBalanceUnit` `0x8040dfcc` puts the user's white balance mode at `+0x54` of the white balance unit and
+  the record's mode limitation, inner mode limitation and inner mode at `+0x50`, `+0x58`, `+0x5c`.
+- `CWhiteBalanceService_vCalclation` `0x804103b8` (called for capture, RAW development and live view) takes the mode
+  from `+0x54`; **if it is 0 (Auto) and the inner mode limitation is 0, the inner mode replaces it.** It then calculates
+  the CTE and the automatic gains and jumps by the mode (`0x804a35f4`): 0 and 12..14 the automatic result, 1..8 and
+  15 `CWhiteBalanceAlgorithm_bGainCalclationPreset`, 9..11 manual, 16 CTE, 17 stored gains; `FineTune` follows. So
+  Reversal Film with Auto is mode 1.
+- `bGainCalclationPreset` `0x803764a8` maps the mode to a preset entry (four u16: red, green, green, blue) and to
+  light categories. The entries divided by entry `0x803a1bd8` (`420 256 256 146`, also the routine's reference)
+  equal the preset gains of the Q7 DNG's maker note divided by its Daylight gains, to four decimals, for all nine
+  presets: mode 1 Daylight, 2 Shade, 3 Cloudy, 4 to 6 Fluorescent D, N, W, 7 Tungsten, 8 Flash, 15 Fluorescent L.
+- A preset is not a constant in this camera. The routine sums the white balance statistics of the 16 x 16 image
+  blocks by light category (twelve categories, map at `0x803a2438`), drops categories that hold less than 5 % of the
+  blocks, and takes the sums of the categories that belong to the preset (Daylight: category 1). If those sums are
+  not zero the gains come from them (green over red and green over blue of the sums, after the matrix
+  `256 -268 268 / 256 77 -196 / 256 305 305`, times the body's base gains); otherwise from the entry.
+- Consequence: Reversal Film with Auto is a Daylight white balance measured on the daylight-classed parts of the
+  scene. The JPEG's gains (13056, 15552) lie between the automatic ones (12960, 15968) and the nominal Daylight
+  preset (14363, 15300) in blue and near the automatic ones in red. Not done: reproducing these two numbers, which
+  needs the block statistics of the shot; and checking on a file that a DNG taken in Reversal Film records these gains
+  as its as-shot white balance, which follows from capture using the same routine.
 
 ## Next steps
 
@@ -345,8 +382,8 @@ settings and calibration import, the comparison with the camera JPEG, and the mo
    sensitivity or with highlight correction on, with its JPEG, would show whether `BaselineExposure` follows.
 3. **More photographs.** Other Custom Images and non-zero settings (hue and key in particular: their maker note
    values come from ExifTool's table and were seen only at zero), AdobeRGB, and a full-size camera JPEG.
-4. The chroma suppression block: what its other parameters mean (`256 182 512`, `24`, `2048 4096`), whether it
-   also acts in deep shadows, and where Reversal Film gets its own white balance.
+4. The chroma suppression block: what its other parameters mean (`256 182 512`, `24`, `2048 4096`) and whether it
+   also acts in deep shadows.
 5. What maker note tag `0x021d` is.
 6. Optional: Cross Processing, monochrome filter effect and monochrome toning.
 7. Extract the FAT resource image and list its files (`GAMMA*.BIN` and others); not needed so far.
