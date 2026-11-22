@@ -31,6 +31,7 @@ TEXT = {
     "open": ("RAW 열기", "Open RAW"), "empty": ("PEF·DNG 또는 차트 JPEG를 끌어 놓으세요", "Drop a PEF, DNG or chart JPEG here"),
     "no_recorded": ("이 RAW에는 지원하는 Custom Image 설정이 없습니다", "No supported Custom Image settings in this RAW."),
     "chart": ("차트 JPEG → DCP", "Chart JPEG → DCP"), "file": ("파일", "File"), "demo": ("데모 사진", "Demo photo"),
+    "help": ("도움말", "Help"), "guide": ("사용 설명서", "User guide"),
     "looks": ("다른 카메라 색감", "Other cameras' looks"),
     "looks_tip": ("Kodak, Sony, Konica Minolta, Samsung 카메라의 내장 색감으로 선택한 카메라용 DCP를 만듭니다",
                   "Make a DCP for the selected camera from the built-in looks of Kodak, Sony, Konica Minolta and Samsung cameras"),
@@ -395,19 +396,20 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.progress)
         self.setCentralWidget(root)
         self.actions = {}
-        menu = self.file_menu = self.menuBar().addMenu("")
+        self.file_menu, self.help_menu = self.menuBar().addMenu(""), self.menuBar().addMenu("")
+        self.guide = None
         for key, shortcut, callback in [
             ("open", "Ctrl+O", self.open_raw), ("load", "Ctrl+Shift+O", self.open_saved_recipe),
             ("chart", "", self.open_chart), ("looks", "", self.open_looks),
             ("save", "Ctrl+S", self.save_current_recipe), ("export", "Ctrl+E", self.export_profile),
             ("calibration", "", self.import_calibration), ("clear_calibration", "", self.clear_calibration),
-            ("info", "F1", self.show_details),
+            ("guide", "F1", self.open_guide), ("info", "", self.show_details),
         ]:
             action = QAction(self)
             if shortcut:
                 action.setShortcut(shortcut)
             action.triggered.connect(callback)
-            menu.addAction(action)
+            (self.help_menu if key in ("guide", "info") else self.file_menu).addAction(action)
             self.actions[key] = action
 
     def _camera_text(self):
@@ -450,6 +452,7 @@ class MainWindow(QMainWindow):
                             (self.limit_label,"limits")]:
             widget.setText(self.tr_text(key))
         self.file_menu.setTitle(self.tr_text("file"))
+        self.help_menu.setTitle(self.tr_text("help"))
         self.chart_button.setToolTip(self.tr_text("chart_tip"))
         self.looks_button.setToolTip(self.tr_text("looks_tip"))
         self.camera.setToolTip(self.tr_text("camera_tip"))
@@ -822,6 +825,15 @@ class MainWindow(QMainWindow):
             dialog.exec()
         finally:
             dialog.deleteLater()
+
+    def open_guide(self):
+        """The user guide in the app's own viewer; one window, raised when it is already open."""
+        from .help import GuideWindow
+        if self.guide is None:
+            self.guide = GuideWindow(self)
+        self.guide.show()
+        self.guide.raise_()
+        self.guide.activateWindow()
 
     def show_details(self):
         box = QMessageBox(self)

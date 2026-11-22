@@ -91,3 +91,17 @@ The bundled color cube RAW is Terry Duell’s PENTAX K-3 Mark III photograph,
 published as raw.pixls.us sample 4678 under CC0 1.0. The bundle contains the
 original DNG bytes.
 [Source DNG](https://raw.pixls.us/getfile.php/4678/nice/Pentax%20-%20K-3%20Mark%20III%20-%2014bit%20%283%3A2%29.DNG) · [Source EXIF](https://raw.pixls.us/getfile.php/4678/exif/_IMG0114.DNG.exif.txt) · [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
+
+## Photographs in the user guide
+
+The built-in guide (`resources/help`) shows two camera photographs from
+Wikimedia Commons, reduced in size and otherwise unchanged:
+
+- PENTAX K-3 Mark III: © Jörgens.Mi / Wikipedia, CC BY-SA 3.0.
+  [File:Pentax K3III jm136770 ji.jpg](https://commons.wikimedia.org/wiki/File:Pentax_K3III_jm136770_ji.jpg) · [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)
+- PENTAX Q7: Tomidaooooooo, CC BY 4.0.
+  [File:Pentax Q7 jp475.png](https://commons.wikimedia.org/wiki/File:Pentax_Q7_jp475.png) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+The reduced copies are offered under the same licences. The guide's other
+pictures are drawn or captured by `tools/build_help_images.py`; its chart and
+Lightroom drawings are original diagrams, not reproductions of those products.
