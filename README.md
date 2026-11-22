@@ -6,6 +6,8 @@
 
 ## 사용 방법
 
+프로그램에서 **F1**(도움말 → 사용 설명서)을 누르면 그림이 든 자세한 설명서가 프로그램 안에서 열립니다. Lightroom에 프로파일을 추가하는 방법도 거기에 있습니다. 웹 브라우저나 인터넷이 필요 없습니다. [설명서 원본](src/firmware_color_studio/resources/help/index.html)
+
 **다른 카메라의 JPEG 색감을 가져오려면** 상단의 **차트 JPEG → DCP**를 누르거나 JPEG를 창에 끌어 놓으세요. Studio가 ColorChecker Classic의 위치와 방향을 찾아 24개 패치에 번호를 표시하고 색감을 추정합니다. 번호와 미리보기를 확인한 뒤 **DCP 저장**을 누르세요. 자동 인식에 실패했을 때만 바깥 네 모서리를 지정해 달라는 안내가 나타납니다. 모서리는 어떤 순서로 눌러도 인쇄된 색 배열로 방향을 맞추며, 네 번째 모서리를 누르면 색감 추정이 자동으로 끝납니다. [지원 차트·사용법·검증 결과](docs/chart-profiles.md)
 
 **차트 사진 없이 다른 카메라의 색감을 쓰려면** 상단의 **다른 카메라 색감**을 누르세요. Kodak C875, Sony DSC-P200·TX66·T100, Konica Minolta DiMAGE X1, Samsung EX1의 색감이 들어 있고, 고르면 선택한 카메라용 DCP를 만듭니다. 각 카메라가 같은 ColorChecker를 찍은 JPEG 한 장에서 잰 값이며 제조사의 프로파일이 아닙니다. [내장 색감](docs/chart-profiles.md#built-in-looks)
